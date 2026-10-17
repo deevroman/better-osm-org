@@ -1,7 +1,8 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.7.6
+// @version         1.7.7
+// @changelog       v1.7.7: indoor viewers link for object with indoor=*, shop=mall, comment button in Edit Tags
 // @changelog       v1.7.3: Notes resolve buttons in iD, Open in Vespucci action, Drag&Drop for JSON array and .osc β
 // @changelog       v1.7.2: Direct messages templates, retries for osm-revert, ctrl + S to save active object
 // @changelog       v1.7.2: Validate building:min_level, highlight suspect words in source=*, and imagery_used=
@@ -656,6 +657,7 @@ _translations["en"] = {
         needRoofOrientation: "it seems to need to be changed to roof:orientation",
         clickShowEmbedded3d:
             "Click to show the embedded 3D Viewer.\nIn the script settings, you can set it to open on the OSM page by default",
+        clickShowEmbeddedIndoor: "Click to show the embedded indoor viewer.",
         setAsDefaultForClick: "Set as default for click",
         defaultViewer: "It's default viewer",
         keyTooShort: "The key is too short",
@@ -1123,6 +1125,7 @@ _translations["tr"] = {
         needRoofOrientation: "bunun roof:orientation olarak değiştirilmesi gerekiyor gibi görünüyor",
         clickShowEmbedded3d:
             "Gömülü 3B Görüntüleyiciyi göstermek için tıklayın.\nScript ayarlarında varsayılan olarak OSM sayfasında açılmasını ayarlayabilirsiniz",
+        clickShowEmbeddedIndoor: "Gömülü indoor görüntüleyiciyi göstermek için tıklayın.",
         setAsDefaultForClick: "Tıklama için varsayılan yap",
         defaultViewer: "Bu varsayılan görüntüleyici",
         keyTooShort: "Anahtar çok kısa",
@@ -1604,6 +1607,7 @@ _translations["ru"] = {
         needRoofOrientation: "похоже, это нужно заменить на roof:orientation",
         clickShowEmbedded3d:
             "Нажмите, чтобы показать встроенный 3D Viewer.\nВ настройках скрипта можно задать открытие на странице OSM по умолчанию",
+        clickShowEmbeddedIndoor: "Нажмите, чтобы показать встроенный indoor-просмотрщик.",
         setAsDefaultForClick: "Установить по умолчанию для клика",
         defaultViewer: "Это просмотрщик по умолчанию",
         keyTooShort: "Ключ слишком короткий",
@@ -2073,6 +2077,7 @@ _translations["de"] = {
         needRoofOrientation: "es sieht so aus, als müsste das zu roof:orientation geändert werden",
         clickShowEmbedded3d:
             "Klicken, um den eingebetteten 3D-Viewer anzuzeigen.\nIn den Skript-Einstellungen kannst du festlegen, dass er standardmäßig auf der OSM-Seite geöffnet wird",
+        clickShowEmbeddedIndoor: "Klicken, um den eingebetteten Indoor-Viewer anzuzeigen.",
         setAsDefaultForClick: "Als Standard für Klick setzen",
         defaultViewer: "Dies ist der Standard-Viewer",
         keyTooShort: "Der Schlüssel ist zu kurz",
@@ -2543,6 +2548,7 @@ _translations["fr"] = {
         needRoofOrientation: "il semble qu'il faut le remplacer par roof:orientation",
         clickShowEmbedded3d:
             "Cliquer pour afficher le visualiseur 3D intégré.\nDans les paramètres du script, vous pouvez définir l'ouverture par défaut sur la page OSM",
+        clickShowEmbeddedIndoor: "Cliquer pour afficher le visualiseur indoor intégré.",
         setAsDefaultForClick: "Définir par défaut au clic",
         defaultViewer: "C'est le visualiseur par défaut",
         keyTooShort: "La clé est trop courte",
@@ -3008,6 +3014,7 @@ _translations["hr"] = {
         needRoofOrientation: "izgleda da ovo treba promijeniti u roof:orientation",
         clickShowEmbedded3d:
             "Kliknite za prikaz ugrađenog 3D preglednika.\nU postavkama skripte možete postaviti otvaranje na OSM stranici kao zadano",
+        clickShowEmbeddedIndoor: "Kliknite za prikaz ugrađenog indoor preglednika.",
         setAsDefaultForClick: "Postavi kao zadano za klik",
         defaultViewer: "Ovo je zadani preglednik",
         keyTooShort: "Ključ je prekratak",
@@ -3474,6 +3481,7 @@ _translations["uk"] = {
         needRoofOrientation: "схоже, це потрібно змінити на roof:orientation",
         clickShowEmbedded3d:
             "Натисніть, щоб показати вбудований 3D-переглядач.\nУ налаштуваннях скрипта можна задати відкриття на сторінці OSM за замовчуванням",
+        clickShowEmbeddedIndoor: "Натисніть, щоб показати вбудований indoor-переглядач.",
         setAsDefaultForClick: "Установити за замовчуванням для кліку",
         defaultViewer: "Це переглядач за замовчуванням",
         keyTooShort: "Ключ надто короткий",
@@ -3903,6 +3911,19 @@ const instancesOf3DViewers = [
         },
     },
     {
+        name: "OSM Simple 3D editor",
+        url: "https://felispimeja.github.io/osm-simple3d-editor/",
+        makeURL: function ({ x: x, y: y, z: z, id: id, osm_type_first_letter: osm_type_first_letter }) {
+            if (osm_server === ohm_prod_server) {
+                return `${this.url}?server=ohm#${z}/${x}/${y}/0/60`
+            } else if (osm_server === ogf_prod_server) {
+                return `${this.url}?server=ogf#${z}/${x}/${y}/0/60`
+            } else {
+                return `${this.url}#${z}/${x}/${y}/0/60`
+            }
+        },
+    },
+    {
         name: "F4Map",
         url: "https://demo.f4map.com/",
         makeURL: function ({ x: x, y: y, z: z }) {
@@ -3966,6 +3987,44 @@ const instancesOf3DViewers = [
     //         return `${this.url}/?id=${id}&type=${type}`
     //     }
     // }
+]
+
+/** @type {externalURL[]} */
+const instancesOfIndoorViewers = [
+    {
+        name: "indoor=",
+        url: "https://indoorequal.org/",
+        makeURL: function ({ x: x, y: y, z: z }) {
+            return `${this.url}#map=${z}/${x}/${y}`
+        },
+    },
+    {
+        name: "OpenLevelUp",
+        url: "https://openlevelup.net/",
+        makeURL: function ({ x: x, y: y, z: z }) {
+            return `${this.url}#${z}/${x}/${y}`
+        },
+    },
+    {
+        name: "OsmInEdit",
+        url: "https://osminedit.pavie.info/",
+        makeURL: function ({ x: x, y: y, z: z }) {
+            return `${this.url}#${z}/${x}/${y}/0`
+        },
+    },
+    {
+        name: "OSM Simple 3D editor",
+        url: "https://felispimeja.github.io/osm-simple3d-editor/",
+        makeURL: function ({ x: x, y: y, z: z, id: id, osm_type_first_letter: osm_type_first_letter }) {
+            if (osm_server === ohm_prod_server) {
+                return `${this.url}?server=ohm#${z}/${x}/${y}`
+            } else if (osm_server === ogf_prod_server) {
+                return `${this.url}?server=ogf#${z}/${x}/${y}`
+            } else {
+                return `${this.url}#${z}/${x}/${y}`
+            }
+        },
+    },
 ]
 
 /** @type {externalURL} */
@@ -11868,7 +11927,7 @@ function addResolveNotesButton() {
     if (document.querySelector(".resolve-note-done")) return
     if (document.querySelector("#timeback-btn")) return
     resetSearchFormFocus()
-    void geocodeCurrentView()
+    trickyGeocoder()
 
     document.querySelectorAll('#sidebar_content a[href^="/user/"]').forEach(elem => {
         getCachedUserInfo(elem.textContent).then(info => {
@@ -12703,6 +12762,9 @@ function makeComment(object_type, object_id, prevTags, newTags) {
         }
     }
 
+    if (tagsHint === "") {
+        throw "No changes"
+    }
     tagsHint = tagsHint.match(/(.*); /)[1]
 
     let mainTagsHint = ""
@@ -12745,9 +12807,10 @@ function makeComment(object_type, object_id, prevTags, newTags) {
  * @param {number} object_id
  * @param {number} object_version
  * @param {Map<string, string>} newTags
+ * @param {boolean} confirmComment
  * @return {Promise<string>}
  */
-async function uploadChanges(object_type, object_id, object_version, newTags) {
+async function uploadChanges(object_type, object_id, object_version, newTags, confirmComment) {
     const rawObjectInfo = await (await fetch(osm_server.apiBase + object_type + "/" + object_id)).text()
     const objectInfo = new DOMParser().parseFromString(rawObjectInfo, "text/xml")
     const lastVersion = parseInt(objectInfo.querySelector("[version]:not(osm)").getAttribute("version"))
@@ -12769,7 +12832,14 @@ async function uploadChanges(object_type, object_id, object_version, newTags) {
         objectXML.appendChild(tag)
     })
 
-    const changesetId = await openOsmChangeset(makeComment(object_type, object_id, prevTags, newTags))
+    let comment = makeComment(object_type, object_id, prevTags, newTags)
+    if (confirmComment) {
+        comment = prompt("Upload edits with this comment?", comment)
+        if (!comment) {
+            throw ""
+        }
+    }
+    const changesetId = await openOsmChangeset(comment)
     try {
         objectInfo.children[0].children[0].setAttribute("changeset", changesetId)
 
@@ -12828,6 +12898,8 @@ function getFetchObjectPromise(type, id) {
     }
 }
 
+let changesUploadingLock = false
+
 async function editTagsHandler(e) {
     e.preventDefault()
     if (document.querySelector(".better-osm-org-tags-editor-wrapper")) {
@@ -12881,11 +12953,19 @@ async function editTagsHandler(e) {
     saveButton.classList.add("btn", "btn-primary")
     saveButton.textContent = "Save"
     saveButton.onclick = async () => {
+        if (changesUploadingLock) {
+            saveButton.style.cursor = "progress"
+            return
+        }
         try {
-            await uploadChanges(type, id, version, buildTags(ta.value))
+            changesUploadingLock = true
+            await uploadChanges(type, id, version, buildTags(ta.value), false)
             tryReloadSidebar()
         } catch (e) {
             errorPane.textContent = e
+        } finally {
+            changesUploadingLock = false
+            saveButton.style.removeProperty("cursor")
         }
     }
     btnWrapper.appendChild(saveButton)
@@ -12902,15 +12982,27 @@ async function editTagsHandler(e) {
 
     btnWrapper.appendChild(cancelButton)
 
-    const info = document.createElement("span")
-    info.classList.add("bi", "bi-info-circle")
-    info.style.cursor = "help"
-    info.style.marginLeft = "auto"
-    info.style.alignSelf = "center"
-    info.style.color = "gray"
-    info.title = "better-osm-org implementation of tags editor.\n\nHotkey: alt + E"
+    const comment = document.createElement("button")
+    comment.classList.add("bi", "bi-chat-left-text-fill")
+    comment.style.border = "none"
+    comment.style.background = "transparent"
+    comment.style.cursor = "pointer"
+    comment.style.marginLeft = "auto"
+    comment.style.alignSelf = "center"
+    comment.style.color = "gray"
+    comment.style.zoom = "1.5"
+    comment.title = "Click to upload with custom comment\n\nbetter-osm-org implementation of tags editor"
 
-    btnWrapper.appendChild(info)
+    comment.onclick = async () => {
+        try {
+            await uploadChanges(type, id, version, buildTags(ta.value), true)
+            tryReloadSidebar()
+        } catch (e) {
+            errorPane.textContent = e
+        }
+    }
+
+    btnWrapper.appendChild(comment)
 }
 
 function addTagsEditorButton() {
@@ -16191,11 +16283,17 @@ function makeXmasFeatureEasterEgg() {
     }
 }
 
-let buildingViewerIframe = null
+let viewerIframe = null
 
 let contextMenuCSSInjected = false
 
 const contextMenuCSS = `
+    #building-3d-view,
+    #building-indoor-view {
+        height: 120% !important;
+        z-index: 9999 !important;
+    }
+
     .betterOsmContextMenu {
         position: absolute;
         display: "block";
@@ -16372,6 +16470,198 @@ function makeRoofDirectionValue(valueCell, row, isVersionPage) {
     })
 }
 
+function makeViewerValue(valueCell, key) {
+    const isIndoorViewer = key === "indoor" || (key === "shop" && valueCell.textContent === "mall")
+    const viewerConfig = isIndoorViewer
+        ? {
+              viewers: instancesOfIndoorViewers,
+              storageKey: "IndoorViewer",
+              defaultViewer: "OSM Simple 3D editor",
+              linkClass: "view-indoor-link",
+              buttonText: "indoor",
+              title: "objectPage.clickShowEmbeddedIndoor",
+              iframeId: "building-indoor-view",
+              openInNewTabConfig: null,
+          }
+        : {
+              viewers: instancesOf3DViewers,
+              storageKey: "3DViewer",
+              defaultViewer: "OSM Building Viewer",
+              linkClass: "view-3d-link",
+              buttonText: "3D",
+              title: "objectPage.clickShowEmbedded3d",
+              iframeId: "building-3d-view",
+              openInNewTabConfig: "3DViewerInNewTab",
+          }
+
+    if (location.pathname.includes("/history") || document.querySelector(`.${viewerConfig.linkClass}`)) {
+        return
+    }
+    const m = location.pathname.match(/\/(way|relation)\/(\d+)/)
+    if (!m) {
+        return
+    }
+    const [, type, id] = m
+    if (!type) {
+        return
+    }
+    if (!isIndoorViewer && type === "way" && ["building", "building:part"].includes(key)) {
+        const has3DTags = !Array.from(document.querySelectorAll(".browse-tag-list tr th")).some(i => {
+            return (
+                i.textContent.includes("level") ||
+                i.textContent.includes("height") ||
+                i.textContent.includes("roof") ||
+                i.textContent.includes("wikidata")
+            )
+        })
+        if (has3DTags) {
+            if (document.querySelectorAll('a[href^="/node/"]').length <= 5) {
+                return
+            }
+        }
+    }
+    injectContextMenuCSS()
+    const parent = document.querySelector(".browse-tag-list").parentElement.previousElementSibling
+    parent.style.display = "flex"
+
+    let wrapper = parent.querySelector(".btn-group")
+    if (!wrapper) {
+        wrapper = document.createElement("span")
+        wrapper.classList.add("btn-group")
+        wrapper.style.marginLeft = "auto"
+        parent.appendChild(wrapper)
+    }
+
+    const viewInViewer = document.createElement("span")
+    viewInViewer.classList.add(viewerConfig.linkClass, "btn", "btn-outline-primary")
+    viewInViewer.textContent = viewerConfig.buttonText
+    viewInViewer.style.cursor = "pointer"
+    viewInViewer.style.paddingTop = "3px"
+    viewInViewer.style.paddingBottom = "3px"
+    viewInViewer.style.marginLeft = "5px"
+    viewInViewer.style.borderTopLeftRadius = "var(--bs-border-radius)"
+    viewInViewer.style.borderBottomLeftRadius = "var(--bs-border-radius)"
+    viewInViewer.title = t(viewerConfig.title)
+
+    async function contextMenuHandler(e) {
+        if (document.querySelector(".betterOsmContextMenu")) {
+            document.querySelector(".betterOsmContextMenu").remove()
+            return
+        }
+        const selectedViewer = (await GM.getValue(viewerConfig.storageKey)) ?? viewerConfig.defaultViewer
+        e.preventDefault()
+        e.stopPropagation()
+
+        const menu = makeContextMenuElem({
+            ...e,
+            pageX: e.target.getBoundingClientRect().right,
+            pageY: e.target.getBoundingClientRect().bottom,
+        })
+        viewerConfig.viewers.forEach(i => {
+            const listItem = document.createElement("div")
+            const a = document.createElement("a")
+            const [x, y, z] = getCurrentXYZ()
+            a.href = i.makeURL({ x, y, z, type, id, osm_type_first_letter: type[0] })
+            a.textContent = i.name
+            a.target = "_blank"
+            a.style.width = "100%"
+
+            const pin = document.createElement("input")
+            pin.id = i.name
+            pin.type = "radio"
+            pin.classList.add("pin")
+            pin.setAttribute("name", "viewer-selector")
+            const pinLabel = document.createElement("label")
+            pinLabel.setAttribute("for", i.name)
+            pinLabel.classList.add("pin-label")
+            pinLabel.textContent = "📌"
+            pinLabel.title = t("objectPage.setAsDefaultForClick")
+            if (i.name === selectedViewer) {
+                pin.checked = true
+                pinLabel.title = t("objectPage.defaultViewer")
+            }
+            pin.onchange = async () => {
+                if (pin.checked) {
+                    await GM.setValue(viewerConfig.storageKey, i.name)
+                    if (viewInViewer.classList.contains("active")) {
+                        viewInViewer.click()
+                        viewInViewer.click()
+                    }
+                }
+            }
+            listItem.appendChild(pin)
+            listItem.appendChild(pinLabel)
+            listItem.appendChild(a)
+            document.addEventListener(
+                "click",
+                function fn(e) {
+                    if (!e.isTrusted) {
+                        document.addEventListener("click", fn, { once: true })
+                        return
+                    }
+                    if (e.target.classList.contains("pin-label") || e.target.classList.contains("pin")) {
+                        document.addEventListener("click", fn, { once: true })
+                        return
+                    }
+                    menu.remove()
+                },
+                { once: true },
+            )
+            menu.appendChild(listItem)
+        })
+        document.body.appendChild(menu)
+    }
+
+    viewInViewer.addEventListener("contextmenu", contextMenuHandler)
+
+    async function clickHandler(e) {
+        if (viewerIframe) {
+            viewerIframe.remove()
+            viewerIframe = null
+            viewInViewer.classList.toggle("active")
+            return
+        }
+        const [x, y, z] = getCurrentXYZ()
+        const selectedViewer = (await GM.getValue(viewerConfig.storageKey)) ?? viewerConfig.defaultViewer
+        const viewer = viewerConfig.viewers.find(i => i.name === selectedViewer)
+        const url = viewer.makeURL({ x, y, z, type, id, osm_type_first_letter: type[0] })
+        if (
+            isMobile ||
+            e.ctrlKey ||
+            e.metaKey ||
+            e.which === 2 ||
+            (viewerConfig.openInNewTabConfig && GM_config.get(viewerConfig.openInNewTabConfig))
+        ) {
+            window.open(url, "_blank")
+            return
+        }
+        viewInViewer.classList.toggle("active")
+
+        viewerIframe = GM_addElement("iframe", {
+            src: url,
+            width: document.querySelector("#map").clientWidth,
+            height: "100%",
+            id: viewerConfig.iframeId,
+        })
+        document.querySelector("#map").before(viewerIframe)
+    }
+
+    viewInViewer.addEventListener("click", clickHandler)
+    viewInViewer.addEventListener("auxclick", e => {
+        if (e.which !== 2) return
+        clickHandler(e)
+    })
+    wrapper.appendChild(viewInViewer)
+
+    const expand = document.createElement("span")
+    expand.classList.add("dropdown-toggle", "dropdown-toggle-split", "btn", "btn-outline-primary")
+    expand.style.cursor = "pointer"
+    expand.style.paddingTop = "3px"
+    expand.style.paddingBottom = "3px"
+    wrapper.appendChild(expand)
+    expand.onclick = contextMenuHandler
+}
+
 // example https://osm.org/node/6506618057
 function makeLinksInVersionTagClickable(row, objType) {
     const keyCell = row.querySelector("th")
@@ -16379,7 +16669,7 @@ function makeLinksInVersionTagClickable(row, objType) {
     const rawKey = keyCell.textContent
     const key = rawKey.toLowerCase()
     const valueCell = row.querySelector("td .current-value-span") ? row.querySelector("td .current-value-span") : row.querySelector("td")
-    if (key === "fixme") {
+    if (key.startsWith("fixme")) {
         valueCell.classList.add("fixme-tag")
     } else if (key === "note") {
         valueCell.classList.add("note-tag")
@@ -16420,165 +16710,10 @@ function makeLinksInVersionTagClickable(row, objType) {
         makeConditionalValue(valueCell)
     } else if (needValidateOpeningHoursKey(key)) {
         makeOpeningHoursValue(valueCell, key, true)
+    } else if (key === "indoor" || (key === "shop" && valueCell.textContent === "mall")) {
+        makeViewerValue(valueCell, key)
     } else if (["building", "building:part"].includes(key) || (key === "type" && valueCell.textContent === "building")) {
-        if (location.pathname.includes("/history") || document.querySelector(".view-3d-link")) {
-            return
-        }
-        const m = location.pathname.match(/\/(way|relation)\/(\d+)/)
-        if (!m) {
-            return
-        }
-        const [, type, id] = m
-        if (!type) {
-            return
-        }
-        if (type === "way" && ["building", "building:part"].includes(key)) {
-            const has3DTags = !Array.from(document.querySelectorAll(".browse-tag-list tr th")).some(i => {
-                return (
-                    i.textContent.includes("level") ||
-                    i.textContent.includes("height") ||
-                    i.textContent.includes("roof") ||
-                    i.textContent.includes("wikidata")
-                )
-            })
-            if (has3DTags) {
-                if (document.querySelectorAll('a[href^="/node/"]').length <= 5) {
-                    return
-                }
-            }
-        }
-        injectCSSIntoOSMPage(
-            `
-                    #building-3d-view {
-                        /* position: absolute !important; */
-                        height: 120% !important;
-                        z-index: 9999 !important;
-                    }
-            ` + contextMenuCSS,
-        )
-        const parent = document.querySelector(".browse-tag-list").parentElement.previousElementSibling
-        parent.style.display = "flex"
-
-        const wrapper = document.createElement("span")
-        wrapper.classList.add("btn-group")
-        wrapper.style.marginLeft = "auto"
-        parent.appendChild(wrapper)
-
-        const viewIn3D = document.createElement("span")
-        viewIn3D.classList.add("view-3d-link", "btn", "btn-outline-primary")
-        viewIn3D.textContent = "3D"
-        viewIn3D.style.cursor = "pointer"
-        viewIn3D.style.paddingTop = "3px"
-        viewIn3D.style.paddingBottom = "3px"
-        viewIn3D.title = t("objectPage.clickShowEmbedded3d")
-
-        async function contextMenuHandler(e) {
-            const buildingViewer = (await GM.getValue("3DViewer")) ?? "OSM Building Viewer"
-            e.preventDefault()
-            e.stopPropagation()
-
-            const menu = makeContextMenuElem({
-                ...e,
-                pageX: e.target.getBoundingClientRect().right,
-                pageY: e.target.getBoundingClientRect().bottom,
-            })
-            instancesOf3DViewers.forEach(i => {
-                const listItem = document.createElement("div")
-                const a = document.createElement("a")
-                const [x, y, z] = getCurrentXYZ()
-                a.href = i.makeURL({ x, y, z, type, id })
-                a.textContent = i.name
-                a.target = "_blank"
-                a.style.width = "100%"
-
-                const pin = document.createElement("input")
-                pin.id = i.name
-                pin.type = "radio"
-                pin.classList.add("pin")
-                pin.setAttribute("name", "viewer-selector")
-                const pinLabel = document.createElement("label")
-                pinLabel.setAttribute("for", i.name)
-                pinLabel.classList.add("pin-label")
-                pinLabel.textContent = "📌"
-                pinLabel.title = t("objectPage.setAsDefaultForClick")
-                if (i.name === buildingViewer) {
-                    pin.checked = true
-                    pinLabel.title = t("objectPage.defaultViewer")
-                }
-                pin.onchange = async () => {
-                    if (pin.checked) {
-                        await GM.setValue("3DViewer", i.name)
-                        if (viewIn3D.classList.contains("active")) {
-                            viewIn3D.click()
-                            viewIn3D.click()
-                        }
-                    }
-                }
-                listItem.appendChild(pin)
-                listItem.appendChild(pinLabel)
-                listItem.appendChild(a)
-                document.addEventListener(
-                    "click",
-                    function fn(e) {
-                        if (!e.isTrusted) {
-                            document.addEventListener("click", fn, { once: true })
-                            return
-                        }
-                        if (e.target.classList.contains("pin-label") || e.target.classList.contains("pin")) {
-                            document.addEventListener("click", fn, { once: true })
-                            return
-                        }
-                        menu.remove()
-                    },
-                    { once: true },
-                )
-                menu.appendChild(listItem)
-            })
-            document.body.appendChild(menu)
-        }
-
-        viewIn3D.addEventListener("contextmenu", contextMenuHandler)
-
-        async function clickHandler(e) {
-            if (buildingViewerIframe) {
-                buildingViewerIframe.remove()
-                buildingViewerIframe = null
-                viewIn3D.classList.toggle("active")
-                return
-            }
-            const [x, y, z] = getCurrentXYZ()
-            const buildingViewer = (await GM.getValue("3DViewer")) ?? "OSM Building Viewer"
-            const viewer = instancesOf3DViewers.find(i => i.name === buildingViewer)
-            const url = viewer.makeURL({ x, y, z, type, id })
-            if (isMobile || e.ctrlKey || e.metaKey || e.which === 2 || GM_config.get("3DViewerInNewTab")) {
-                window.open(url, "_blank")
-                return
-            }
-            viewIn3D.classList.toggle("active")
-
-            buildingViewerIframe = GM_addElement("iframe", {
-                src: url,
-                width: document.querySelector("#map").clientWidth,
-                height: "100%",
-                id: "building-3d-view",
-            })
-            document.querySelector("#map").before(buildingViewerIframe)
-        }
-
-        viewIn3D.addEventListener("click", clickHandler)
-        viewIn3D.addEventListener("auxclick", e => {
-            if (e.which !== 2) return
-            clickHandler(e)
-        })
-        wrapper.appendChild(viewIn3D)
-
-        const expand = document.createElement("span")
-        expand.classList.add("dropdown-toggle", "dropdown-toggle-split", "btn", "btn-outline-primary")
-        expand.style.cursor = "pointer"
-        expand.style.paddingTop = "3px"
-        expand.style.paddingBottom = "3px"
-        wrapper.appendChild(expand)
-        expand.onclick = contextMenuHandler
+        makeViewerValue(valueCell, key)
     } else if (
         // prettier-ignore
         (key === "route" || key === "superroute") &&
@@ -20802,7 +20937,8 @@ async function geocodeCurrentView(attempts = 5) {
         setAttributionPrefix("")
         if (attempts > 0) {
             console.log(`Attempt №${7 - attempts} for geocoding`)
-            setTimeout(geocodeCurrentView, 100, attempts - 1)
+            await sleep(100)
+            await geocodeCurrentView(attempts - 1)
         } else {
             console.log("Skip geocoding")
         }
@@ -20821,7 +20957,7 @@ async function geocodeCurrentView(attempts = 5) {
         console.debug(`%c${url} should be cached`, "background: #222; color: #00ff00")
     }
 
-    fetchJSONWithCache(url, {
+    await fetchJSONWithCache(url, {
         signal: getAbortController().signal,
         retryCount: 5,
     })
@@ -24307,6 +24443,44 @@ async function interceptMapManually() {
     }
 }
 
+function trickyGeocoder() {
+    geocodeCurrentView().then(() => {
+        try {
+            getMap().once(
+                "moveend",
+                intoPageWithFun(function () {
+                    void geocodeCurrentView(1)
+                }),
+            )
+        } catch (err) {
+            console.error(err)
+        }
+    })
+}
+
+let changesetSidebarObserver = null
+
+function watchOnSidebarReload() {
+    if (!document.querySelector("#sidebar_content_frame")) {
+        return
+    }
+    changesetSidebarObserver = new MutationObserver((mutationList, observer) => {
+        if (!location.pathname.startsWith("/changeset")) {
+            observer.disconnect()
+            return
+        }
+        for (const i of mutationList) {
+            if (i.target.hasAttribute("complete")) {
+                observer.disconnect()
+                cleanAllObjects()
+                setupChangesetQuickLook()
+                return
+            }
+        }
+    })
+    changesetSidebarObserver.observe(document.querySelector("#sidebar_content_frame"), { attributes: true })
+}
+
 async function addChangesetQuickLook() {
     if (quickLookInjectingStarted) return
     if (!location.pathname.startsWith("/changeset")) {
@@ -24325,7 +24499,7 @@ async function addChangesetQuickLook() {
     }
     quickLookInjectingStarted = true
     resetSearchFormFocus()
-    void geocodeCurrentView()
+    trickyGeocoder()
     makeTimesSwitchable()
     if (GM_config.get("ResizableSidebar")) {
         document.querySelector("#sidebar").style.resize = "horizontal"
@@ -24341,6 +24515,8 @@ async function addChangesetQuickLook() {
     }
 
     frames.forEach(i => i.setAttribute("changeset-id", changesetID))
+
+    watchOnSidebarReload()
 
     const params = new URLSearchParams(location.search)
     let changesetIDs = []
@@ -25491,6 +25667,8 @@ function makePolygonMeasureButtons(nodesIds, nodesMap, osm_type, fullData, id) {
             } catch (e) {
                 console.error(e)
             }
+        } else if (["waterway", "route"].includes(relationVersion.tags["type"])) {
+            // todo
         }
     }
 
@@ -26642,6 +26820,7 @@ function runInOsmPageCode() {
     window.hiddenChangesetsCount = null;
     window.spyGlassMode = false;
     window.photosMode = false;
+    window.view3DModelsMode = false;
 
     window.notesDisplayName = "";
     window.notesQFilter = "";
@@ -26661,7 +26840,32 @@ function runInOsmPageCode() {
     console.log('Fetch intercepted');
     window.fetch = async (...args) => {
         try {
-            if (args[0]?.includes?.("notes.json")) {
+            if (window.view3DModelsMode && window.mapGLIntercepted && args[0]?.startsWith?.("blob:https://www.openstreetmap.org/")) {
+                const resourceUrl = args[0] 
+                console.log("overridden fetch in page", resourceUrl)
+                const resultCallback = new Promise((resolve, reject) => {
+                    window.addEventListener("message", e => {
+                        if (e.origin !== location.origin) return
+                        if (e.data.type !== "bypass_csp_response") {
+                            return
+                        }
+                        if (e.data.url !== resourceUrl) {
+                            return
+                        }
+                        resolve(e.data.data)
+                    })
+                })
+                window.postMessage({ "type": "bypass_csp", url: resourceUrl }, location.origin)
+                const res = await resultCallback
+                if (res.aborted) {
+                    throw "AbortError"
+                } else {
+                    return new Response(res.status === 204 ? null : res.response, {
+                        status: res.status,
+                        statusText: res.statusText,
+                    });
+                }
+            } else if (args[0]?.includes?.("notes.json")) {
                 if (!(window.notesDisplayName !== ""
                     || window.notesQFilter !== ""
                     || (window.notesClosedFilter !== "" && window.notesClosedFilter !== "7")
@@ -30562,6 +30766,217 @@ async function _setupNewEditorsLinks(mutationsList) {
 
 //</editor-fold>
 
+//<editor-fold desc="3d-models" defaultstate="collapsed">
+
+let prepared3dmrModel = null
+const threeJsModuleUrl = "https://esm.sh/three@0.169.0"
+const gltfLoaderModuleUrl = "https://esm.sh/three@0.169.0/examples/jsm/loaders/GLTFLoader.js"
+
+function actionPrepare3dmrModel() {
+    getWindow().view3DModelsMode = true
+    const input = prompt("Enter 3DMR model ID:")
+    if (input === null) {
+        return
+    }
+
+    const modelId = Number(input.trim())
+    if (!Number.isSafeInteger(modelId) || modelId <= 0) {
+        alert("3DMR model ID must be a positive integer")
+        return
+    }
+
+    void prepare3dmrModel(modelId)
+}
+
+async function prepare3dmrModel(modelId) {
+    try {
+        if (!getWindow().mapGL || !findVectorMap()) {
+            throw new Error("Enable a vector map before loading a 3DMR model")
+        }
+        initThreeJs()
+        const model = await download3dmrModel(modelId)
+
+        const three = getWindow().__betterOsmThree
+        if (!three?.WebGLRenderer || !getWindow().__betterOsmGLTFLoader) {
+            throw new Error("Three.js did not expose the renderer and GLTFLoader globals")
+        }
+        console.info("Three.js loaded for 3DMR rendering", { revision: three.REVISION })
+
+        display3dmrModel(model)
+    } catch (error) {
+        console.error("Could not prepare 3DMR model rendering", error)
+        alert(`Could not load 3DMR model: ${error.message}`)
+    }
+}
+
+function initThreeJs() {
+    if (getWindow().__betterOsmThree?.WebGLRenderer) {
+        return
+    }
+    GM_addElement(document.head, "script", {
+        "data-better-osm-three": "true",
+        type: "module",
+        textContent: `import * as THREE from "${threeJsModuleUrl}";
+import { GLTFLoader } from "${gltfLoaderModuleUrl}";
+globalThis.__betterOsmThree = THREE;
+globalThis.__betterOsmGLTFLoader = GLTFLoader;`,
+    })
+}
+
+async function download3dmrModel(modelId) {
+    const modelUrl = `https://3dmr.eu/api/model/${modelId}`
+    const [modelResponse, infoResponse] = await Promise.all([
+        externalFetch({
+            method: "GET",
+            url: modelUrl,
+            responseType: "arraybuffer",
+        }),
+        externalFetch({
+            method: "GET",
+            url: `https://3dmr.eu/api/info/${modelId}`,
+            responseType: "json",
+        }),
+    ])
+    if (modelResponse.status !== 200) {
+        throw new Error(`3DMR model API returned HTTP ${modelResponse.status}`)
+    }
+    if (infoResponse.status !== 200) {
+        throw new Error(`3DMR metadata API returned HTTP ${infoResponse.status}`)
+    }
+
+    const glb = modelResponse.response
+    if (!(glb instanceof ArrayBuffer) || glb.byteLength < 12 || new DataView(glb).getUint32(0, true) !== 0x46546c67) {
+        throw new Error("3DMR returned data that is not a GLB model")
+    }
+    const modelInfo = infoResponse.response
+    if (typeof modelInfo?.lon !== "number" || typeof modelInfo.lat !== "number") {
+        throw new Error("3DMR returned metadata without coordinates")
+    }
+
+    prepared3dmrModel = { modelId, modelUrl, glb, modelInfo }
+    console.info("3DMR GLB downloaded for map rendering", {
+        modelId,
+        modelUrl,
+        byteLength: glb.byteLength,
+        coordinates: [modelInfo.lon, modelInfo.lat],
+    })
+    return prepared3dmrModel
+}
+
+function display3dmrModel(model) {
+    ensure3dmrRenderer()
+    getMap().setView({ lat: model.modelInfo.lat, lng: model.modelInfo.lon })
+    getWindow().__betterOsmRender3dmrModel(
+        intoPage({
+            glb: model.glb,
+            longitude: model.modelInfo.lon,
+            latitude: model.modelInfo.lat,
+            rotation: Number.isFinite(model.modelInfo.rotation) ? model.modelInfo.rotation : 0,
+        }),
+    )
+    findVectorMap().setPitch(50)
+}
+
+function ensure3dmrRenderer() {
+    if (getWindow().__betterOsmRender3dmrModel) {
+        return
+    }
+
+    injectJSIntoPage(`
+        (() => {
+            const layerId = "better-osm-3dmr-model"
+            const earthCircumference = 40075016.68557849
+
+            function findMap() {
+                for (const mapLayer of globalThis.mapGL ?? []) {
+                    const map = mapLayer?.getMaplibreMap?.()
+                    if (map) return map
+                }
+                return null
+            }
+
+            function getMercatorTransform(longitude, latitude) {
+                const latitudeRadians = latitude * Math.PI / 180
+                return {
+                    translateX: (longitude + 180) / 360,
+                    translateY: (180 - 180 / Math.PI * Math.log(Math.tan(Math.PI / 4 + latitudeRadians / 2))) / 360,
+                    translateZ: 0,
+                    scale: 1 / (earthCircumference * Math.cos(latitudeRadians)),
+                }
+            }
+
+            globalThis.__betterOsmRender3dmrModel = ({ glb, longitude, latitude, rotation = 0 }) => {
+                const map = findMap()
+                const THREE = globalThis.__betterOsmThree
+                const GLTFLoader = globalThis.__betterOsmGLTFLoader
+                if (!map || !THREE || !GLTFLoader) {
+                    throw new Error("MapLibre, Three.js, or GLTFLoader is unavailable")
+                }
+                if (map.getLayer(layerId)) {
+                    map.removeLayer(layerId)
+                }
+
+                const transform = getMercatorTransform(longitude, latitude)
+                const modelLayer = {
+                    id: layerId,
+                    type: "custom",
+                    renderingMode: "3d",
+                    onAdd(mapInstance, gl) {
+                        this.map = mapInstance
+                        this.camera = new THREE.Camera()
+                        this.scene = new THREE.Scene()
+
+                        const keyLight = new THREE.DirectionalLight(0xffffff, 1.2)
+                        keyLight.position.set(0, -70, 100).normalize()
+                        this.scene.add(keyLight)
+
+                        const fillLight = new THREE.DirectionalLight(0xffffff, 0.8)
+                        fillLight.position.set(0, 70, 100).normalize()
+                        this.scene.add(fillLight)
+                        this.scene.add(new THREE.AmbientLight(0xffffff, 0.35))
+
+                        new GLTFLoader().parse(
+                            glb,
+                            "",
+                            gltf => {
+                                gltf.scene.rotateY(THREE.MathUtils.degToRad(rotation))
+                                this.scene.add(gltf.scene)
+                                this.map.triggerRepaint()
+                            },
+                            error => console.error("Could not parse 3DMR GLB", error),
+                        )
+
+                        this.renderer = new THREE.WebGLRenderer({
+                            canvas: mapInstance.getCanvas(),
+                            context: gl,
+                            antialias: true,
+                        })
+                        this.renderer.autoClear = false
+                    },
+                    render(gl, args) {
+                        const mainMatrix = args.defaultProjectionData?.mainMatrix ?? args
+                        const projection = new THREE.Matrix4().fromArray(mainMatrix)
+                        const localTransform = new THREE.Matrix4()
+                            .makeTranslation(transform.translateX, transform.translateY, transform.translateZ)
+                            .scale(new THREE.Vector3(transform.scale, -transform.scale, transform.scale))
+                            .multiply(new THREE.Matrix4().makeRotationX(Math.PI / 2))
+
+                        this.camera.projectionMatrix = projection.multiply(localTransform)
+                        this.renderer.resetState()
+                        this.renderer.render(this.scene, this.camera)
+                    },
+                    onRemove() {
+                        this.renderer?.dispose()
+                    },
+                }
+                map.addLayer(modelLayer)
+            }
+        })()
+    `)
+}
+
+//</editor-fold>
+
 //<editor-fold desc="" defaultstate="collapsed">
 
 function setupLanguageSwitcher() {
@@ -31308,7 +31723,7 @@ function renderOSMGeoJSON(xml, options = {}) {
 
                     try {
                         console.log("Starting changeset upload")
-                        const changesetId = await uploadChanges(object_type, object_id, object_version, newTags)
+                        const changesetId = await uploadChanges(object_type, object_id, object_version, newTags, false)
 
                         startEditEvent.target.textContent = "#" + changesetId
                         startEditEvent.target.style.color = "green"
@@ -31992,6 +32407,8 @@ function displayJsonArray(json) {
     renderGeoJSONwrapper(geojson)
 }
 
+let imagesLayerBbox = null
+
 function handleDroppedFiles(files) {
     const mapWidth = getComputedStyle(document.querySelector("#map")).width
     const mapHeight = getComputedStyle(document.querySelector("#map")).height
@@ -32014,6 +32431,16 @@ function handleDroppedFiles(files) {
             if (metadata.GPSLongitudeRef === "W") {
                 lon = parseFloat(lon) * -1
             }
+
+            imagesLayerBbox = combineBBOXes([
+                imagesLayerBbox,
+                {
+                    min_lat: lat,
+                    min_lon: lon,
+                    max_lat: lat,
+                    max_lon: lon,
+                },
+            ])
 
             const marker = getWindow().L.circleMarker(
                 getWindow().L.latLng(lat, lon),
@@ -33047,6 +33474,11 @@ function zoomToCurrentObject(e) {
             [trackMetadata.min_lat, trackMetadata.min_lon],
             [trackMetadata.max_lat, trackMetadata.max_lon],
         ])
+    } else if (imagesLayerBbox) {
+        fitBounds([
+            [imagesLayerBbox.min_lat, imagesLayerBbox.min_lon],
+            [imagesLayerBbox.max_lat, imagesLayerBbox.max_lon],
+        ])
     }
 }
 
@@ -33114,7 +33546,7 @@ async function openObjectInJosmOrLevel0(e) {
     }
     const [, type, id] = m
     const shortType = type === "node" ? "n" : type === "way" ? "w" : "r"
-    if (e.altKey) {
+    if (e.altKey || e.shiftKey) {
         if (osm_server !== prod_server) {
             alert(t("actions.level0WorksOnlyOnOsmOrg"))
             return
@@ -33320,8 +33752,8 @@ function actionCopyCurrentShortLink() {
 }
 
 function actionCloseUi() {
-    buildingViewerIframe?.remove()
-    buildingViewerIframe = null
+    viewerIframe?.remove()
+    viewerIframe = null
     if (document.querySelector("#osm_alert_modal")?.checkVisibility()) {
         document.querySelector("#osm_alert_modal .btn-close").click()
     } else {
@@ -34701,6 +35133,14 @@ const hotkeyActions = {
         hideOnMobile: true,
         run: actionShowHotkeysHelp,
     },
+    prepare3dmrModel: {
+        title: "Download and display 3DMR model",
+        defaultBindings: ["F2"],
+        contexts: ["Main pages"],
+        preventDefault: true,
+        hideOnMobile: true,
+        run: actionPrepare3dmrModel,
+    },
     openOverpassSearch: {
         title: "Make Overpass request",
         defaultBindings: ["Shift+Slash"],
@@ -35932,8 +36372,8 @@ function cleanupBeforeNewLocation(path) {
         setAttributionPrefix("")
         addSwipes()
         document.querySelector("#fixed-rss-feed")?.remove()
-        buildingViewerIframe?.remove()
-        buildingViewerIframe = null
+        viewerIframe?.remove()
+        viewerIframe = null
         historyPagePaginationDeletingObserver?.disconnect()
         historyPagePaginationDeletingObserver = null
         paginationInHistoryStepObserver?.disconnect()

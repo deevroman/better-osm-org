@@ -433,6 +433,7 @@ _translations["tr"] = {
         needRoofOrientation: "bunun roof:orientation olarak değiştirilmesi gerekiyor gibi görünüyor",
         clickShowEmbedded3d:
             "Gömülü 3B Görüntüleyiciyi göstermek için tıklayın.\nScript ayarlarında varsayılan olarak OSM sayfasında açılmasını ayarlayabilirsiniz",
+        clickShowEmbeddedIndoor: "Gömülü indoor görüntüleyiciyi göstermek için tıklayın.",
         setAsDefaultForClick: "Tıklama için varsayılan yap",
         defaultViewer: "Bu varsayılan görüntüleyici",
         keyTooShort: "Anahtar çok kısa",

@@ -904,6 +904,11 @@ function zoomToCurrentObject(e) {
             [trackMetadata.min_lat, trackMetadata.min_lon],
             [trackMetadata.max_lat, trackMetadata.max_lon],
         ])
+    } else if (imagesLayerBbox) {
+        fitBounds([
+            [imagesLayerBbox.min_lat, imagesLayerBbox.min_lon],
+            [imagesLayerBbox.max_lat, imagesLayerBbox.max_lon],
+        ])
     }
 }
 
@@ -971,7 +976,7 @@ async function openObjectInJosmOrLevel0(e) {
     }
     const [, type, id] = m
     const shortType = type === "node" ? "n" : type === "way" ? "w" : "r"
-    if (e.altKey) {
+    if (e.altKey || e.shiftKey) {
         if (osm_server !== prod_server) {
             alert(t("actions.level0WorksOnlyOnOsmOrg"))
             return
@@ -1177,8 +1182,8 @@ function actionCopyCurrentShortLink() {
 }
 
 function actionCloseUi() {
-    buildingViewerIframe?.remove()
-    buildingViewerIframe = null
+    viewerIframe?.remove()
+    viewerIframe = null
     if (document.querySelector("#osm_alert_modal")?.checkVisibility()) {
         document.querySelector("#osm_alert_modal .btn-close").click()
     } else {

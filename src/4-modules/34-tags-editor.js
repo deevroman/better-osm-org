@@ -87,6 +87,9 @@ function makeComment(object_type, object_id, prevTags, newTags) {
         }
     }
 
+    if (tagsHint === "") {
+        throw "No changes"
+    }
     tagsHint = tagsHint.match(/(.*); /)[1]
 
     let mainTagsHint = ""
@@ -129,9 +132,10 @@ function makeComment(object_type, object_id, prevTags, newTags) {
  * @param {number} object_id
  * @param {number} object_version
  * @param {Map<string, string>} newTags
+ * @param {boolean} confirmComment
  * @return {Promise<string>}
  */
-async function uploadChanges(object_type, object_id, object_version, newTags) {
+async function uploadChanges(object_type, object_id, object_version, newTags, confirmComment) {
     const rawObjectInfo = await (await fetch(osm_server.apiBase + object_type + "/" + object_id)).text()
     const objectInfo = new DOMParser().parseFromString(rawObjectInfo, "text/xml")
     const lastVersion = parseInt(objectInfo.querySelector("[version]:not(osm)").getAttribute("version"))
@@ -153,7 +157,14 @@ async function uploadChanges(object_type, object_id, object_version, newTags) {
         objectXML.appendChild(tag)
     })
 
-    const changesetId = await openOsmChangeset(makeComment(object_type, object_id, prevTags, newTags))
+    let comment = makeComment(object_type, object_id, prevTags, newTags)
+    if (confirmComment) {
+        comment = prompt("Upload edits with this comment?", comment)
+        if (!comment) {
+            throw ""
+        }
+    }
+    const changesetId = await openOsmChangeset(comment)
     try {
         objectInfo.children[0].children[0].setAttribute("changeset", changesetId)
 
@@ -212,6 +223,8 @@ function getFetchObjectPromise(type, id) {
     }
 }
 
+let changesUploadingLock = false
+
 async function editTagsHandler(e) {
     e.preventDefault()
     if (document.querySelector(".better-osm-org-tags-editor-wrapper")) {
@@ -265,11 +278,19 @@ async function editTagsHandler(e) {
     saveButton.classList.add("btn", "btn-primary")
     saveButton.textContent = "Save"
     saveButton.onclick = async () => {
+        if (changesUploadingLock) {
+            saveButton.style.cursor = "progress"
+            return
+        }
         try {
-            await uploadChanges(type, id, version, buildTags(ta.value))
+            changesUploadingLock = true
+            await uploadChanges(type, id, version, buildTags(ta.value), false)
             tryReloadSidebar()
         } catch (e) {
             errorPane.textContent = e
+        } finally {
+            changesUploadingLock = false
+            saveButton.style.removeProperty("cursor")
         }
     }
     btnWrapper.appendChild(saveButton)
@@ -286,15 +307,27 @@ async function editTagsHandler(e) {
 
     btnWrapper.appendChild(cancelButton)
 
-    const info = document.createElement("span")
-    info.classList.add("bi", "bi-info-circle")
-    info.style.cursor = "help"
-    info.style.marginLeft = "auto"
-    info.style.alignSelf = "center"
-    info.style.color = "gray"
-    info.title = "better-osm-org implementation of tags editor.\n\nHotkey: alt + E"
+    const comment = document.createElement("button")
+    comment.classList.add("bi", "bi-chat-left-text-fill")
+    comment.style.border = "none"
+    comment.style.background = "transparent"
+    comment.style.cursor = "pointer"
+    comment.style.marginLeft = "auto"
+    comment.style.alignSelf = "center"
+    comment.style.color = "gray"
+    comment.style.zoom = "1.5"
+    comment.title = "Click to upload with custom comment\n\nbetter-osm-org implementation of tags editor"
 
-    btnWrapper.appendChild(info)
+    comment.onclick = async () => {
+        try {
+            await uploadChanges(type, id, version, buildTags(ta.value), true)
+            tryReloadSidebar()
+        } catch (e) {
+            errorPane.textContent = e
+        }
+    }
+
+    btnWrapper.appendChild(comment)
 }
 
 function addTagsEditorButton() {

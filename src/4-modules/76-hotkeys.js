@@ -26,6 +26,14 @@ const hotkeyActions = {
         hideOnMobile: true,
         run: actionShowHotkeysHelp,
     },
+    prepare3dmrModel: {
+        title: "Download and display 3DMR model",
+        defaultBindings: ["F2"],
+        contexts: ["Main pages"],
+        preventDefault: true,
+        hideOnMobile: true,
+        run: actionPrepare3dmrModel,
+    },
     openOverpassSearch: {
         title: "Make Overpass request",
         defaultBindings: ["Shift+Slash"],

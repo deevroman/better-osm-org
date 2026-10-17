@@ -436,6 +436,7 @@ _translations["fr"] = {
         needRoofOrientation: "il semble qu'il faut le remplacer par roof:orientation",
         clickShowEmbedded3d:
             "Cliquer pour afficher le visualiseur 3D intégré.\nDans les paramètres du script, vous pouvez définir l'ouverture par défaut sur la page OSM",
+        clickShowEmbeddedIndoor: "Cliquer pour afficher le visualiseur indoor intégré.",
         setAsDefaultForClick: "Définir par défaut au clic",
         defaultViewer: "C'est le visualiseur par défaut",
         keyTooShort: "La clé est trop courte",

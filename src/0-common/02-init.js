@@ -346,6 +346,19 @@ const instancesOf3DViewers = [
         },
     },
     {
+        name: "OSM Simple 3D editor",
+        url: "https://felispimeja.github.io/osm-simple3d-editor/",
+        makeURL: function ({ x: x, y: y, z: z, id: id, osm_type_first_letter: osm_type_first_letter }) {
+            if (osm_server === ohm_prod_server) {
+                return `${this.url}?server=ohm#${z}/${x}/${y}/0/60`
+            } else if (osm_server === ogf_prod_server) {
+                return `${this.url}?server=ogf#${z}/${x}/${y}/0/60`
+            } else {
+                return `${this.url}#${z}/${x}/${y}/0/60`
+            }
+        },
+    },
+    {
         name: "F4Map",
         url: "https://demo.f4map.com/",
         makeURL: function ({ x: x, y: y, z: z }) {
@@ -409,6 +422,44 @@ const instancesOf3DViewers = [
     //         return `${this.url}/?id=${id}&type=${type}`
     //     }
     // }
+]
+
+/** @type {externalURL[]} */
+const instancesOfIndoorViewers = [
+    {
+        name: "indoor=",
+        url: "https://indoorequal.org/",
+        makeURL: function ({ x: x, y: y, z: z }) {
+            return `${this.url}#map=${z}/${x}/${y}`
+        },
+    },
+    {
+        name: "OpenLevelUp",
+        url: "https://openlevelup.net/",
+        makeURL: function ({ x: x, y: y, z: z }) {
+            return `${this.url}#${z}/${x}/${y}`
+        },
+    },
+    {
+        name: "OsmInEdit",
+        url: "https://osminedit.pavie.info/",
+        makeURL: function ({ x: x, y: y, z: z }) {
+            return `${this.url}#${z}/${x}/${y}/0`
+        },
+    },
+    {
+        name: "OSM Simple 3D editor",
+        url: "https://felispimeja.github.io/osm-simple3d-editor/",
+        makeURL: function ({ x: x, y: y, z: z, id: id, osm_type_first_letter: osm_type_first_letter }) {
+            if (osm_server === ohm_prod_server) {
+                return `${this.url}?server=ohm#${z}/${x}/${y}`
+            } else if (osm_server === ogf_prod_server) {
+                return `${this.url}?server=ogf#${z}/${x}/${y}`
+            } else {
+                return `${this.url}#${z}/${x}/${y}`
+            }
+        },
+    },
 ]
 
 /** @type {externalURL} */
