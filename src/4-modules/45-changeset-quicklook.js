@@ -3745,6 +3745,29 @@ function trickyGeocoder() {
     })
 }
 
+let changesetSidebarObserver = null
+
+function watchOnSidebarReload() {
+    if (!document.querySelector("#sidebar_content_frame")) {
+        return
+    }
+    changesetSidebarObserver = new MutationObserver((mutationList, observer) => {
+        if (!location.pathname.startsWith("/changeset")) {
+            observer.disconnect()
+            return
+        }
+        for (const i of mutationList) {
+            if (i.target.hasAttribute("complete")) {
+                observer.disconnect()
+                cleanAllObjects()
+                setupChangesetQuickLook()
+                return
+            }
+        }
+    })
+    changesetSidebarObserver.observe(document.querySelector("#sidebar_content_frame"), { attributes: true })
+}
+
 async function addChangesetQuickLook() {
     if (quickLookInjectingStarted) return
     if (!location.pathname.startsWith("/changeset")) {
@@ -3779,6 +3802,8 @@ async function addChangesetQuickLook() {
     }
 
     frames.forEach(i => i.setAttribute("changeset-id", changesetID))
+
+    watchOnSidebarReload()
 
     const params = new URLSearchParams(location.search)
     let changesetIDs = []
