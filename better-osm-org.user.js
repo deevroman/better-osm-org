@@ -29581,6 +29581,10 @@ function setupBetterProfileStat() {
     tryApplyModule(betterUserStat, 300, 5000)
 }
 
+//</editor-fold>
+
+//<editor-fold desc="hdyc-frame" defaultstate="collapsed">
+
 function inFrame() {
     return window.location !== window.parent.location
 }
