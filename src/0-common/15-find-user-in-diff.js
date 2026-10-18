@@ -281,9 +281,9 @@ async function tryFindDeletedChangesetAuthorViaWhosthat(datetime, targetChangese
  */
 async function tryFindDeletedChangesetAuthor(changesetID, datetime, type, objID) {
     if (type === "changeset") {
-        const ch = (await getChangeset(objID)).data
-        type = ch.querySelector(`[changeset="${objID}"]`).nodeName
-        objID = ch.querySelector(`[changeset="${objID}"]`).getAttribute("id")
+        const ch = (await getChangeset(changesetID)).data
+        type = ch.querySelector(`[changeset="${changesetID}"]`).nodeName
+        objID = ch.querySelector(`[changeset="${changesetID}"]`).getAttribute("id")
     }
     let foundedInfo = await tryFindDeletedChangesetAuthorViaOverpass(datetime, type, objID)
     if (!foundedInfo.user) {

@@ -37,6 +37,11 @@ async function getFriends() {
     }
 }
 
+/**
+ * @param {storageUserInfo} userInfo
+ * @param {Date} changesetDate
+ * @return {HTMLSpanElement}
+ */
 function makeBadge(userInfo, changesetDate = new Date()) {
     // todo make changesetDate required
     const userBadge = document.createElement("span")
