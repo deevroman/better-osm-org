@@ -8457,9 +8457,9 @@ async function tryFindDeletedChangesetAuthorViaWhosthat(datetime, targetChangese
  */
 async function tryFindDeletedChangesetAuthor(changesetID, datetime, type, objID) {
     if (type === "changeset") {
-        const ch = (await getChangeset(objID)).data
-        type = ch.querySelector(`[changeset="${objID}"]`).nodeName
-        objID = ch.querySelector(`[changeset="${objID}"]`).getAttribute("id")
+        const ch = (await getChangeset(changesetID)).data
+        type = ch.querySelector(`[changeset="${changesetID}"]`).nodeName
+        objID = ch.querySelector(`[changeset="${changesetID}"]`).getAttribute("id")
     }
     let foundedInfo = await tryFindDeletedChangesetAuthorViaOverpass(datetime, type, objID)
     if (!foundedInfo.user) {
@@ -9149,10 +9149,18 @@ async function validateOsmServerInJOSM() {
     return true
 }
 
+/**
+ * @param {storageUserInfo} userInfo
+ * @return {string}
+ */
 function makeUsernameTitle(userInfo) {
-    let title = `changesets_count: ${userInfo["changesets"]["count"]}\naccount_created: ${userInfo["account_created"]}`
+    let title = `changesets_count: ${userInfo["changesets"]["count"] ?? "?"}\naccount_created: ${userInfo["account_created"] ?? "?"}`
     if (userInfo["blocks"]["received"]["count"]) {
         title += `\nreceived_blocks: ${userInfo["blocks"]["received"]["count"]}`
+    }
+    if (userInfo["infoFromApiNotFound"] && userInfo["firstChangesetCreationTime"]) {
+        title += `\nfirst changeset ID: ${userInfo["firstChangesetID"]}`
+        title += `\nfirst changeset time: ${userInfo["firstChangesetCreationTime"]}`
     }
     return title
 }
@@ -9604,7 +9612,7 @@ function addUsernameBadgesOrRestoreAction(changeset_id) {
                 if (key.textContent === "changesets_count") {
                     function insertAllChangesets(info) {
                         const allChangesets = document.createElement("span")
-                        allChangesets.textContent = `/${info["changesets"]["count"]}`
+                        allChangesets.textContent = `/${info["changesets"]["count"] ?? "?"}`
                         allChangesets.style.color = "gray"
                         allChangesets.title = t("changesetPageFixes.totalUserChangesets")
                         i.querySelector("td").appendChild(allChangesets)
@@ -9619,6 +9627,9 @@ function addUsernameBadgesOrRestoreAction(changeset_id) {
                     }
                 }
             })
+            if (res.infoFromApiNotFound) {
+                void restorePrevNextChangesetButtons(parseInt(changeset_id))
+            }
         })
         addUserChangesetRssLink(usernameA.textContent)
     } else {
@@ -10700,6 +10711,11 @@ async function getFriends() {
     }
 }
 
+/**
+ * @param {storageUserInfo} userInfo
+ * @param {Date} changesetDate
+ * @return {HTMLSpanElement}
+ */
 function makeBadge(userInfo, changesetDate = new Date()) {
     // todo make changesetDate required
     const userBadge = document.createElement("span")
@@ -10862,6 +10878,31 @@ async function getFirstUserChangeset(username) {
     )
 }
 
+/**
+ * @typedef {{
+ *     id: number
+ *     display_name: string
+ *     account_created: string
+ *     description: string
+ *     company: string
+ *     social_links: Array<*>
+ *     contributor_terms: {agreed: boolean}
+ *     img?: {href: string}
+ *     roles: string[]
+ *     changesets: {count: number}
+ *     traces: {count: number}
+ *     blocks: {received: {count: number, active: number}, issued?: {count: number, active: number}}
+ *     cacheTime: string
+ *     firstChangesetCreationTime?: string
+ *     firstChangesetID?: number
+ *     infoFromApiNotFound?: boolean
+ * }} storageUserInfo
+ */
+
+/**
+ * @param {string} username
+ * @return {Promise<storageUserInfo>}>}
+ */
 async function updateUserInfo(username) {
     void initCorporateMappersList()
     const res = await getFirstUserChangeset(username)
@@ -10888,11 +10929,39 @@ async function updateUserInfo(username) {
     }
 
     // FireMonkey compatibility https://github.com/erosman/firemonkey/issues/8
-    const userInfo = structuredClone((await fetchJSONWithCache(osm_server.apiBase + "user/" + uid + ".json")).user)
+    /** @type {storageUserInfo} */
+    const userInfo = structuredClone(
+        (
+            await fetchJSONWithCache(osm_server.apiBase + "user/" + uid + ".json", {}, res => {
+                if (res.status === 410) {
+                    if (firstChangesetID) {
+                        console.warn(`user with id ${uid} probably hidden`)
+                    } else {
+                        console.warn(`user with id ${uid} probably deleted`)
+                    }
+                } else {
+                    return true
+                }
+            })
+        )?.user,
+    ) ?? {
+        infoFromApiNotFound: true,
+        id: uid,
+        display_name: username,
+        roles: [],
+        blocks: { received: {} },
+        traces: [],
+        changesets: {},
+    }
+    if (!userInfo.infoFromApiNotFound) {
+        if (!firstChangesetID) {
+            throw `User "${username}" was deleted`
+        }
+    }
     userInfo["description"] = ""
     userInfo["cacheTime"] = new Date().toISOString()
     if (firstObjectCreationTime) {
-        userInfo["firstChangesetCreationTime"] = new Date(firstObjectCreationTime).toISOString()
+        userInfo["firstChangesetCreationTime"] = new Date(firstObjectCreationTime).toISOString().slice(0, -5) + "Z"
     }
     if (firstChangesetID) {
         userInfo["firstChangesetID"] = firstChangesetID
@@ -10903,7 +10972,7 @@ async function updateUserInfo(username) {
 
 /**
  * @param {string} username
- * @return {Promise<*>}
+ * @return {Promise<storageUserInfo>}
  */
 async function getCachedUserInfo(username) {
     if (!username) {

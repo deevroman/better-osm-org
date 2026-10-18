@@ -150,10 +150,18 @@ async function validateOsmServerInJOSM() {
     return true
 }
 
+/**
+ * @param {storageUserInfo} userInfo
+ * @return {string}
+ */
 function makeUsernameTitle(userInfo) {
-    let title = `changesets_count: ${userInfo["changesets"]["count"]}\naccount_created: ${userInfo["account_created"]}`
+    let title = `changesets_count: ${userInfo["changesets"]["count"] ?? "?"}\naccount_created: ${userInfo["account_created"] ?? "?"}`
     if (userInfo["blocks"]["received"]["count"]) {
         title += `\nreceived_blocks: ${userInfo["blocks"]["received"]["count"]}`
+    }
+    if (userInfo["infoFromApiNotFound"] && userInfo["firstChangesetCreationTime"]) {
+        title += `\nfirst changeset ID: ${userInfo["firstChangesetID"]}`
+        title += `\nfirst changeset time: ${userInfo["firstChangesetCreationTime"]}`
     }
     return title
 }
@@ -605,7 +613,7 @@ function addUsernameBadgesOrRestoreAction(changeset_id) {
                 if (key.textContent === "changesets_count") {
                     function insertAllChangesets(info) {
                         const allChangesets = document.createElement("span")
-                        allChangesets.textContent = `/${info["changesets"]["count"]}`
+                        allChangesets.textContent = `/${info["changesets"]["count"] ?? "?"}`
                         allChangesets.style.color = "gray"
                         allChangesets.title = t("changesetPageFixes.totalUserChangesets")
                         i.querySelector("td").appendChild(allChangesets)
@@ -620,6 +628,9 @@ function addUsernameBadgesOrRestoreAction(changeset_id) {
                     }
                 }
             })
+            if (res.infoFromApiNotFound) {
+                void restorePrevNextChangesetButtons(parseInt(changeset_id))
+            }
         })
         addUserChangesetRssLink(usernameA.textContent)
     } else {
