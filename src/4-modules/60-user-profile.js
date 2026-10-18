@@ -573,6 +573,72 @@ async function getBlockInfo(blockID) {
     return `${blockInfo["user_block"]["created_at"]}\n${blockInfo["user_block"]["creator"]["user"]}: ${blockInfo["user_block"]["reason"]}`
 }
 
+function makeWebArchiveLink(text, username) {
+    const link = document.createElement("a")
+    link.textContent = text
+    link.target = "_blank"
+    link.href = `https://web.archive.org/web/*/${osm_server.url}/user/${username}`
+    return link
+}
+
+function makeOSMChaLinkInUserProfile(username) {
+    const osmchaLink = document.createElement("a")
+    osmchaLink.textContent = t("userProfile.osmcha")
+    osmchaLink.id = "osmcha_link"
+    osmchaLink.title = t("osmcha.openProfileInOsmcha")
+    osmchaLink.href = makeOsmchaLinkForUsername(username)
+    osmchaLink.target = "_blank"
+    osmchaLink.rel = "noreferrer"
+    return osmchaLink
+}
+
+async function makeDeletedProfileById(userID, div, processIDs) {
+    const data = await whosthatNamesRequest(userID)
+    let names = data?.[0]?.["names"] ?? []
+
+    const userNamesP = document.createElement("p")
+    div.appendChild(userNamesP)
+    setTimeout(async () => {
+        if (!names.length) {
+            const res = (
+                await overpassRequest(
+                    `
+[out:json];
+node(uid:${userID})->.b;
+node.b(if:lat() == b.min(lat()));
+out meta;
+`,
+                    "json",
+                )
+            ).response
+            if (res?.elements?.length) {
+                names = [res.elements[0].user]
+            }
+            div.title = t("userProfile.viaOverpassApi")
+        } else {
+            div.title = t("userProfile.viaWhosthat")
+        }
+        if (names.length) {
+            userNamesP.textContent = t("userProfile.usernames")
+            injectCSSIntoOSMPage(copyAnimationStyles)
+            names.forEach(name => {
+                const usernameSpan = document.createElement("span")
+                usernameSpan.textContent = name
+                usernameSpan.title = t("copying.clickForCopy")
+                usernameSpan.style.cursor = "pointer"
+                usernameSpan.onclick = e => {
+                    navigator.clipboard.writeText(name).then(() => copyAnimation(e, name))
+                }
+                userNamesP.appendChild(usernameSpan)
+                userNamesP.appendChild(document.createTextNode(" "))
+                userNamesP.appendChild(makeWebArchiveLink("[WA] ", name))
+                userNamesP.appendChild(makeOSMChaLinkInUserProfile(name))
+            })
+        }
+    })
+    await processIDs([{ id: userID }], div)
+}
+
 // https://osm.org/user/Молотов-Прибой
 // https://osm.org/user/user_14840936
 // https://osm.org/user/Torunianin
@@ -580,28 +646,15 @@ async function getBlockInfo(blockID) {
 // https://osm.org/user/korobkov
 // https://osm.org/user/user_389895
 // https://osm.org/user/user_20965583
+// https://osm.org/user/500396986
 async function makeProfileForDeletedUser(user) {
     const content = document.querySelector(".content-body")
     const div = document.createElement("div")
     div.classList.add("content-inner", "position-relative", "m-auto")
 
-    const webArchiveLink = document.createElement("a")
-    webArchiveLink.textContent = t("links.webArchive")
-    webArchiveLink.target = "_blank"
-    webArchiveLink.href = `https://web.archive.org/web/*/${osm_server.url}/user/${decodeURI(user)}`
+    const webArchiveLink = makeWebArchiveLink(t("links.webArchive"), decodeURI(user))
     div.appendChild(webArchiveLink)
     div.appendChild(document.createElement("br"))
-
-    function makeOSMChaLink(username) {
-        const osmchaLink = document.createElement("a")
-        osmchaLink.textContent = t("userProfile.osmcha")
-        osmchaLink.id = "osmcha_link"
-        osmchaLink.title = t("osmcha.openProfileInOsmcha")
-        osmchaLink.href = makeOsmchaLinkForUsername(username)
-        osmchaLink.target = "_blank"
-        osmchaLink.rel = "noreferrer"
-        return osmchaLink
-    }
 
     async function processIDs(data, elemForResult) {
         if (data.length === 1) {
@@ -645,13 +698,9 @@ async function makeProfileForDeletedUser(user) {
                         p.appendChild(usernameSpan)
                         p.appendChild(document.createTextNode(" "))
 
-                        const webArchiveLink = document.createElement("a")
-                        webArchiveLink.textContent = "[WA] "
-                        webArchiveLink.target = "_blank"
-                        webArchiveLink.href = `https://web.archive.org/web/*/${osm_server.url}/user/${name}`
-                        p.appendChild(webArchiveLink)
+                        p.appendChild(makeWebArchiveLink("[WA] ", name))
 
-                        p.appendChild(makeOSMChaLink(name))
+                        p.appendChild(makeOSMChaLinkInUserProfile(name))
                     })
                 elemForResult.appendChild(p)
             }
@@ -903,7 +952,7 @@ async function makeProfileForDeletedUser(user) {
 
     const data = await whosthatInfoRequest(user)
     if (data.length) {
-        webArchiveLink.after(makeOSMChaLink(decodeURI(user)))
+        webArchiveLink.after(makeOSMChaLinkInUserProfile(decodeURI(user)))
 
         const result = document.createElement("p")
         div.appendChild(result)
@@ -911,6 +960,7 @@ async function makeProfileForDeletedUser(user) {
         await processIDs(data, result)
     } else {
         setTimeout(async () => {
+            const forHiddenUsersPromise = updateUserInfo(decodeURI(user))
             const res = (
                 await overpassRequest(
                     `
@@ -923,69 +973,41 @@ out meta;
                 )
             ).response
             if (res.elements?.length) {
-                webArchiveLink.after(makeOSMChaLink(decodeURI(user)))
+                webArchiveLink.after(makeOSMChaLinkInUserProfile(decodeURI(user)))
 
                 const result = document.createElement("p")
                 div.appendChild(result)
                 result.title = t("userProfile.viaOverpassApi")
                 await processIDs([{ id: res.elements[0].uid }], result)
+            } else {
+                const userInfoRes = await forHiddenUsersPromise
+                if (userInfoRes.firstChangesetCreationTime) {
+                    // todo firstChangesetCreationTime + 1
+                    const res = (
+                        await overpassRequest(
+                            `
+[date:"${userInfoRes.firstChangesetCreationTime}"][out:json];
+node(user:"${decodeURI(user).replace('"', '\\"')}")->.b;
+node.b(if:lat() == b.min(lat()));
+out meta;
+`,
+                            "json",
+                        )
+                    ).response
+                    webArchiveLink.after(makeOSMChaLinkInUserProfile(decodeURI(user)))
+
+                    const result = document.createElement("p")
+                    div.appendChild(result)
+                    result.title = t("userProfile.viaOverpassApi")
+                    await processIDs([{ id: res.elements[0].uid }], result)
+                }
             }
         })
     }
-
     if (user.match(/^user_[0-9]+$/)) {
-        const userID = parseInt(user.match(/user_([0-9]+)/)[1])
-
-        const data = await whosthatNamesRequest(userID)
-        let names = data?.[0]?.["names"] ?? []
-
-        const userNamesP = document.createElement("p")
-        div.appendChild(userNamesP)
-        setTimeout(async () => {
-            if (!names.length) {
-                const res = (
-                    await overpassRequest(
-                        `
-                            [out:json];
-                            node(uid:${userID})->.b;
-                            node.b(if:lat() == b.min(lat()));
-                            out meta;
-                        `,
-                        "json",
-                    )
-                ).response
-                if (res?.elements?.length) {
-                    names = [res.elements[0].user]
-                }
-                div.title = t("userProfile.viaOverpassApi")
-            } else {
-                div.title = t("userProfile.viaWhosthat")
-            }
-            if (names.length) {
-                userNamesP.textContent = t("userProfile.usernames")
-                injectCSSIntoOSMPage(copyAnimationStyles)
-                names.forEach(name => {
-                    const usernameSpan = document.createElement("span")
-                    usernameSpan.textContent = name
-                    usernameSpan.title = t("copying.clickForCopy")
-                    usernameSpan.style.cursor = "pointer"
-                    usernameSpan.onclick = e => {
-                        navigator.clipboard.writeText(name).then(() => copyAnimation(e, name))
-                    }
-                    userNamesP.appendChild(usernameSpan)
-                    userNamesP.appendChild(document.createTextNode(" "))
-
-                    const webArchiveLink = document.createElement("a")
-                    webArchiveLink.textContent = "[WA] "
-                    webArchiveLink.target = "_blank"
-                    webArchiveLink.href = `https://web.archive.org/web/*/${osm_server.url}/user/${name}`
-                    userNamesP.appendChild(webArchiveLink)
-
-                    userNamesP.appendChild(makeOSMChaLink(name))
-                })
-            }
-        })
-        await processIDs([{ id: userID }], div)
+        // user_XXX может быт валидным юзернеймом, поэтому сначала мы проверяли его честно,
+        // а теперь пытаемся искать по ID
+        await makeDeletedProfileById(parseInt(user.match(/user_([0-9]+)/)[1]), div, processIDs)
     }
     content.appendChild(div)
 }

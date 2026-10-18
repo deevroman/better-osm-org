@@ -339,11 +339,7 @@ async function findChangesetInDiff(e) {
     e.target.before(uid)
     e.target.before(document.createTextNode("\xA0"))
 
-    const webArchiveLink = document.createElement("a")
-    webArchiveLink.textContent = t("links.webArchive")
-    webArchiveLink.target = "_blank"
-    webArchiveLink.href = `https://web.archive.org/web/*/${osm_server.url}/user/${foundedUser}`
-    e.target.before(webArchiveLink)
+    e.target.before(makeWebArchiveLink(t("links.webArchive"), foundedUser))
     e.target.before(document.createTextNode("\xA0"))
 
     e.target.remove()
