@@ -30881,6 +30881,10 @@ function actionPrepare3dmrModel() {
 
 async function prepare3dmrModel(modelId) {
     try {
+        if (!vectorLayerEnabled()) {
+            nextVectorLayer()
+            await sleep(100)
+        }
         if (!getWindow().mapGL || !findVectorMap()) {
             throw new Error("Enable a vector map before loading a 3DMR model")
         }
