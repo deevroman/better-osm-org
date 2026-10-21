@@ -30944,7 +30944,7 @@ async function download3dmrModel(modelId) {
     if (!(glb instanceof ArrayBuffer) || glb.byteLength < 12 || new DataView(glb).getUint32(0, true) !== 0x46546c67) {
         throw new Error("3DMR returned data that is not a GLB model")
     }
-    const modelInfo = infoResponse.response
+    const modelInfo = structuredClone(infoResponse.response)
     if (typeof modelInfo?.lon !== "number" || typeof modelInfo.lat !== "number") {
         throw new Error("3DMR returned metadata without coordinates")
     }
@@ -30961,7 +30961,7 @@ async function download3dmrModel(modelId) {
 
 function display3dmrModel(model) {
     ensure3dmrRenderer()
-    getMap().setView({ lat: model.modelInfo.lat, lng: model.modelInfo.lon })
+    getMap().setView(intoPage({ lat: model.modelInfo.lat, lng: model.modelInfo.lon }))
     getWindow().__betterOsmRender3dmrModel(
         intoPage({
             glb: model.glb,
