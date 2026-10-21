@@ -135,6 +135,7 @@
 // @connect      panoramax.basi.re
 // @connect      westnordost.de
 // @connect      streetcomplete.app
+// @connect      3dmr.eu
 // @note         for downloading gps-tracks — osm stores tracks in AWS
 // @connect      amazonaws.com
 // @note         for satellite images and custom tiles
