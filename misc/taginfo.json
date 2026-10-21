@@ -79,6 +79,15 @@
       "description": "tag validation"
     },
     {
+      "key": "indoor",
+      "description": "displaying links to indoor viewers"
+    },
+    {
+      "key": "shop",
+      "value": "mall",
+      "description": "displaying links to indoor viewers"
+    },
+    {
       "key": "ref:belpost",
       "description": "linkify tag value"
     },
