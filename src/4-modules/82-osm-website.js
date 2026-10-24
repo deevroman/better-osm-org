@@ -39,6 +39,7 @@ const alwaysEnabledModules = [
     setupNewContextMenuItems,
     setupPrometheusLink,
     setupLanguageSwitcher,
+    setupUserProfile,
 ]
 
 function selectOverpassServer() {
