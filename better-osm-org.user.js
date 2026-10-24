@@ -28330,7 +28330,7 @@ function setupRelationVersionViewer() {
 
 //</editor-fold>
 
-//<editor-fold desc="user-profile" defaultstate="collapsed">
+//<editor-fold desc="user-profile-stat" defaultstate="collapsed">
 
 async function loadChangesetsBetween(user, fromTime, toTime) {
     let curTime = fromTime
@@ -28904,6 +28904,18 @@ async function getBlockInfo(blockID) {
     ).response
     return `${blockInfo["user_block"]["created_at"]}\n${blockInfo["user_block"]["creator"]["user"]}: ${blockInfo["user_block"]["reason"]}`
 }
+
+function setupBetterProfileStat() {
+    const match = location.pathname.match(/^\/user\/([^/]+)\/?$/)
+    if (!match) {
+        return
+    }
+    tryApplyModule(betterUserStat, 300, 5000)
+}
+
+//</editor-fold>
+
+//<editor-fold desc="user-profile" defaultstate="collapsed">
 
 function makeWebArchiveLink(text, username) {
     const link = document.createElement("a")
@@ -29609,14 +29621,6 @@ async function setupHDYCInProfile() {
     if (isDeletedUser && !location.pathname.includes("/notes")) {
         await makeProfileForDeletedUser(user)
     }
-}
-
-function setupBetterProfileStat() {
-    const match = location.pathname.match(/^\/user\/([^/]+)\/?$/)
-    if (!match) {
-        return
-    }
-    tryApplyModule(betterUserStat, 300, 5000)
 }
 
 //</editor-fold>
