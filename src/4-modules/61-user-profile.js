@@ -653,51 +653,6 @@ function makeUsernameHeaderClickable(usernameHeader) {
     injectCSSIntoOSMPage(copyAnimationStyles)
 }
 
-function setupHDYCInProfile() {
-    const match = location.pathname.match(/^\/user\/([^/]+)(\/|\/notes)?$/)
-    if (!match || location.pathname.includes("/history")) {
-        return
-    }
-    /** @type {string} **/
-    const user = match[1]
-    if (osm_server !== prod_server) {
-        return
-    }
-    if (user === "forgot-password" || user === "new") {
-        return
-    }
-    if (document.getElementById("hdyc-iframe")) {
-        return
-    }
-    document.querySelector(".content-body > .content-inner").style.paddingBottom = "0px"
-    if (isDarkMode()) {
-        GM_addElement(document.querySelector("#content"), "iframe", {
-            src: "https://www.hdyc.neis-one.org/user/" + user + "#forcedarktheme",
-            width: "100%",
-            id: "hdyc-iframe",
-            scrolling: "no",
-            background: "rgb(49, 54, 59)",
-            style: "visibility:hidden;background-color: rgb(49, 54, 59);",
-        })
-        setTimeout(() => {
-            document.getElementById("hdyc-iframe").style.visibility = "visible"
-        }, 1500)
-    } else {
-        GM_addElement(document.querySelector("#content"), "iframe", {
-            src: "https://www.hdyc.neis-one.org/user/" + user + "#forcelighttheme",
-            width: "100%",
-            id: "hdyc-iframe",
-            scrolling: "no",
-        })
-    }
-    const iframe = document.getElementById("hdyc-iframe")
-    window.addEventListener("message", function (event) {
-        if (event.origin === "https://www.hdyc.neis-one.org") {
-            iframe.height = event.data.height + "px"
-        }
-    })
-}
-
 async function setupUserProfile() {
     const match = location.pathname.match(/^\/user\/([^/]+)\/?$/)
     if (!match || location.pathname.includes("/history")) {
