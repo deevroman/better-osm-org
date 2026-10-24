@@ -1199,8 +1199,10 @@ async function addUsernameInfo(user) {
     addUserID(userDetails, userID)
 
     try {
-        // todo check that non zero changeset
-        await addUsernames(userDetails, userID, user)
+        if (osm_server === prod_server) {
+            // todo check that non zero changeset
+            await addUsernames(userDetails, userID, user)
+        }
     } catch (err) {
         console.log(err)
     }
