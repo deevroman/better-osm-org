@@ -29598,7 +29598,7 @@ async function setupUserProfile() {
     if (osm_server === prod_server) {
         await addPrevUsernamesInfo(user)
     }
-    if (isDeletedUser && !location.pathname.includes("/notes")) {
+    if (isDeletedUser) {
         await makeProfileForDeletedUser(user)
     }
 }
