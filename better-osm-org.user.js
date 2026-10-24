@@ -8321,7 +8321,7 @@ async function getEntityForOverpassSearch() {
  * @param {string} datetime
  * @param type
  * @param objID
- * @return {Promise<{user: string|null, uid: string|null}>}
+ * @return {Promise<{user: string|null, uid: number|null}>}
  */
 async function tryFindDeletedChangesetAuthorViaOverpass(datetime, type, objID) {
     let foundedChangesetXml
@@ -8340,13 +8340,13 @@ async function tryFindDeletedChangesetAuthorViaOverpass(datetime, type, objID) {
     }
     return {
         user: foundedChangesetXml?.getAttribute("user"),
-        uid: foundedChangesetXml?.getAttribute("uid"),
+        uid: parseInt(foundedChangesetXml?.getAttribute("uid")),
     }
 }
 /**
  * @param {string} datetime
  * @param {number} targetChangesetID
- * @return {Promise<{user: string|null, uid: string|null}>}
+ * @return {Promise<{user: string|null, uid: number|null}>}
  */
 async function tryFindDeletedChangesetAuthorViaDiffs(datetime, targetChangesetID) {
     if (osm_server !== prod_server) {
@@ -8383,7 +8383,7 @@ async function tryFindDeletedChangesetAuthorViaDiffs(datetime, targetChangesetID
     }
     return {
         user: foundedChangeset?.getAttribute("user"),
-        uid: foundedChangeset?.getAttribute("uid"),
+        uid: parseInt(foundedChangeset?.getAttribute("uid")),
     }
 }
 
@@ -8442,6 +8442,7 @@ async function findUsernamesById(userId) {
         if (res2.length) {
             return res2
         } else {
+            console.warn("no data from cemetery")
             // TODO
         }
     }
@@ -29433,6 +29434,9 @@ async function addUsernames(userDetails, userID, user) {
         )
         if (!res.user) {
             return []
+        }
+        if (res.uid !== userID) {
+            debug_alert(`Report bug on this page: ${res.uid} !== ${userID}`)
         }
         return [res.user]
     }
