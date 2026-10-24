@@ -1155,10 +1155,14 @@ async function addUsernames(userDetails, userID, user) {
     userDetails.appendChild(dd)
 }
 
-async function addUsernameInfo(user) {
-    if (document.querySelector(".prev-usernames")) return
+async function addPrevUsernamesInfo(user) {
+    if (document.querySelector(".prev-usernames")) {
+        return
+    }
     const userDetails = document.querySelector(".content-inner small dl")
-    if (!userDetails) return
+    if (!userDetails) {
+        return
+    }
     // https://www.openstreetmap.org/reports/new?reportable_id=12345&reportable_type=User
     let userID = document
         .querySelector('[href*="reportable_id="]')
@@ -1216,7 +1220,7 @@ async function setupHDYCInProfile() {
     /** @type {string} **/
     const user = match[1]
     addColorForActiveBlock(user)
-    if (isOHMServer()) {
+    if (isOHMServer() || isOGFServer()) {
         return
     }
     if (document.getElementById("hdyc-iframe")) {
@@ -1261,8 +1265,8 @@ async function setupHDYCInProfile() {
         usernameHeader.replaceWith(span)
         injectCSSIntoOSMPage(copyAnimationStyles)
     }
-    queueMicrotask(() => addUsernameInfo(user))
     if (osm_server === prod_server) {
+        queueMicrotask(() => addPrevUsernamesInfo(user))
         const iframe = document.getElementById("hdyc-iframe")
         window.addEventListener("message", function (event) {
             if (event.origin === "https://www.hdyc.neis-one.org") {
