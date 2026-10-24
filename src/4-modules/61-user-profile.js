@@ -517,6 +517,9 @@ async function addUsernames(userDetails, userID, user) {
         if (!res.user) {
             return []
         }
+        if (res.uid !== userID) {
+            debug_alert(`Report bug on this page: ${res.uid} !== ${userID}`)
+        }
         return [res.user]
     }
 
