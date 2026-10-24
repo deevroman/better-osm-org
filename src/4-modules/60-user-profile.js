@@ -1036,6 +1036,125 @@ function addColorForActiveBlock(user) {
     }
 }
 
+function addUserID(userDetails, userID) {
+    if (!document.querySelector('[href^="/api/0.6/user"]')) {
+        const dt = document.createElement("dt")
+        dt.textContent = t("userProfile.userIdLabel")
+        dt.classList.add("list-inline-item", "m-0")
+        const dd = document.createElement("dd")
+        dd.classList.add("list-inline-item", "user-id")
+        dd.textContent = userID
+        dd.title = t("copying.clickForCopy")
+        dd.style.cursor = "pointer"
+        dd.onclick = e => {
+            navigator.clipboard.writeText(userID).then(() => copyAnimation(e, userID))
+        }
+        userDetails.appendChild(dt)
+        userDetails.appendChild(document.createTextNode("\xA0"))
+        userDetails.appendChild(dd)
+        injectCSSIntoOSMPage(copyAnimationStyles)
+    }
+}
+
+async function addUsernames(userDetails, userID, user) {
+    async function fallbackMethod(userID) {
+        const res1 = await findUsernamesById(userID)
+        if (res1.length) {
+            return res1
+        }
+        const info = await updateUserInfo(decodeURI(user))
+        if (new Date(info.firstChangesetCreationTime) < OVERPASS_NEW_ERA_DATE) {
+            const ch = await fetchJSONWithCache(
+                osm_server.apiBase +
+                    "changesets.json?" +
+                    new URLSearchParams({
+                        user: userID,
+                        order: "oldest",
+                        to: new Date().toISOString(),
+                        from: OVERPASS_NEW_ERA_DATE.toISOString().slice(0, -5) + "Z",
+                    }).toString(),
+            )
+            const res = await tryFindDeletedChangesetAuthor(ch.changesets[0].id, undefined, "changeset", ch.changesets[0].id)
+            if (!res.user) {
+                return []
+            }
+            return [res.user]
+            // todo (more usernames)
+        }
+        const res = await tryFindDeletedChangesetAuthor(
+            info.firstChangesetID,
+            info.firstChangesetCreationTime,
+            "changeset",
+            info.firstChangesetID,
+        )
+        if (!res.user) {
+            return []
+        }
+        return [res.user]
+    }
+
+    async function updateUserIDInfo(userID, username) {
+        const userInfo = {
+            data: await whosthatNamesRequest(userID),
+        }
+        if (!userInfo.data?.[0]) {
+            const names = await fallbackMethod(userID)
+            if (!names.includes(username)) {
+                names.push(username)
+            }
+            userInfo.data = [{ names: names, partial: true }]
+        }
+        userInfo["cacheTime"] = new Date()
+        await GM.setValue(storagePrefix + "useridinfo-" + userID, JSON.stringify(userInfo))
+        if (userInfo.data[0]["names"].length > 1) {
+            let usernames = userInfo.data[0]["names"].filter(i => i !== decodeURI(user)).join(", ")
+            if (usernames.length > 0 && userInfo.data[0]["partial"]) {
+                usernames += ", ..."
+            }
+            if (document.querySelector(".prev-usernames")) {
+                document.querySelector(".prev-usernames").textContent = usernames
+            }
+        }
+        return userInfo
+    }
+
+    async function getCachedUserIDInfo(userID, username) {
+        const localUserInfo = await GM.getValue(storagePrefix + "useridinfo-" + userID, "")
+        if (localUserInfo) {
+            const json = JSON.parse(localUserInfo)
+            const cacheTime = new Date(json["cacheTime"])
+            const timeLater = new Date(cacheTime.getTime() + 14 * 24 * 60 * 60 * 1000)
+            if (timeLater < new Date() || cacheTime < new Date("2026-10-25T00:00:00Z")) {
+                console.log("but cache outdated")
+                setTimeout(updateUserIDInfo, 0, userID, username)
+            }
+            return json
+        }
+        return await updateUserIDInfo(userID, username)
+    }
+
+    const userIDInfo = await getCachedUserIDInfo(userID, decodeURI(user))
+    if (userIDInfo.data[0]["names"].length <= 1) {
+        console.log("prev user's usernames not found")
+        return
+    }
+    let usernames = userIDInfo.data[0]["names"].filter(i => i !== decodeURI(user)).join(", ")
+    if (usernames.length > 0 && userIDInfo.data[0]["partial"]) {
+        usernames += ", ..."
+    }
+    const dt = document.createElement("dt")
+    dt.textContent = t("userProfile.pastUsernames")
+    dt.title = t("betterOsmOrg.addedByBetterOsmOrg")
+    dt.classList.add("list-inline-item", "m-0", "prev-usernames-label")
+    const dd = document.createElement("dd")
+    dd.classList.add("list-inline-item", "prev-usernames")
+    dd.textContent = usernames
+    dd.title = t("betterOsmOrg.addedByBetterOsmOrg")
+    userDetails.appendChild(dt)
+    userDetails.appendChild(document.createTextNode("\xA0"))
+    userDetails.appendChild(dd)
+}
+
 async function addUsernameInfo(user) {
     if (document.querySelector(".prev-usernames")) return
     const userDetails = document.querySelector(".content-inner small dl")
@@ -1075,134 +1194,14 @@ async function addUsernameInfo(user) {
             userID = res["changesets"][0]["uid"]
         }
     }
+    userID = parseInt(userID)
 
-    function addUserID() {
-        if (!document.querySelector('[href^="/api/0.6/user"]')) {
-            const dt = document.createElement("dt")
-            dt.textContent = t("userProfile.userIdLabel")
-            dt.classList.add("list-inline-item", "m-0")
-            const dd = document.createElement("dd")
-            dd.classList.add("list-inline-item", "user-id")
-            dd.textContent = userID
-            dd.title = t("copying.clickForCopy")
-            dd.style.cursor = "pointer"
-            dd.onclick = e => {
-                navigator.clipboard.writeText(userID).then(() => copyAnimation(e, userID))
-            }
-            userDetails.appendChild(dt)
-            userDetails.appendChild(document.createTextNode("\xA0"))
-            userDetails.appendChild(dd)
-            injectCSSIntoOSMPage(copyAnimationStyles)
-        }
-    }
-
-    addUserID()
-
-    async function addUsernames() {
-        async function fallbackMethod(userID) {
-            const info = await updateUserInfo(decodeURI(user))
-            if (new Date(info.firstChangesetCreationTime) < OVERPASS_NEW_ERA_DATE) {
-                debugger
-                const ch = await fetchJSONWithCache(
-                    osm_server.apiBase +
-                        "changesets.json?" +
-                        new URLSearchParams({
-                            user: userID,
-                            order: "oldest",
-                            to: new Date().toISOString(),
-                            from: OVERPASS_NEW_ERA_DATE.toISOString().slice(0, -5) + "Z",
-                        }).toString(),
-                )
-                const res = await tryFindDeletedChangesetAuthor(
-                    ch.changesets[0].id,
-                    ch.changesets[0].created_at,
-                    "changeset",
-                    ch.changesets[0].id,
-                )
-                if (!res.user) {
-                    return []
-                }
-                return [res.user]
-                // todo (more usernames)
-            }
-            const res = await tryFindDeletedChangesetAuthor(
-                info.firstChangesetID,
-                info.firstChangesetCreationTime,
-                "changeset",
-                info.firstChangesetID,
-            )
-            if (!res.user) {
-                return []
-            }
-            return [res.user]
-        }
-
-        async function updateUserIDInfo(userID, username) {
-            const userInfo = {
-                data: await whosthatNamesRequest(userID),
-            }
-            if (!userInfo.data?.[0]) {
-                const names = await fallbackMethod(userID)
-                if (!names.includes(username)) {
-                    names.push(username)
-                }
-                userInfo.data = [{ names: names, partial: true }]
-            }
-            userInfo["cacheTime"] = new Date()
-            await GM.setValue(storagePrefix + "useridinfo-" + userID, JSON.stringify(userInfo))
-            if (userInfo.data[0]["names"].length > 1) {
-                let usernames = userInfo.data[0]["names"].filter(i => i !== decodeURI(user)).join(", ")
-                if (usernames.length > 0 && userInfo.data[0]["partial"]) {
-                    usernames += ", ..."
-                }
-                if (document.querySelector(".prev-usernames")) {
-                    document.querySelector(".prev-usernames").textContent = usernames
-                }
-            }
-            return userInfo
-        }
-
-        async function getCachedUserIDInfo(userID, username) {
-            const localUserInfo = await GM.getValue(storagePrefix + "useridinfo-" + userID, "")
-            if (localUserInfo) {
-                const json = JSON.parse(localUserInfo)
-                const cacheTime = new Date(json["cacheTime"])
-                const timeLater = new Date(cacheTime.getTime() + 14 * 24 * 60 * 60 * 1000)
-                if (timeLater < new Date()) {
-                    console.log("but cache outdated")
-                    setTimeout(updateUserIDInfo, 0, userID, username)
-                }
-                return json
-            }
-            return await updateUserIDInfo(userID, username)
-        }
-
-        const userIDInfo = await getCachedUserIDInfo(userID, decodeURI(user))
-        if (userIDInfo.data[0]["names"].length <= 1) {
-            console.log("prev user's usernames not found")
-            return
-        }
-        let usernames = userIDInfo.data[0]["names"].filter(i => i !== decodeURI(user)).join(", ")
-        if (usernames.length > 0 && userIDInfo.data[0]["partial"]) {
-            usernames += ", ..."
-        }
-        const dt = document.createElement("dt")
-        dt.textContent = t("userProfile.pastUsernames")
-        dt.title = t("betterOsmOrg.addedByBetterOsmOrg")
-        dt.classList.add("list-inline-item", "m-0", "prev-usernames-label")
-        const dd = document.createElement("dd")
-        dd.classList.add("list-inline-item", "prev-usernames")
-        dd.textContent = usernames
-        dd.title = t("betterOsmOrg.addedByBetterOsmOrg")
-        userDetails.appendChild(dt)
-        userDetails.appendChild(document.createTextNode("\xA0"))
-        userDetails.appendChild(dd)
-    }
+    addUserID(userDetails, userID)
 
     try {
         if (isDebug()) {
             // todo check that non zero changeset
-            await addUsernames()
+            await addUsernames(userDetails, userID, user)
         }
     } catch (err) {
         console.log(err)
