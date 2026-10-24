@@ -639,6 +639,20 @@ async function addPrevUsernamesInfo(user) {
     }
 }
 
+function makeUsernameHeaderClickable(usernameHeader) {
+    const span = document.createElement("span")
+    span.classList.add("copyable-username")
+    span.textContent = usernameHeader.textContent
+    span.title = t("copying.clickForCopy")
+    span.style.cursor = "pointer"
+    span.onclick = e => {
+        const username = usernameHeader.textContent.trim()
+        navigator.clipboard.writeText(username).then(() => copyAnimation(e, username))
+    }
+    usernameHeader.replaceWith(span)
+    injectCSSIntoOSMPage(copyAnimationStyles)
+}
+
 async function setupHDYCInProfile() {
     const match = location.pathname.match(/^\/user\/([^/]+)(\/|\/notes)?$/)
     if (!match || location.pathname.includes("/history")) {
@@ -680,17 +694,7 @@ async function setupHDYCInProfile() {
     const isDeletedUser = !document.querySelector(".user_image")
     const usernameHeader = document.querySelector("#content h1")?.firstChild
     if (!isDeletedUser && usernameHeader && usernameHeader.nodeType === Node.TEXT_NODE) {
-        const span = document.createElement("span")
-        span.classList.add("copyable-username")
-        span.textContent = usernameHeader.textContent
-        span.title = t("copying.clickForCopy")
-        span.style.cursor = "pointer"
-        span.onclick = e => {
-            const username = usernameHeader.textContent.trim()
-            navigator.clipboard.writeText(username).then(() => copyAnimation(e, username))
-        }
-        usernameHeader.replaceWith(span)
-        injectCSSIntoOSMPage(copyAnimationStyles)
+        makeUsernameHeaderClickable(usernameHeader)
     }
     if (osm_server === prod_server) {
         queueMicrotask(() => addPrevUsernamesInfo(user))
