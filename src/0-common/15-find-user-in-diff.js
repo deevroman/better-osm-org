@@ -210,6 +210,8 @@ async function tryFindDeletedChangesetAuthorViaDiffs(datetime, targetChangesetID
     }
 }
 
+const userCemeteryPrefix = "https://raw.githubusercontent.com/osm-attic/users-attic/refs/heads/master/uid"
+
 /**
  * @param {number|string} userId
  * @return {Promise<[{names: []}]|{error: string}>}
@@ -231,6 +233,27 @@ async function whosthatNamesRequest(userId) {
  * @param {number} userId
  * @return {Promise<string[]>}
  */
+async function findUsernamesByIdViaCemetery(userId) {
+    const id_prefix = Math.floor(userId / 10000)
+    const url = `${userCemeteryPrefix}/${id_prefix}.csv`
+    const res = await externalFetchRetry({ url })
+    if (res.status !== 200) {
+        console.warn(res)
+        return []
+    }
+    for (const line of res.responseText.split("\n")) {
+        const [uid, ...names] = line.split(",")
+        if (parseInt(uid) === userId) {
+            return names
+        }
+    }
+    return []
+}
+
+/**
+ * @param {number} userId
+ * @return {Promise<string[]>}
+ */
 async function findUsernamesById(userId) {
     const names = []
     const res = await whosthatNamesRequest(userId)
@@ -238,8 +261,14 @@ async function findUsernamesById(userId) {
         names.push(...res[0].names)
     } else {
         console.warn("no data from whosthat")
+        const res2 = await findUsernamesByIdViaCemetery(userId)
+        if (res2.length) {
+            return res2
+        } else {
+            // TODO
+        }
     }
-    return
+    return names
 }
 
 /**
@@ -284,6 +313,8 @@ async function tryFindDeletedChangesetAuthor(changesetID, datetime, type, objID)
         const ch = (await getChangeset(changesetID)).data
         type = ch.querySelector(`[changeset="${changesetID}"]`).nodeName
         objID = ch.querySelector(`[changeset="${changesetID}"]`).getAttribute("id")
+        // when created_at != closed_at
+        datetime = ch.querySelector(`[changeset="${changesetID}"]`).getAttribute("timestamp")
     }
     let foundedInfo = await tryFindDeletedChangesetAuthorViaOverpass(datetime, type, objID)
     if (!foundedInfo.user) {
