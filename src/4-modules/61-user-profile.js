@@ -128,8 +128,121 @@ out meta;
     }
 }
 
+async function addBlocks(idSpan, id) {
+    const blocksSpan = document.createElement("span")
+
+    const loadingStatus = document.createElement("span")
+    loadingStatus.textContent = t("userProfile.findingBlocks")
+    loadingStatus.style.color = "gray"
+    blocksSpan.appendChild(document.createTextNode(" "))
+    blocksSpan.appendChild(loadingStatus)
+
+    idSpan.after(blocksSpan)
+    const startPage = await externalFetchRetry({
+        url: "/user_blocks",
+        // responseType: "xml",
+        headers: { "turbo-frame": "pagination" },
+    })
+
+    const blocksCount = new Map()
+
+    function findBlocks(xml) {
+        const foundUserBlock = []
+        let lastUserBlock
+        new DOMParser()
+            .parseFromString(xml, "text/html")
+            .querySelectorAll("table tr")
+            .forEach(i => {
+                if (i.querySelector("th")) {
+                    return
+                }
+                const username = decodeURI(
+                    i
+                        .querySelector("td a")
+                        .getAttribute("href")
+                        .match(/\/user\/(.*)$/)[1],
+                )
+                if (blocksCount.has(username)) {
+                    blocksCount.set(username, blocksCount.get(username) + 1)
+                } else {
+                    blocksCount.set(username, 1)
+                }
+                lastUserBlock = i
+                    .querySelector('td a[href^="/user_blocks/"]')
+                    .getAttribute("href")
+                    .match(/\/user_blocks\/([0-9]+)/)[1]
+                if (username === "user_" + id) {
+                    foundUserBlock.push(lastUserBlock)
+                }
+            })
+        return [foundUserBlock, lastUserBlock]
+    }
+
+    function processFoundBlocks(foundUserBlock) {
+        foundUserBlock.forEach(blockId => {
+            const blockLink = document.createElement("a")
+            blockLink.href = "/user_blocks/" + blockId
+            blockLink.target = "_blank"
+            blockLink.textContent = "🔨/" + blockId
+            getBlockInfo(blockId).then(res => {
+                blockLink.title = res
+            })
+            blocksSpan.appendChild(blockLink)
+            blocksSpan.appendChild(document.createTextNode(" "))
+        })
+    }
+
+    let [foundUserBlock, lastUserBlock] = findBlocks(startPage.response)
+    if (foundUserBlock.length) {
+        processFoundBlocks(foundUserBlock)
+    } else {
+        while (lastUserBlock > 1) {
+            async function processBlocks(before) {
+                console.log("download user_block before ", before)
+                before = Math.max(1, before)
+                const startPage = await externalFetchRetry({
+                    url: "/user_blocks?before=" + before,
+                    // responseType: "xml",
+                    headers: { "turbo-frame": "pagination" },
+                })
+                ;[foundUserBlock, before] = findBlocks(startPage.response)
+                if (!before) {
+                    return
+                }
+                if (foundUserBlock.length) {
+                    processFoundBlocks(foundUserBlock)
+                }
+            }
+
+            const onPage = 20
+            const threads = 10
+            console.log("download user_block batch before ", lastUserBlock)
+            loadingStatus.title = t("userProfile.scannedBlocksAfter", { id: lastUserBlock })
+            const batch = []
+            for (let j = 0; j < threads; j++) {
+                batch.push(processBlocks(lastUserBlock - onPage * j))
+            }
+            await Promise.all(batch)
+            lastUserBlock -= threads * onPage
+        }
+        loadingStatus.style.display = "none"
+        const arr = Array.from(blocksCount.entries()).filter(([k, v]) => v >= 10)
+        arr.sort((a, b) => {
+            if (a[1] < b[1]) {
+                return 1
+            } else if (a[1] > b[1]) {
+                return -1
+            } else {
+                return 0
+            }
+        })
+        console.log("Top banned:", arr)
+        console.log("All blocks downloaded")
+    }
+}
+
 /**
- * @param {[]} data
+ * @param {[{id: number, names?: {name: string}[]}]} data
  * @param elemForResult
  * @return {Promise<void>}
  */
@@ -181,118 +294,12 @@ async function processIDsOnDeletedUserPage(data, elemForResult) {
                 })
             elemForResult.appendChild(p)
         }
-        setTimeout(async () => {
-            const blocksSpan = document.createElement("span")
 
-            const loadingStatus = document.createElement("span")
-            loadingStatus.textContent = t("userProfile.findingBlocks")
-            loadingStatus.style.color = "gray"
-            blocksSpan.appendChild(document.createTextNode(" "))
-            blocksSpan.appendChild(loadingStatus)
-
-            idSpan.after(blocksSpan)
-            const startPage = await externalFetchRetry({
-                url: "/user_blocks",
-                // responseType: "xml",
-                headers: { "turbo-frame": "pagination" },
-            })
-
-            const blocksCount = new Map()
-
-            function findBlocks(xml) {
-                const foundUserBlock = []
-                let lastUserBlock
-                new DOMParser()
-                    .parseFromString(xml, "text/html")
-                    .querySelectorAll("table tr")
-                    .forEach(i => {
-                        if (i.querySelector("th")) {
-                            return
-                        }
-                        const username = decodeURI(
-                            i
-                                .querySelector("td a")
-                                .getAttribute("href")
-                                .match(/\/user\/(.*)$/)[1],
-                        )
-                        if (blocksCount.has(username)) {
-                            blocksCount.set(username, blocksCount.get(username) + 1)
-                        } else {
-                            blocksCount.set(username, 1)
-                        }
-                        lastUserBlock = i
-                            .querySelector('td a[href^="/user_blocks/"]')
-                            .getAttribute("href")
-                            .match(/\/user_blocks\/([0-9]+)/)[1]
-                        if (username === "user_" + id) {
-                            foundUserBlock.push(lastUserBlock)
-                        }
-                    })
-                return [foundUserBlock, lastUserBlock]
-            }
-
-            function processFoundBlocks(foundUserBlock) {
-                foundUserBlock.forEach(blockId => {
-                    const blockLink = document.createElement("a")
-                    blockLink.href = "/user_blocks/" + blockId
-                    blockLink.target = "_blank"
-                    blockLink.textContent = "🔨/" + blockId
-                    getBlockInfo(blockId).then(res => {
-                        blockLink.title = res
-                    })
-                    blocksSpan.appendChild(blockLink)
-                    blocksSpan.appendChild(document.createTextNode(" "))
-                })
-            }
-
-            let [foundUserBlock, lastUserBlock] = findBlocks(startPage.response)
-            if (foundUserBlock.length) {
-                processFoundBlocks(foundUserBlock)
-            } else {
-                while (lastUserBlock > 1) {
-                    async function processBlocks(before) {
-                        console.log("download user_block before ", before)
-                        before = Math.max(1, before)
-                        const startPage = await externalFetchRetry({
-                            url: "/user_blocks?before=" + before,
-                            // responseType: "xml",
-                            headers: { "turbo-frame": "pagination" },
-                        })
-                        ;[foundUserBlock, before] = findBlocks(startPage.response)
-                        if (!before) {
-                            return
-                        }
-                        if (foundUserBlock.length) {
-                            processFoundBlocks(foundUserBlock)
-                        }
-                    }
-
-                    const onPage = 20
-                    const threads = 10
-                    console.log("download user_block batch before ", lastUserBlock)
-                    loadingStatus.title = t("userProfile.scannedBlocksAfter", { id: lastUserBlock })
-                    const batch = []
-                    for (let j = 0; j < threads; j++) {
-                        batch.push(processBlocks(lastUserBlock - onPage * j))
-                    }
-                    await Promise.all(batch)
-                    lastUserBlock -= threads * onPage
-                }
-                loadingStatus.style.display = "none"
-                const arr = Array.from(blocksCount.entries()).filter(([k, v]) => v >= 10)
-                arr.sort((a, b) => {
-                    if (a[1] < b[1]) {
-                        return 1
-                    } else if (a[1] > b[1]) {
-                        return -1
-                    } else {
-                        return 0
-                    }
-                })
-                console.log("Top banned:", arr)
-                console.log("All blocks downloaded")
-            }
-        })
+        try {
+            void addBlocks(idSpan, id)
+        } catch (err) {
+            console.error(err)
+        }
 
         /*** @type {{changesets: ChangesetMetadata[]}}*/
         const lastChangesets = await fetchJSONWithCache(
