@@ -8449,11 +8449,16 @@ async function findUsernamesById(userId) {
     return names
 }
 
+const whosthatDisabled = true
+
 /**
  * @param {string} user
  * @return {Promise<[{names: []}]|{error: string}>}
  */
 async function whosthatInfoRequest(user) {
+    if (whosthatDisabled) {
+        return []
+    }
     const res = await externalFetchRetry({
         url: WHOSTHAT_ENDPOINT + "?action=info&name=" + user,
         responseType: "json",
@@ -28989,319 +28994,7 @@ out meta;
     await processIDs([{ id: userID }], div)
 }
 
-// https://osm.org/user/Молотов-Прибой
-// https://osm.org/user/user_14840936
-// https://osm.org/user/Torunianin
-// https://osm.org/user/user_22937564
-// https://osm.org/user/user_362126
-// https://osm.org/user/korobkov
-// https://osm.org/user/user_389895
-// https://osm.org/user/user_20965583
-// https://osm.org/user/500396986
-async function makeProfileForDeletedUser(user) {
-    const content = document.querySelector(".content-body")
-    const div = document.createElement("div")
-    div.classList.add("content-inner", "position-relative", "m-auto")
-    content.appendChild(div)
-
-    const webArchiveLink = makeWebArchiveLink(t("links.webArchive"), decodeURI(user))
-    div.appendChild(webArchiveLink)
-    div.appendChild(document.createElement("br"))
-
-    async function processIDs(data, elemForResult) {
-        if (data.length === 1) {
-            elemForResult.appendChild(document.createTextNode(t("userProfile.singleUserIdLabel")))
-        } else {
-            elemForResult.appendChild(document.createTextNode(t("userProfile.foundUserIds", { count: data.length })))
-            elemForResult.appendChild(document.createElement("br"))
-            elemForResult.appendChild(document.createTextNode(t("userProfile.userIdBadge")))
-        }
-        for (let i = 0; i < data.length; i++) {
-            if (i !== 0) {
-                elemForResult.appendChild(document.createElement("br"))
-                elemForResult.appendChild(document.createElement("hr"))
-                elemForResult.appendChild(document.createTextNode(t("userProfile.userIdBadge").trim()))
-            }
-            const id = data[i].id
-            const idSpan = document.createElement("span")
-            idSpan.textContent = id
-            idSpan.title = t("copying.clickForCopy")
-            idSpan.style.cursor = "pointer"
-            idSpan.onclick = e => {
-                navigator.clipboard.writeText(id).then(() => copyAnimation(e, id))
-            }
-            injectCSSIntoOSMPage(copyAnimationStyles)
-            elemForResult.appendChild(idSpan)
-            elemForResult.appendChild(document.createElement("br"))
-            if (data[i].names?.length > 1) {
-                const p = document.createElement("p")
-                p.textContent = t("userProfile.usernames")
-                injectCSSIntoOSMPage(copyAnimationStyles)
-                data[i].names
-                    .map(i => i.name)
-                    .forEach(name => {
-                        const usernameSpan = document.createElement("span")
-                        usernameSpan.textContent = name
-                        usernameSpan.title = t("copying.clickForCopy")
-                        usernameSpan.style.cursor = "pointer"
-                        usernameSpan.onclick = e => {
-                            navigator.clipboard.writeText(name).then(() => copyAnimation(e, name))
-                        }
-                        p.appendChild(usernameSpan)
-                        p.appendChild(document.createTextNode(" "))
-
-                        p.appendChild(makeWebArchiveLink("[WA] ", name))
-
-                        p.appendChild(makeOSMChaLinkInUserProfile(name))
-                    })
-                elemForResult.appendChild(p)
-            }
-            setTimeout(async () => {
-                const blocksSpan = document.createElement("span")
-
-                const loadingStatus = document.createElement("span")
-                loadingStatus.textContent = t("userProfile.findingBlocks")
-                loadingStatus.style.color = "gray"
-                blocksSpan.appendChild(document.createTextNode(" "))
-                blocksSpan.appendChild(loadingStatus)
-
-                idSpan.after(blocksSpan)
-                const startPage = await externalFetchRetry({
-                    url: "/user_blocks",
-                    // responseType: "xml",
-                    headers: { "turbo-frame": "pagination" },
-                })
-
-                const blocksCount = new Map()
-
-                function findBlocks(xml) {
-                    const foundUserBlock = []
-                    let lastUserBlock
-                    new DOMParser()
-                        .parseFromString(xml, "text/html")
-                        .querySelectorAll("table tr")
-                        .forEach(i => {
-                            if (i.querySelector("th")) {
-                                return
-                            }
-                            const username = decodeURI(
-                                i
-                                    .querySelector("td a")
-                                    .getAttribute("href")
-                                    .match(/\/user\/(.*)$/)[1],
-                            )
-                            if (blocksCount.has(username)) {
-                                blocksCount.set(username, blocksCount.get(username) + 1)
-                            } else {
-                                blocksCount.set(username, 1)
-                            }
-                            lastUserBlock = i
-                                .querySelector('td a[href^="/user_blocks/"]')
-                                .getAttribute("href")
-                                .match(/\/user_blocks\/([0-9]+)/)[1]
-                            if (username === "user_" + id) {
-                                foundUserBlock.push(lastUserBlock)
-                            }
-                        })
-                    return [foundUserBlock, lastUserBlock]
-                }
-
-                function processFoundBlocks(foundUserBlock) {
-                    foundUserBlock.forEach(blockId => {
-                        const blockLink = document.createElement("a")
-                        blockLink.href = "/user_blocks/" + blockId
-                        blockLink.target = "_blank"
-                        blockLink.textContent = "🔨/" + blockId
-                        getBlockInfo(blockId).then(res => {
-                            blockLink.title = res
-                        })
-                        blocksSpan.appendChild(blockLink)
-                        blocksSpan.appendChild(document.createTextNode(" "))
-                    })
-                }
-
-                let [foundUserBlock, lastUserBlock] = findBlocks(startPage.response)
-                if (foundUserBlock.length) {
-                    processFoundBlocks(foundUserBlock)
-                } else {
-                    while (lastUserBlock > 1) {
-                        async function processBlocks(before) {
-                            console.log("download user_block before ", before)
-                            before = Math.max(1, before)
-                            const startPage = await externalFetchRetry({
-                                url: "/user_blocks?before=" + before,
-                                // responseType: "xml",
-                                headers: { "turbo-frame": "pagination" },
-                            })
-                            ;[foundUserBlock, before] = findBlocks(startPage.response)
-                            if (!before) {
-                                return
-                            }
-                            if (foundUserBlock.length) {
-                                processFoundBlocks(foundUserBlock)
-                            }
-                        }
-
-                        const onPage = 20
-                        const threads = 10
-                        console.log("download user_block batch before ", lastUserBlock)
-                        loadingStatus.title = t("userProfile.scannedBlocksAfter", { id: lastUserBlock })
-                        const batch = []
-                        for (let j = 0; j < threads; j++) {
-                            batch.push(processBlocks(lastUserBlock - onPage * j))
-                        }
-                        await Promise.all(batch)
-                        lastUserBlock -= threads * onPage
-                    }
-                    loadingStatus.style.display = "none"
-                    const arr = Array.from(blocksCount.entries()).filter(([k, v]) => v >= 10)
-                    arr.sort((a, b) => {
-                        if (a[1] < b[1]) {
-                            return 1
-                        } else if (a[1] > b[1]) {
-                            return -1
-                        } else {
-                            return 0
-                        }
-                    })
-                    console.log("Top banned:", arr)
-                    console.log("All blocks downloaded")
-                }
-            })
-
-            /*** @type {{changesets: ChangesetMetadata[]}}*/
-            const lastChangesets = await fetchJSONWithCache(
-                osm_server.apiBase +
-                    "changesets.json?" +
-                    new URLSearchParams({
-                        user: id,
-                        order: "newest",
-                        to: new Date().toISOString(),
-                    }).toString(),
-            )
-            const processedChangesets = new Set(lastChangesets.changesets.map(c => c.id))
-
-            for (let i = 0; i < 20; i++) {
-                const curTime = lastChangesets.changesets[lastChangesets.changesets.length - 1].created_at
-                const ch = await fetchJSONWithCache(
-                    osm_server.apiBase +
-                        "changesets.json?" +
-                        new URLSearchParams({
-                            user: id,
-                            order: "newest",
-                            to: new Date(new Date(curTime).getTime() + 1000).toISOString(),
-                            from: "2005-01-01T00:00:00Z",
-                        }).toString(),
-                )
-                ch.changesets = ch.changesets.filter(ch => !processedChangesets.has(ch.id))
-                if (ch.changesets.length === 0) break
-                lastChangesets.changesets.push(...(ch.changesets ?? []))
-            }
-
-            elemForResult.appendChild(document.createTextNode(t("userProfile.lastChangesets", { count: lastChangesets.changesets?.length })))
-            lastChangesets.changesets.forEach(ch => {
-                const changesetLine = document.createElement("div")
-                const changesetTime = ch["created_at"]
-                const checkbox = document.createElement("input")
-                checkbox.type = "checkbox"
-                checkbox.classList.add("mass-action-checkbox")
-                checkbox.textContent = "#" + ch.id + ""
-                checkbox.title = t("selection.shiftClickSelectRange")
-                checkbox.value = ch.id
-                checkbox.setAttribute("user-id", id)
-                checkbox.onclick = e => {
-                    if (e.shiftKey) {
-                        let currentCheckboxFound = false
-                        for (const cBox of Array.from(elemForResult.querySelectorAll("input")).toReversed()) {
-                            if (!currentCheckboxFound) {
-                                if (cBox.value === checkbox.value) {
-                                    currentCheckboxFound = true
-                                }
-                            } else {
-                                if (cBox.checked) {
-                                    break
-                                }
-                                cBox.checked = true
-                            }
-                        }
-                    }
-                    const selectedIDsCount = elemForResult.querySelectorAll(`input:checked[user-id="${id}"]`).length
-                    elemForResult.querySelectorAll(`.copy-changesets-ids-btn[user-id="${id}"]`).forEach(i => {
-                        if (selectedIDsCount) {
-                            i.textContent = t("userProfile.copyIdsCount", { count: selectedIDsCount })
-                        } else {
-                            i.textContent = t("userProfile.copyIds")
-                        }
-                    })
-                }
-                changesetLine.appendChild(checkbox)
-                changesetLine.appendChild(document.createTextNode("\xA0"))
-
-                const a = document.createElement("a")
-                a.textContent = ch.id
-                a.href = "/changeset/" + ch.id
-                a.target = "_blank"
-                a.style.fontFamily = "monospace"
-                changesetLine.appendChild(a)
-
-                const changesetDate = document.createElement("span")
-                changesetDate.textContent = " " + changesetTime + " "
-                changesetDate.style.fontFamily = "monospace"
-                changesetDate.style.color = "gray"
-                changesetDate.style.cursor = "pointer"
-                changesetDate.setAttribute("datetime", changesetTime)
-                changesetDate.onclick = e => {
-                    navigator.clipboard.writeText(changesetTime).then(() => copyAnimation(e, changesetTime))
-                }
-                changesetLine.appendChild(document.createTextNode("\xA0"))
-                changesetLine.appendChild(changesetDate)
-
-                const comment = document.createElement("span")
-                comment.textContent = " " + (ch.tags?.["comment"] ?? t("userProfile.noComment"))
-                changesetLine.appendChild(comment)
-
-                if (ch.comments_count) {
-                    const commentsBadge = document.createElement("a")
-                    commentsBadge.textContent = " " + ch.comments_count + " 💬"
-                    commentsBadge.href = "/changeset/" + ch.id
-                    commentsBadge.target = "_blank"
-                    setTimeout(async () => {
-                        getChangesetComments(ch.id).then(res => {
-                            res.forEach(comment => {
-                                const shortText = shortOsmOrgLinksInText(comment["text"])
-                                commentsBadge.title += `${comment["user"]}:\n${shortText}\n\n`
-                            })
-                            commentsBadge.title = commentsBadge.title.trimEnd()
-                        })
-                    })
-                    changesetLine.appendChild(commentsBadge)
-                }
-
-                elemForResult.appendChild(changesetLine)
-            })
-
-            const copyIds = document.createElement("button")
-            copyIds.textContent = t("userProfile.copyIds")
-            copyIds.title = ""
-            copyIds.classList.add("copy-changesets-ids-btn")
-            copyIds.setAttribute("user-id", id)
-            copyIds.onclick = e => {
-                const ids = Array.from(elemForResult.querySelectorAll(`input:checked[user-id="${id}"]`))
-                    .map(i => i.value)
-                    .join(",")
-                if (ids !== "") {
-                    navigator.clipboard.writeText(ids).then(() => copyAnimation(e, ids))
-                } else {
-                    const ids = Array.from(elemForResult.querySelectorAll("input"))
-                        .map(i => i.value)
-                        .join(",")
-                    navigator.clipboard.writeText(ids).then(() => copyAnimation(e, ids))
-                }
-            }
-            elemForResult.appendChild(copyIds)
-        }
-    }
-
+async function makeDeletedProfileByUsername(user, webArchiveLink, div, processIDs) {
     const data = await whosthatInfoRequest(user)
     if (data.length) {
         webArchiveLink.after(makeOSMChaLinkInUserProfile(decodeURI(user)))
@@ -29356,10 +29049,331 @@ out meta;
             }
         })
     }
+}
+
+/**
+ * @param {[]} data
+ * @param elemForResult
+ * @return {Promise<void>}
+ */
+async function processIDsOnDeletedUserPage(data, elemForResult) {
+    if (data.length === 1) {
+        elemForResult.appendChild(document.createTextNode(t("userProfile.singleUserIdLabel")))
+    } else {
+        elemForResult.appendChild(document.createTextNode(t("userProfile.foundUserIds", { count: data.length })))
+        elemForResult.appendChild(document.createElement("br"))
+        elemForResult.appendChild(document.createTextNode(t("userProfile.userIdBadge")))
+    }
+    for (let i = 0; i < data.length; i++) {
+        if (i !== 0) {
+            elemForResult.appendChild(document.createElement("br"))
+            elemForResult.appendChild(document.createElement("hr"))
+            elemForResult.appendChild(document.createTextNode(t("userProfile.userIdBadge").trim()))
+        }
+        const id = data[i].id
+        const idSpan = document.createElement("span")
+        idSpan.textContent = id
+        idSpan.title = t("copying.clickForCopy")
+        idSpan.style.cursor = "pointer"
+        idSpan.onclick = e => {
+            navigator.clipboard.writeText(id).then(() => copyAnimation(e, id))
+        }
+        injectCSSIntoOSMPage(copyAnimationStyles)
+        elemForResult.appendChild(idSpan)
+        elemForResult.appendChild(document.createElement("br"))
+        if (data[i].names?.length > 1) {
+            const p = document.createElement("p")
+            p.textContent = t("userProfile.usernames")
+            injectCSSIntoOSMPage(copyAnimationStyles)
+            data[i].names
+                .map(i => i.name)
+                .forEach(name => {
+                    const usernameSpan = document.createElement("span")
+                    usernameSpan.textContent = name
+                    usernameSpan.title = t("copying.clickForCopy")
+                    usernameSpan.style.cursor = "pointer"
+                    usernameSpan.onclick = e => {
+                        navigator.clipboard.writeText(name).then(() => copyAnimation(e, name))
+                    }
+                    p.appendChild(usernameSpan)
+                    p.appendChild(document.createTextNode(" "))
+
+                    p.appendChild(makeWebArchiveLink("[WA] ", name))
+
+                    p.appendChild(makeOSMChaLinkInUserProfile(name))
+                })
+            elemForResult.appendChild(p)
+        }
+        setTimeout(async () => {
+            const blocksSpan = document.createElement("span")
+
+            const loadingStatus = document.createElement("span")
+            loadingStatus.textContent = t("userProfile.findingBlocks")
+            loadingStatus.style.color = "gray"
+            blocksSpan.appendChild(document.createTextNode(" "))
+            blocksSpan.appendChild(loadingStatus)
+
+            idSpan.after(blocksSpan)
+            const startPage = await externalFetchRetry({
+                url: "/user_blocks",
+                // responseType: "xml",
+                headers: { "turbo-frame": "pagination" },
+            })
+
+            const blocksCount = new Map()
+
+            function findBlocks(xml) {
+                const foundUserBlock = []
+                let lastUserBlock
+                new DOMParser()
+                    .parseFromString(xml, "text/html")
+                    .querySelectorAll("table tr")
+                    .forEach(i => {
+                        if (i.querySelector("th")) {
+                            return
+                        }
+                        const username = decodeURI(
+                            i
+                                .querySelector("td a")
+                                .getAttribute("href")
+                                .match(/\/user\/(.*)$/)[1],
+                        )
+                        if (blocksCount.has(username)) {
+                            blocksCount.set(username, blocksCount.get(username) + 1)
+                        } else {
+                            blocksCount.set(username, 1)
+                        }
+                        lastUserBlock = i
+                            .querySelector('td a[href^="/user_blocks/"]')
+                            .getAttribute("href")
+                            .match(/\/user_blocks\/([0-9]+)/)[1]
+                        if (username === "user_" + id) {
+                            foundUserBlock.push(lastUserBlock)
+                        }
+                    })
+                return [foundUserBlock, lastUserBlock]
+            }
+
+            function processFoundBlocks(foundUserBlock) {
+                foundUserBlock.forEach(blockId => {
+                    const blockLink = document.createElement("a")
+                    blockLink.href = "/user_blocks/" + blockId
+                    blockLink.target = "_blank"
+                    blockLink.textContent = "🔨/" + blockId
+                    getBlockInfo(blockId).then(res => {
+                        blockLink.title = res
+                    })
+                    blocksSpan.appendChild(blockLink)
+                    blocksSpan.appendChild(document.createTextNode(" "))
+                })
+            }
+
+            let [foundUserBlock, lastUserBlock] = findBlocks(startPage.response)
+            if (foundUserBlock.length) {
+                processFoundBlocks(foundUserBlock)
+            } else {
+                while (lastUserBlock > 1) {
+                    async function processBlocks(before) {
+                        console.log("download user_block before ", before)
+                        before = Math.max(1, before)
+                        const startPage = await externalFetchRetry({
+                            url: "/user_blocks?before=" + before,
+                            // responseType: "xml",
+                            headers: { "turbo-frame": "pagination" },
+                        })
+                        ;[foundUserBlock, before] = findBlocks(startPage.response)
+                        if (!before) {
+                            return
+                        }
+                        if (foundUserBlock.length) {
+                            processFoundBlocks(foundUserBlock)
+                        }
+                    }
+
+                    const onPage = 20
+                    const threads = 10
+                    console.log("download user_block batch before ", lastUserBlock)
+                    loadingStatus.title = t("userProfile.scannedBlocksAfter", { id: lastUserBlock })
+                    const batch = []
+                    for (let j = 0; j < threads; j++) {
+                        batch.push(processBlocks(lastUserBlock - onPage * j))
+                    }
+                    await Promise.all(batch)
+                    lastUserBlock -= threads * onPage
+                }
+                loadingStatus.style.display = "none"
+                const arr = Array.from(blocksCount.entries()).filter(([k, v]) => v >= 10)
+                arr.sort((a, b) => {
+                    if (a[1] < b[1]) {
+                        return 1
+                    } else if (a[1] > b[1]) {
+                        return -1
+                    } else {
+                        return 0
+                    }
+                })
+                console.log("Top banned:", arr)
+                console.log("All blocks downloaded")
+            }
+        })
+
+        /*** @type {{changesets: ChangesetMetadata[]}}*/
+        const lastChangesets = await fetchJSONWithCache(
+            osm_server.apiBase +
+                "changesets.json?" +
+                new URLSearchParams({
+                    user: id,
+                    order: "newest",
+                    to: new Date().toISOString(),
+                }).toString(),
+        )
+        const processedChangesets = new Set(lastChangesets.changesets.map(c => c.id))
+
+        for (let i = 0; i < 20; i++) {
+            const curTime = lastChangesets.changesets[lastChangesets.changesets.length - 1].created_at
+            const ch = await fetchJSONWithCache(
+                osm_server.apiBase +
+                    "changesets.json?" +
+                    new URLSearchParams({
+                        user: id,
+                        order: "newest",
+                        to: new Date(new Date(curTime).getTime() + 1000).toISOString(),
+                        from: "2005-01-01T00:00:00Z",
+                    }).toString(),
+            )
+            ch.changesets = ch.changesets.filter(ch => !processedChangesets.has(ch.id))
+            if (ch.changesets.length === 0) break
+            lastChangesets.changesets.push(...(ch.changesets ?? []))
+        }
+
+        elemForResult.appendChild(document.createTextNode(t("userProfile.lastChangesets", { count: lastChangesets.changesets?.length })))
+        lastChangesets.changesets.forEach(ch => {
+            const changesetLine = document.createElement("div")
+            const changesetTime = ch["created_at"]
+            const checkbox = document.createElement("input")
+            checkbox.type = "checkbox"
+            checkbox.classList.add("mass-action-checkbox")
+            checkbox.textContent = "#" + ch.id + ""
+            checkbox.title = t("selection.shiftClickSelectRange")
+            checkbox.value = ch.id
+            checkbox.setAttribute("user-id", id)
+            checkbox.onclick = e => {
+                if (e.shiftKey) {
+                    let currentCheckboxFound = false
+                    for (const cBox of Array.from(elemForResult.querySelectorAll("input")).toReversed()) {
+                        if (!currentCheckboxFound) {
+                            if (cBox.value === checkbox.value) {
+                                currentCheckboxFound = true
+                            }
+                        } else {
+                            if (cBox.checked) {
+                                break
+                            }
+                            cBox.checked = true
+                        }
+                    }
+                }
+                const selectedIDsCount = elemForResult.querySelectorAll(`input:checked[user-id="${id}"]`).length
+                elemForResult.querySelectorAll(`.copy-changesets-ids-btn[user-id="${id}"]`).forEach(i => {
+                    if (selectedIDsCount) {
+                        i.textContent = t("userProfile.copyIdsCount", { count: selectedIDsCount })
+                    } else {
+                        i.textContent = t("userProfile.copyIds")
+                    }
+                })
+            }
+            changesetLine.appendChild(checkbox)
+            changesetLine.appendChild(document.createTextNode("\xA0"))
+
+            const a = document.createElement("a")
+            a.textContent = ch.id
+            a.href = "/changeset/" + ch.id
+            a.target = "_blank"
+            a.style.fontFamily = "monospace"
+            changesetLine.appendChild(a)
+
+            const changesetDate = document.createElement("span")
+            changesetDate.textContent = " " + changesetTime + " "
+            changesetDate.style.fontFamily = "monospace"
+            changesetDate.style.color = "gray"
+            changesetDate.style.cursor = "pointer"
+            changesetDate.setAttribute("datetime", changesetTime)
+            changesetDate.onclick = e => {
+                navigator.clipboard.writeText(changesetTime).then(() => copyAnimation(e, changesetTime))
+            }
+            changesetLine.appendChild(document.createTextNode("\xA0"))
+            changesetLine.appendChild(changesetDate)
+
+            const comment = document.createElement("span")
+            comment.textContent = " " + (ch.tags?.["comment"] ?? t("userProfile.noComment"))
+            changesetLine.appendChild(comment)
+
+            if (ch.comments_count) {
+                const commentsBadge = document.createElement("a")
+                commentsBadge.textContent = " " + ch.comments_count + " 💬"
+                commentsBadge.href = "/changeset/" + ch.id
+                commentsBadge.target = "_blank"
+                setTimeout(async () => {
+                    getChangesetComments(ch.id).then(res => {
+                        res.forEach(comment => {
+                            const shortText = shortOsmOrgLinksInText(comment["text"])
+                            commentsBadge.title += `${comment["user"]}:\n${shortText}\n\n`
+                        })
+                        commentsBadge.title = commentsBadge.title.trimEnd()
+                    })
+                })
+                changesetLine.appendChild(commentsBadge)
+            }
+
+            elemForResult.appendChild(changesetLine)
+        })
+
+        const copyIds = document.createElement("button")
+        copyIds.textContent = t("userProfile.copyIds")
+        copyIds.title = ""
+        copyIds.classList.add("copy-changesets-ids-btn")
+        copyIds.setAttribute("user-id", id)
+        copyIds.onclick = e => {
+            const ids = Array.from(elemForResult.querySelectorAll(`input:checked[user-id="${id}"]`))
+                .map(i => i.value)
+                .join(",")
+            if (ids !== "") {
+                navigator.clipboard.writeText(ids).then(() => copyAnimation(e, ids))
+            } else {
+                const ids = Array.from(elemForResult.querySelectorAll("input"))
+                    .map(i => i.value)
+                    .join(",")
+                navigator.clipboard.writeText(ids).then(() => copyAnimation(e, ids))
+            }
+        }
+        elemForResult.appendChild(copyIds)
+    }
+}
+
+// https://osm.org/user/Молотов-Прибой
+// https://osm.org/user/user_14840936
+// https://osm.org/user/Torunianin
+// https://osm.org/user/user_22937564
+// https://osm.org/user/user_362126
+// https://osm.org/user/korobkov
+// https://osm.org/user/user_389895
+// https://osm.org/user/user_20965583
+// https://osm.org/user/500396986
+async function makeProfileForDeletedUser(user) {
+    const content = document.querySelector(".content-body")
+    const div = document.createElement("div")
+    div.classList.add("content-inner", "position-relative", "m-auto")
+    content.appendChild(div)
+
+    const webArchiveLink = makeWebArchiveLink(t("links.webArchive"), decodeURI(user))
+    div.appendChild(webArchiveLink)
+    div.appendChild(document.createElement("br"))
+
+    await makeDeletedProfileByUsername(user, webArchiveLink, div, processIDsOnDeletedUserPage)
     if (user.match(/^user_[0-9]+$/)) {
         // user_XXX может быт валидным юзернеймом, поэтому сначала мы проверяли его честно,
         // а теперь пытаемся искать по ID
-        await makeDeletedProfileById(parseInt(user.match(/user_([0-9]+)/)[1]), div, processIDs)
+        await makeDeletedProfileById(parseInt(user.match(/user_([0-9]+)/)[1]), div, processIDsOnDeletedUserPage)
     }
 }
 

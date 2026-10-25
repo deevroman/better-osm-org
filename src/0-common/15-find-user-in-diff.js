@@ -272,11 +272,16 @@ async function findUsernamesById(userId) {
     return names
 }
 
+const whosthatDisabled = true
+
 /**
  * @param {string} user
  * @return {Promise<[{names: []}]|{error: string}>}
  */
 async function whosthatInfoRequest(user) {
+    if (whosthatDisabled) {
+        return []
+    }
     const res = await externalFetchRetry({
         url: WHOSTHAT_ENDPOINT + "?action=info&name=" + user,
         responseType: "json",
