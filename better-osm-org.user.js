@@ -28937,9 +28937,14 @@ function makeOSMChaLinkInUserProfile(username) {
     return osmchaLink
 }
 
+/**
+ * @param {number} userID
+ * @param div
+ * @param processIDs
+ * @return {Promise<void>}
+ */
 async function makeDeletedProfileById(userID, div, processIDs) {
-    const data = await whosthatNamesRequest(userID)
-    let names = data?.[0]?.["names"] ?? []
+    let names = await findUsernamesById(userID)
 
     const userNamesP = document.createElement("p")
     div.appendChild(userNamesP)
@@ -28988,6 +28993,7 @@ out meta;
 // https://osm.org/user/user_14840936
 // https://osm.org/user/Torunianin
 // https://osm.org/user/user_22937564
+// https://osm.org/user/user_362126
 // https://osm.org/user/korobkov
 // https://osm.org/user/user_389895
 // https://osm.org/user/user_20965583
@@ -28996,6 +29002,7 @@ async function makeProfileForDeletedUser(user) {
     const content = document.querySelector(".content-body")
     const div = document.createElement("div")
     div.classList.add("content-inner", "position-relative", "m-auto")
+    content.appendChild(div)
 
     const webArchiveLink = makeWebArchiveLink(t("links.webArchive"), decodeURI(user))
     div.appendChild(webArchiveLink)
@@ -29354,7 +29361,6 @@ out meta;
         // а теперь пытаемся искать по ID
         await makeDeletedProfileById(parseInt(user.match(/user_([0-9]+)/)[1]), div, processIDs)
     }
-    content.appendChild(div)
 }
 
 /**
@@ -29382,23 +29388,24 @@ function addColorForActiveBlock(user) {
 }
 
 function addUserID(userDetails, userID) {
-    if (!document.querySelector('[href^="/api/0.6/user"]')) {
-        const dt = document.createElement("dt")
-        dt.textContent = t("userProfile.userIdLabel")
-        dt.classList.add("list-inline-item", "m-0")
-        const dd = document.createElement("dd")
-        dd.classList.add("list-inline-item", "user-id")
-        dd.textContent = userID
-        dd.title = t("copying.clickForCopy")
-        dd.style.cursor = "pointer"
-        dd.onclick = e => {
-            navigator.clipboard.writeText(userID).then(() => copyAnimation(e, userID))
-        }
-        userDetails.appendChild(dt)
-        userDetails.appendChild(document.createTextNode("\xA0"))
-        userDetails.appendChild(dd)
-        injectCSSIntoOSMPage(copyAnimationStyles)
+    if (document.querySelector('[href^="/api/0.6/user"]')) {
+        return
     }
+    const dt = document.createElement("dt")
+    dt.textContent = t("userProfile.userIdLabel")
+    dt.classList.add("list-inline-item", "m-0")
+    const dd = document.createElement("dd")
+    dd.classList.add("list-inline-item", "user-id")
+    dd.textContent = userID
+    dd.title = t("copying.clickForCopy")
+    dd.style.cursor = "pointer"
+    dd.onclick = e => {
+        navigator.clipboard.writeText(userID).then(() => copyAnimation(e, userID))
+    }
+    userDetails.appendChild(dt)
+    userDetails.appendChild(document.createTextNode("\xA0"))
+    userDetails.appendChild(dd)
+    injectCSSIntoOSMPage(copyAnimationStyles)
 }
 
 async function addUsernames(userDetails, userID, user) {
@@ -29507,7 +29514,7 @@ async function addUsernames(userDetails, userID, user) {
  * @param user
  * @return {Promise<number>}
  */
-async function extractUserId(user) {
+async function extractUserIdFromPage(user) {
     // https://www.openstreetmap.org/reports/new?reportable_id=12345&reportable_type=User
     let userID = document
         .querySelector('[href*="reportable_id="]')
@@ -29564,6 +29571,14 @@ async function addPrevUsernamesInfo(user, userID) {
     try {
         if (osm_server === prod_server) {
             // todo check that non zero changeset
+            // if true check only local cache
+            // const editsLinks = document.querySelector('[href^="/user/"][href$="/history"]')
+            // if (editsLinks && editsLinks.nextElementSibling?.classList?.contains("count-number")) {
+            //     if (editsLinks.nextElementSibling.textContent === "0") {
+            //         console.log("Skip usernames search for user without edits")
+            //         return
+            //     }
+            // }
             await addUsernames(userDetails, userID, user)
         }
     } catch (err) {
@@ -29606,8 +29621,8 @@ async function setupUserProfile() {
     if (!isDeletedUser && usernameHeader && usernameHeader.nodeType === Node.TEXT_NODE) {
         makeUsernameHeaderClickable(usernameHeader)
     }
-    const userID = await extractUserId(user)
 
+    const userID = await extractUserIdFromPage(user)
     await addPrevUsernamesInfo(user, userID)
 
     if (isDeletedUser) {
