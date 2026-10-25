@@ -585,14 +585,11 @@ async function addUsernames(userDetails, userID, user) {
     userDetails.appendChild(dd)
 }
 
-async function addPrevUsernamesInfo(user) {
-    if (document.querySelector(".prev-usernames")) {
-        return
-    }
-    const userDetails = document.querySelector(".content-inner small dl")
-    if (!userDetails) {
-        return
-    }
+/**
+ * @param user
+ * @return {Promise<number>}
+ */
+async function extractUserId(user) {
     // https://www.openstreetmap.org/reports/new?reportable_id=12345&reportable_type=User
     let userID = document
         .querySelector('[href*="reportable_id="]')
@@ -628,9 +625,23 @@ async function addPrevUsernamesInfo(user) {
             userID = res["changesets"][0]["uid"]
         }
     }
-    userID = parseInt(userID)
+    return parseInt(userID)
+}
+
+async function addPrevUsernamesInfo(user, userID) {
+    if (document.querySelector(".prev-usernames")) {
+        return
+    }
+    const userDetails = document.querySelector(".content-inner small dl")
+    if (!userDetails) {
+        return
+    }
 
     addUserID(userDetails, userID)
+
+    if (osm_server !== prod_server) {
+        return
+    }
 
     try {
         if (osm_server === prod_server) {
@@ -677,9 +688,10 @@ async function setupUserProfile() {
     if (!isDeletedUser && usernameHeader && usernameHeader.nodeType === Node.TEXT_NODE) {
         makeUsernameHeaderClickable(usernameHeader)
     }
-    if (osm_server === prod_server) {
-        await addPrevUsernamesInfo(user)
-    }
+    const userID = await extractUserId(user)
+
+    await addPrevUsernamesInfo(user, userID)
+
     if (isDeletedUser) {
         await makeProfileForDeletedUser(user)
     }
