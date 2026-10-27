@@ -8485,6 +8485,20 @@ async function tryFindDeletedChangesetAuthorViaWhosthat(datetime, targetChangese
 }
 
 /**
+ * @param {string} datetime
+ * @param {number} targetChangesetID
+ * @return {Promise<{user: string|null, uid: number|null}>}
+ */
+async function tryFindDeletedChangesetAuthorViaChangesetMetadata(datetime, targetChangesetID) {
+    // some old changesets contains usernames ¯\_(ツ)_/¯
+    const metadata = await loadChangesetMetadata(targetChangesetID)
+    if (metadata.user && !metadata.user.startsWith("user_")) {
+        return { user: metadata.user, uid: metadata.uid }
+    }
+    return { user: null, uid: null }
+}
+
+/**
  * @param changesetID
  * @param datetime
  * @param type
@@ -8502,9 +8516,12 @@ async function tryFindDeletedChangesetAuthor(changesetID, datetime, type, objID)
     let foundedInfo = await tryFindDeletedChangesetAuthorViaOverpass(datetime, type, objID)
     if (!foundedInfo.user) {
         foundedInfo = await tryFindDeletedChangesetAuthorViaDiffs(datetime, changesetID)
-        if (!foundedInfo.user) {
-            return await tryFindDeletedChangesetAuthorViaWhosthat(datetime, changesetID)
-        }
+    }
+    if (!foundedInfo.user) {
+        foundedInfo = await tryFindDeletedChangesetAuthorViaWhosthat(datetime, changesetID)
+    }
+    if (!foundedInfo.user) {
+        foundedInfo = await tryFindDeletedChangesetAuthorViaChangesetMetadata(changesetID)
     }
     return foundedInfo
 }
