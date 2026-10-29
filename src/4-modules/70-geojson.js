@@ -185,55 +185,57 @@ function displayKMLTrack(xml) {
 function renderGeoJSONwrapper(geojson) {
     injectJSIntoPage(`
     var jsonLayer = null;
+
     // noinspection JSUnusedLocalSymbols
     function renderGeoJSON(data) {
         function onEachFeature(feature, layer) {
-            if (feature.properties) {
-                const table = document.createElement("table")
-                table.style.overflow = "scroll"
-                table.classList.add("geojson-props-table")
-                table.classList.add("zebra_colors")
-                const tbody = document.createElement("tbody")
-                table.appendChild(tbody)
-                Object.entries(feature.properties).forEach(([key, value]) => {
-                    if (Array.isArray(value) && value.length === 0) {
-                        value = "[]"
-                    } else if (value === null) {
-                        value = "null"
-                    } else if (typeof value === 'object' && Object.entries(value).length === 0) {
-                        value = "{}"
-                    }
-                    const th = document.createElement("th")
-                    th.textContent = key
-                    const td = document.createElement("td")
-                    if (key === "id" && typeof value === "string" && (value.startsWith("node/") || value.startsWith("way/") || value.startsWith("relation/"))) {
-                        const a = document.createElement("a")
-                        a.textContent = value
-                        a.href = "/" + value
-                        td.appendChild(a)
-                    } else {
-                        td.textContent = value
-                    }
-
-                    const tr = document.createElement("tr")
-                    tr.appendChild(th)
-                    tr.appendChild(td)
-                    tbody.appendChild(tr)
-                })
-                layer.on("click", e => {
-                    if (e.originalEvent.altKey) {
-                        layer.remove()
-                        e.originalEvent.stopPropagation()
-                        e.originalEvent.stopImmediatePropagation()
-                    }
-                })
-                layer.bindPopup(table.outerHTML)
+            if (!feature.properties) {
+                return
             }
+            const table = document.createElement("table")
+            table.style.overflow = "scroll"
+            table.classList.add("geojson-props-table")
+            table.classList.add("zebra_colors")
+            const tbody = document.createElement("tbody")
+            table.appendChild(tbody)
+            Object.entries(feature.properties).forEach(([key, value]) => {
+                if (Array.isArray(value) && value.length === 0) {
+                    value = "[]"
+                } else if (value === null) {
+                    value = "null"
+                } else if (typeof value === 'object' && Object.entries(value).length === 0) {
+                    value = "{}"
+                }
+                const th = document.createElement("th")
+                th.textContent = key
+                const td = document.createElement("td")
+                if (key === "id" && typeof value === "string" && (value.startsWith("node/") || value.startsWith("way/") || value.startsWith("relation/"))) {
+                    const a = document.createElement("a")
+                    a.textContent = value
+                    a.href = "/" + value
+                    td.appendChild(a)
+                } else {
+                    td.textContent = value
+                }
+
+                const tr = document.createElement("tr")
+                tr.appendChild(th)
+                tr.appendChild(td)
+                tbody.appendChild(tr)
+            })
+            layer.on("click", e => {
+                if (e.originalEvent.altKey) {
+                    layer.remove()
+                    e.originalEvent.stopPropagation()
+                    e.originalEvent.stopImmediatePropagation()
+                }
+            })
+            layer.bindPopup(table.outerHTML)
         }
 
         jsonLayer = L.geoJSON(data, {
             onEachFeature: onEachFeature,
-            pointToLayer: function (feature, latlng) {
+            pointToLayer: function(feature, latlng) {
                 return L.circleMarker(latlng)
             }
         });
