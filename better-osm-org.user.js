@@ -31530,110 +31530,110 @@ function insertOverlaysStyles() {
     const mapHeight = getComputedStyle(document.querySelector("#map")).height
 
     injectCSSIntoOSMPage(`
-            .leaflet-popup-content, .leaflet-tooltip {
-                white-space: pre;
-            }
+        .leaflet-popup-content, .leaflet-tooltip {
+            white-space: pre;
+        }
 
-            .leaflet-popup-content:has(.geojson-props-table) {
-                overflow: scroll;
-            }
+        .leaflet-popup-content:has(.geojson-props-table) {
+            overflow: scroll;
+        }
 
-            .leaflet-popup-content:has(.geojson-editor) {
-                    /*max-width: calc(${mapWidth} / 3) !important;
-                        min-width: calc(${mapWidth} / 3) !important;
-                        max-height: calc(${mapHeight} / 2);
-                        min-height: calc(${mapHeight} / 2);*/
-                overflow-y: scroll;
-                font-size: larger;
-            }
+        .leaflet-popup-content:has(.geojson-editor) {
+                /*max-width: calc(${mapWidth} / 3) !important;
+                    min-width: calc(${mapWidth} / 3) !important;
+                    max-height: calc(${mapHeight} / 2);
+                    min-height: calc(${mapHeight} / 2);*/
+            overflow-y: scroll;
+            font-size: larger;
+        }
 
-            .geojson-editor {
-                margin-left: 5px;
-            }
+        .geojson-editor {
+            margin-left: 5px;
+        }
 
-            table.tags-table {
-                margin-top: 5px;
-                margin-left: 5px;
-            }
+        table.tags-table {
+            margin-top: 5px;
+            margin-left: 5px;
+        }
 
-            table.metainfo-table {
-                margin-top: 5px;
-                margin-left: 5px;
-            }
+        table.metainfo-table {
+            margin-top: 5px;
+            margin-left: 5px;
+        }
 
-            table.tags-table th:not(.tag-flag) {
-                border: solid 2px transparent;
-                min-width: 50px;
-            }
+        table.tags-table th:not(.tag-flag) {
+            border: solid 2px transparent;
+            min-width: 50px;
+        }
 
-            table.tags-table td:not(.tag-flag) {
-                border: solid 2px transparent;
-                min-width: 150px;
-            }
+        table.tags-table td:not(.tag-flag) {
+            border: solid 2px transparent;
+            min-width: 150px;
+        }
 
-            table.editable.tags-table th:not(.tag-flag) {
-                border: solid 2px black;
-                min-width: 50px;
-            }
+        table.editable.tags-table th:not(.tag-flag) {
+            border: solid 2px black;
+            min-width: 50px;
+        }
 
-            table.editable.tags-table td:not(.tag-flag) {
-                border: solid 2px black;
-                min-width: 150px;
-            }
+        table.editable.tags-table td:not(.tag-flag) {
+            border: solid 2px black;
+            min-width: 150px;
+        }
 
-            table:not(.editable).tags-table tr.add-tag-row {
-                display: none;
-                min-width: 150px;
-            }
+        table:not(.editable).tags-table tr.add-tag-row {
+            display: none;
+            min-width: 150px;
+        }
 
-            table.editable.tags-table tr.add-tag-row th {
-                text-align: center;
-                cursor: pointer;
-                min-width: 294px;
-                resize: both !important;
-            }
+        table.editable.tags-table tr.add-tag-row th {
+            text-align: center;
+            cursor: pointer;
+            min-width: 294px;
+            resize: both !important;
+        }
 
-            table.tags-table textarea {
-                min-width: 280px;
-            }
+        table.tags-table textarea {
+            min-width: 280px;
+        }
 
-            .mode-btn:not(.visible) {
-                display: none;
-            }
-            
-            .mode-btn > svg {
-                margin-top: -3px;
-            }
+        .mode-btn:not(.visible) {
+            display: none;
+        }
+        
+        .mode-btn > svg {
+            margin-top: -3px;
+        }
 
-            .map-img-preview-popup {
-                width: initial;
+        .map-img-preview-popup {
+            width: initial;
+        }
+
+        .zebra_colors tr:nth-child(even) td, .zebra_colors tr:nth-child(even) th {
+            background-color: color-mix(in srgb, var(--bs-body-bg), black 10%);
+        }
+
+        @media ${mediaQueryForWebsiteTheme} {
+
+            .mode-btn.visible img {
+                filter: invert(0.9);
             }
 
             .zebra_colors tr:nth-child(even) td, .zebra_colors tr:nth-child(even) th {
-                background-color: color-mix(in srgb, var(--bs-body-bg), black 10%);
+                background-color: color-mix(in srgb, var(--bs-body-bg), white 7%);
             }
 
-            @media ${mediaQueryForWebsiteTheme} {
+        }
 
-                .mode-btn.visible img {
-                    filter: invert(0.9);
-                }
-
-                .zebra_colors tr:nth-child(even) td, .zebra_colors tr:nth-child(even) th {
-                    background-color: color-mix(in srgb, var(--bs-body-bg), white 7%);
-                }
-
-            }
-
-            .leaflet-popup-content:has(.geotagged-img) {
-                max-width: calc(${mapWidth} / 2) !important;
-                min-width: calc(${mapWidth} / 2) !important;
-                max-height: calc(${mapHeight} / 2);
-                min-height: calc(${mapHeight} / 2);
-                width: auto;
-                height: auto;
-                overflow-y: scroll;
-            }
+        .leaflet-popup-content:has(.geotagged-img) {
+            max-width: calc(${mapWidth} / 2) !important;
+            min-width: calc(${mapWidth} / 2) !important;
+            max-height: calc(${mapHeight} / 2);
+            min-height: calc(${mapHeight} / 2);
+            width: auto;
+            height: auto;
+            overflow-y: scroll;
+        }
         `)
 }
 
