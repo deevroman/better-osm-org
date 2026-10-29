@@ -221,7 +221,7 @@ out geom;
             [bbox.min_lat, bbox.min_lon],
             [bbox.max_lat, bbox.max_lon],
         ])
-        loadBannedVersions()
+        void loadBannedVersions()
         cleanAllObjects()
         getWindow().jsonLayer?.remove()
         jsonLayer?.remove()

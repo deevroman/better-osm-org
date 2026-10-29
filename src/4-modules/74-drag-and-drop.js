@@ -179,7 +179,7 @@ function handleDroppedFiles(files) {
             displayGPXTrack(await file.text())
         } else if (file.type === "application/vnd.openstreetmap.data+xml" || file.name.endsWith(".osm")) {
             const doc = new DOMParser().parseFromString(await file.text(), "application/xml")
-            loadBannedVersions()
+            void loadBannedVersions()
             jsonLayer = renderOSMGeoJSON(doc, true)
         } else if (file.type === "application/vnd.google-earth.kml+xml" || file.name.endsWith(".kml")) {
             displayKMLTrack(await file.text())

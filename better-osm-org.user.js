@@ -31639,8 +31639,8 @@ function insertOverlaysStyles() {
 
 // const lastVersionsCache = {}
 
-function loadBannedVersions() {
-    externalFetchRetry({
+async function loadBannedVersions() {
+    await externalFetchRetry({
         url: "https://raw.githubusercontent.com/deevroman/better-osm-org/refs/heads/master/misc/assets/banned_versions.json",
         responseType: "json",
     }).then(async res => {
@@ -32320,7 +32320,7 @@ out geom;
             [bbox.min_lat, bbox.min_lon],
             [bbox.max_lat, bbox.max_lon],
         ])
-        loadBannedVersions()
+        void loadBannedVersions()
         cleanAllObjects()
         getWindow().jsonLayer?.remove()
         jsonLayer?.remove()
@@ -32705,7 +32705,7 @@ function handleDroppedFiles(files) {
             displayGPXTrack(await file.text())
         } else if (file.type === "application/vnd.openstreetmap.data+xml" || file.name.endsWith(".osm")) {
             const doc = new DOMParser().parseFromString(await file.text(), "application/xml")
-            loadBannedVersions()
+            void loadBannedVersions()
             jsonLayer = renderOSMGeoJSON(doc, true)
         } else if (file.type === "application/vnd.google-earth.kml+xml" || file.name.endsWith(".kml")) {
             displayKMLTrack(await file.text())
