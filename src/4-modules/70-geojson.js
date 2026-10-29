@@ -372,8 +372,8 @@ function insertOverlaysStyles() {
 
 // const lastVersionsCache = {}
 
-function loadBannedVersions() {
-    externalFetchRetry({
+async function loadBannedVersions() {
+    await externalFetchRetry({
         url: "https://raw.githubusercontent.com/deevroman/better-osm-org/refs/heads/master/misc/assets/banned_versions.json",
         responseType: "json",
     }).then(async res => {
