@@ -185,55 +185,57 @@ function displayKMLTrack(xml) {
 function renderGeoJSONwrapper(geojson) {
     injectJSIntoPage(`
     var jsonLayer = null;
+
     // noinspection JSUnusedLocalSymbols
     function renderGeoJSON(data) {
         function onEachFeature(feature, layer) {
-            if (feature.properties) {
-                const table = document.createElement("table")
-                table.style.overflow = "scroll"
-                table.classList.add("geojson-props-table")
-                table.classList.add("zebra_colors")
-                const tbody = document.createElement("tbody")
-                table.appendChild(tbody)
-                Object.entries(feature.properties).forEach(([key, value]) => {
-                    if (Array.isArray(value) && value.length === 0) {
-                        value = "[]"
-                    } else if (value === null) {
-                        value = "null"
-                    } else if (typeof value === 'object' && Object.entries(value).length === 0) {
-                        value = "{}"
-                    }
-                    const th = document.createElement("th")
-                    th.textContent = key
-                    const td = document.createElement("td")
-                    if (key === "id" && typeof value === "string" && (value.startsWith("node/") || value.startsWith("way/") || value.startsWith("relation/"))) {
-                        const a = document.createElement("a")
-                        a.textContent = value
-                        a.href = "/" + value
-                        td.appendChild(a)
-                    } else {
-                        td.textContent = value
-                    }
-
-                    const tr = document.createElement("tr")
-                    tr.appendChild(th)
-                    tr.appendChild(td)
-                    tbody.appendChild(tr)
-                })
-                layer.on("click", e => {
-                    if (e.originalEvent.altKey) {
-                        layer.remove()
-                        e.originalEvent.stopPropagation()
-                        e.originalEvent.stopImmediatePropagation()
-                    }
-                })
-                layer.bindPopup(table.outerHTML)
+            if (!feature.properties) {
+                return
             }
+            const table = document.createElement("table")
+            table.style.overflow = "scroll"
+            table.classList.add("geojson-props-table")
+            table.classList.add("zebra_colors")
+            const tbody = document.createElement("tbody")
+            table.appendChild(tbody)
+            Object.entries(feature.properties).forEach(([key, value]) => {
+                if (Array.isArray(value) && value.length === 0) {
+                    value = "[]"
+                } else if (value === null) {
+                    value = "null"
+                } else if (typeof value === 'object' && Object.entries(value).length === 0) {
+                    value = "{}"
+                }
+                const th = document.createElement("th")
+                th.textContent = key
+                const td = document.createElement("td")
+                if (key === "id" && typeof value === "string" && (value.startsWith("node/") || value.startsWith("way/") || value.startsWith("relation/"))) {
+                    const a = document.createElement("a")
+                    a.textContent = value
+                    a.href = "/" + value
+                    td.appendChild(a)
+                } else {
+                    td.textContent = value
+                }
+
+                const tr = document.createElement("tr")
+                tr.appendChild(th)
+                tr.appendChild(td)
+                tbody.appendChild(tr)
+            })
+            layer.on("click", e => {
+                if (e.originalEvent.altKey) {
+                    layer.remove()
+                    e.originalEvent.stopPropagation()
+                    e.originalEvent.stopImmediatePropagation()
+                }
+            })
+            layer.bindPopup(table.outerHTML)
         }
 
         jsonLayer = L.geoJSON(data, {
             onEachFeature: onEachFeature,
-            pointToLayer: function (feature, latlng) {
+            pointToLayer: function(feature, latlng) {
                 return L.circleMarker(latlng)
             }
         });
@@ -261,117 +263,117 @@ function insertOverlaysStyles() {
     const mapHeight = getComputedStyle(document.querySelector("#map")).height
 
     injectCSSIntoOSMPage(`
-            .leaflet-popup-content, .leaflet-tooltip {
-                white-space: pre;
-            }
+        .leaflet-popup-content, .leaflet-tooltip {
+            white-space: pre;
+        }
 
-            .leaflet-popup-content:has(.geojson-props-table) {
-                overflow: scroll;
-            }
+        .leaflet-popup-content:has(.geojson-props-table) {
+            overflow: scroll;
+        }
 
-            .leaflet-popup-content:has(.geojson-editor) {
-                    /*max-width: calc(${mapWidth} / 3) !important;
-                        min-width: calc(${mapWidth} / 3) !important;
-                        max-height: calc(${mapHeight} / 2);
-                        min-height: calc(${mapHeight} / 2);*/
-                overflow-y: scroll;
-                font-size: larger;
-            }
+        .leaflet-popup-content:has(.geojson-editor) {
+                /*max-width: calc(${mapWidth} / 3) !important;
+                    min-width: calc(${mapWidth} / 3) !important;
+                    max-height: calc(${mapHeight} / 2);
+                    min-height: calc(${mapHeight} / 2);*/
+            overflow-y: scroll;
+            font-size: larger;
+        }
 
-            .geojson-editor {
-                margin-left: 5px;
-            }
+        .geojson-editor {
+            margin-left: 5px;
+        }
 
-            table.tags-table {
-                margin-top: 5px;
-                margin-left: 5px;
-            }
+        table.tags-table {
+            margin-top: 5px;
+            margin-left: 5px;
+        }
 
-            table.metainfo-table {
-                margin-top: 5px;
-                margin-left: 5px;
-            }
+        table.metainfo-table {
+            margin-top: 5px;
+            margin-left: 5px;
+        }
 
-            table.tags-table th:not(.tag-flag) {
-                border: solid 2px transparent;
-                min-width: 50px;
-            }
+        table.tags-table th:not(.tag-flag) {
+            border: solid 2px transparent;
+            min-width: 50px;
+        }
 
-            table.tags-table td:not(.tag-flag) {
-                border: solid 2px transparent;
-                min-width: 150px;
-            }
+        table.tags-table td:not(.tag-flag) {
+            border: solid 2px transparent;
+            min-width: 150px;
+        }
 
-            table.editable.tags-table th:not(.tag-flag) {
-                border: solid 2px black;
-                min-width: 50px;
-            }
+        table.editable.tags-table th:not(.tag-flag) {
+            border: solid 2px black;
+            min-width: 50px;
+        }
 
-            table.editable.tags-table td:not(.tag-flag) {
-                border: solid 2px black;
-                min-width: 150px;
-            }
+        table.editable.tags-table td:not(.tag-flag) {
+            border: solid 2px black;
+            min-width: 150px;
+        }
 
-            table:not(.editable).tags-table tr.add-tag-row {
-                display: none;
-                min-width: 150px;
-            }
+        table:not(.editable).tags-table tr.add-tag-row {
+            display: none;
+            min-width: 150px;
+        }
 
-            table.editable.tags-table tr.add-tag-row th {
-                text-align: center;
-                cursor: pointer;
-                min-width: 294px;
-                resize: both !important;
-            }
+        table.editable.tags-table tr.add-tag-row th {
+            text-align: center;
+            cursor: pointer;
+            min-width: 294px;
+            resize: both !important;
+        }
 
-            table.tags-table textarea {
-                min-width: 280px;
-            }
+        table.tags-table textarea {
+            min-width: 280px;
+        }
 
-            .mode-btn:not(.visible) {
-                display: none;
-            }
-            
-            .mode-btn > svg {
-                margin-top: -3px;
-            }
+        .mode-btn:not(.visible) {
+            display: none;
+        }
+        
+        .mode-btn > svg {
+            margin-top: -3px;
+        }
 
-            .map-img-preview-popup {
-                width: initial;
+        .map-img-preview-popup {
+            width: initial;
+        }
+
+        .zebra_colors tr:nth-child(even) td, .zebra_colors tr:nth-child(even) th {
+            background-color: color-mix(in srgb, var(--bs-body-bg), black 10%);
+        }
+
+        @media ${mediaQueryForWebsiteTheme} {
+
+            .mode-btn.visible img {
+                filter: invert(0.9);
             }
 
             .zebra_colors tr:nth-child(even) td, .zebra_colors tr:nth-child(even) th {
-                background-color: color-mix(in srgb, var(--bs-body-bg), black 10%);
+                background-color: color-mix(in srgb, var(--bs-body-bg), white 7%);
             }
 
-            @media ${mediaQueryForWebsiteTheme} {
+        }
 
-                .mode-btn.visible img {
-                    filter: invert(0.9);
-                }
-
-                .zebra_colors tr:nth-child(even) td, .zebra_colors tr:nth-child(even) th {
-                    background-color: color-mix(in srgb, var(--bs-body-bg), white 7%);
-                }
-
-            }
-
-            .leaflet-popup-content:has(.geotagged-img) {
-                max-width: calc(${mapWidth} / 2) !important;
-                min-width: calc(${mapWidth} / 2) !important;
-                max-height: calc(${mapHeight} / 2);
-                min-height: calc(${mapHeight} / 2);
-                width: auto;
-                height: auto;
-                overflow-y: scroll;
-            }
+        .leaflet-popup-content:has(.geotagged-img) {
+            max-width: calc(${mapWidth} / 2) !important;
+            min-width: calc(${mapWidth} / 2) !important;
+            max-height: calc(${mapHeight} / 2);
+            min-height: calc(${mapHeight} / 2);
+            width: auto;
+            height: auto;
+            overflow-y: scroll;
+        }
         `)
 }
 
 // const lastVersionsCache = {}
 
-function loadBannedVersions() {
-    externalFetchRetry({
+async function loadBannedVersions() {
+    await externalFetchRetry({
         url: "https://raw.githubusercontent.com/deevroman/better-osm-org/refs/heads/master/misc/assets/banned_versions.json",
         responseType: "json",
     }).then(async res => {

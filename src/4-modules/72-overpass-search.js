@@ -141,6 +141,27 @@ async function renderPanoramaxPhotoPointOnVectorMap(withPhotos) {
     })
 }
 
+function startPhotosRender(xml) {
+    setTimeout(async () => {
+        const withPhotos = Array.from(
+            xml.querySelectorAll(':has(>:is([k^=panoramax],[k^=mapillary],[k^=wikimedia_commons],[k^="ref:inaturalist.org"]))'),
+        ).map(i => {
+            const res = {
+                id: parseInt(i.getAttribute("id")),
+                type: i.nodeName,
+                tags: Object.fromEntries(Array.from(i.querySelectorAll("tag")).map(j => [j.getAttribute("k"), j.getAttribute("v")])),
+            }
+            if (res.type === "node") {
+                res.lat = parseFloat(i.getAttribute("lat"))
+                res.lon = parseFloat(i.getAttribute("lon"))
+            }
+            return res
+        })
+        renderPhotosPreview(withPhotos)
+        // await renderPanoramaxPhotoPointOnVectorMap(withPhotos)
+    })
+}
+
 async function processOverpassQuery(query) {
     if (!query.length) return
     query = query.trim()
@@ -221,29 +242,19 @@ out geom;
             [bbox.min_lat, bbox.min_lon],
             [bbox.max_lat, bbox.max_lon],
         ])
-        loadBannedVersions()
+        void loadBannedVersions()
         cleanAllObjects()
         getWindow().jsonLayer?.remove()
         jsonLayer?.remove()
-        jsonLayer = renderOSMGeoJSON(xml, true)
-        setTimeout(async () => {
-            const withPhotos = Array.from(
-                xml.querySelectorAll(':has(>:is([k^=panoramax],[k^=mapillary],[k^=wikimedia_commons],[k^="ref:inaturalist.org"]))'),
-            ).map(i => {
-                const res = {
-                    id: parseInt(i.getAttribute("id")),
-                    type: i.nodeName,
-                    tags: Object.fromEntries(Array.from(i.querySelectorAll("tag")).map(j => [j.getAttribute("k"), j.getAttribute("v")])),
-                }
-                if (res.type === "node") {
-                    res.lat = parseFloat(i.getAttribute("lat"))
-                    res.lon = parseFloat(i.getAttribute("lon"))
-                }
-                return res
-            })
-            renderPhotosPreview(withPhotos)
-            // await renderPanoramaxPhotoPointOnVectorMap(withPhotos)
+        // TODO
+        jsonLayer = renderOSMGeoJSON(xml, {
+            style: {
+                color: "red",
+            },
         })
+        jsonLayer.bringToFront()
+        debugger
+        startPhotosRender(xml)
         console.timeEnd("render overpass response")
 
         let statusPrefix = ""
