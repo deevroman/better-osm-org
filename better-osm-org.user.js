@@ -5283,6 +5283,7 @@ const configOptions = {
                     "https://overpass.geofabrik.de/YOUR_API_KEY/api",
                     "https://api.tracestrack.com/overpass/YOUR_API_KEY",
                     "https://api.overspan.dev/YOUR_API_KEY/api",
+                    "https://api.overpass.ch/v1/YOUR_API_KEY/",
                 ].forEach(instance => {
                     datalist.appendChild(
                         this.create("option", {
