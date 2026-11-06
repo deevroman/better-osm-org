@@ -4286,19 +4286,23 @@ function preventWhiteFlashesInIdEditor() {
     }
 }
 
-if (isOsmServer() && location.pathname !== "/id" && !document.querySelector("#id-embed")) {
-    runOnDOMContentLoaded(injectMapHooks)
-} else if (isOsmServer() && ["/edit", "/id"].includes(location.pathname)) {
-    preventWhiteFlashesInIdEditor()
-    GM_registerMenuCommand("JOSM!", function () {
-        const iframe = GM_addElement("iframe", {
-            src: "https://deevroman.github.io/web-josm",
-            width: "100%",
-            height: "100%",
-            id: "josmembed",
+if (isOsmServer()) {
+    if (location.pathname !== "/id" && !document.querySelector("#id-embed")) {
+        runOnDOMContentLoaded(injectMapHooks)
+    } else if (["/edit", "/id"].includes(location.pathname)) {
+        preventWhiteFlashesInIdEditor()
+    }
+    if (location.pathname === "/edit" && location.search.includes("editor=id")) {
+        GM_registerMenuCommand("JOSM!", function () {
+            const iframe = GM_addElement("iframe", {
+                src: "https://deevroman.github.io/web-josm",
+                width: "100%",
+                height: "100%",
+                id: "josmembed",
+            })
+            document.querySelector("#id-embed").replaceWith(iframe)
         })
-        document.querySelector("#id-embed").replaceWith(iframe)
-    })
+    }
 }
 
 if (boGlobalThis.scriptInstance) {
