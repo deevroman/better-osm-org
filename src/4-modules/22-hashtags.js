@@ -1,5 +1,27 @@
 //<editor-fold desc="hashtags" defaultstate="collapsed">
 
+/**
+ * @param {HTMLElement[]} nodes
+ * @param {RegExp} regexp
+ * @param {function(string): string} htmlTransformer
+ */
+function transformTextNodes(nodes, regexp, htmlTransformer) {
+    nodes.forEach(p => {
+        p?.childNodes?.forEach(node => {
+            if (node.nodeType !== Node.TEXT_NODE) {
+                return
+            }
+            const span = document.createElement("span")
+            span.textContent = node.textContent
+            const newInnerHtml = span.innerHTML.replaceAll(regexp, htmlTransformer)
+            if (span.innerHTML !== newInnerHtml) {
+                span.innerHTML = newInnerHtml
+                node.replaceWith(span)
+            }
+        })
+    })
+}
+
 function makeHashtagsClickable() {
     if (!GM_config.get("ImagesAndLinksInTags")) return
 
@@ -25,28 +47,6 @@ function makeHashtagsClickable() {
             return a.outerHTML
         })
         node.replaceWith(span)
-    })
-}
-
-/**
- * @param {HTMLElement[]} nodes
- * @param {RegExp} regexp
- * @param {function(string): string} htmlTransformer
- */
-function transformTextNodes(nodes, regexp, htmlTransformer) {
-    nodes.forEach(p => {
-        p?.childNodes?.forEach(node => {
-            if (node.nodeType !== Node.TEXT_NODE) {
-                return
-            }
-            const span = document.createElement("span")
-            span.textContent = node.textContent
-            const newInnerHtml = span.innerHTML.replaceAll(regexp, htmlTransformer)
-            if (span.innerHTML !== newInnerHtml) {
-                span.innerHTML = newInnerHtml
-                node.replaceWith(span)
-            }
-        })
     })
 }
 
