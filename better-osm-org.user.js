@@ -4554,6 +4554,14 @@ const copyAnimationStyles = `
     }
 `
 
+let copyAnimationStylesInjected = false
+
+function injectCopyAnimationStyles() {
+    if (copyAnimationStylesInjected) return
+    copyAnimationStylesInjected = true
+    injectCSSIntoOSMPage(copyAnimationStyles)
+}
+
 function makeMenuItem(row) {
     const item = document.createElement("div")
     item.classList.add("template-item")
@@ -9203,7 +9211,7 @@ function makeHashtagsInNotesClickable() {
     })
 
     transformTextNodes(notesParagraphs, /(?<=(POI types: ))(.+)/gu, function (innerHtml) {
-        injectCSSIntoOSMPage(copyAnimationStyles)
+        injectCopyAnimationStyles()
         const span = document.createElement("span")
         span.classList.add("poi-name-in-note")
         span.title = t("hashtags.clickToCopyType")
@@ -29031,7 +29039,7 @@ out meta;
         }
         if (names.length) {
             userNamesP.textContent = t("userProfile.usernames")
-            injectCSSIntoOSMPage(copyAnimationStyles)
+            injectCopyAnimationStyles()
             names.forEach(name => {
                 const usernameSpan = document.createElement("span")
                 usernameSpan.textContent = name
@@ -29247,13 +29255,13 @@ async function processIDsOnDeletedUserPage(data, elemForResult) {
         idSpan.onclick = e => {
             navigator.clipboard.writeText(id).then(() => copyAnimation(e, id))
         }
-        injectCSSIntoOSMPage(copyAnimationStyles)
+        injectCopyAnimationStyles()
         elemForResult.appendChild(idSpan)
         elemForResult.appendChild(document.createElement("br"))
         if (data[i].names?.length > 1) {
             const p = document.createElement("p")
             p.textContent = t("userProfile.usernames")
-            injectCSSIntoOSMPage(copyAnimationStyles)
+            injectCopyAnimationStyles()
             data[i].names
                 .map(i => i.name)
                 .forEach(name => {
@@ -29482,7 +29490,7 @@ function addUserID(userDetails, userID) {
     userDetails.appendChild(dt)
     userDetails.appendChild(document.createTextNode("\xA0"))
     userDetails.appendChild(dd)
-    injectCSSIntoOSMPage(copyAnimationStyles)
+    injectCopyAnimationStyles()
 }
 
 async function addUsernames(userDetails, userID, user) {
@@ -29674,7 +29682,7 @@ function makeUsernameHeaderClickable(usernameHeader) {
         navigator.clipboard.writeText(username).then(() => copyAnimation(e, username))
     }
     usernameHeader.replaceWith(span)
-    injectCSSIntoOSMPage(copyAnimationStyles)
+    injectCopyAnimationStyles()
 }
 
 async function setupUserProfile() {
