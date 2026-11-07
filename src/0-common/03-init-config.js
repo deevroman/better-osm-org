@@ -239,6 +239,14 @@ const copyAnimationStyles = `
     }
 `
 
+let copyAnimationStylesInjected = false
+
+function injectCopyAnimationStyles() {
+    if (copyAnimationStylesInjected) return
+    copyAnimationStylesInjected = true
+    injectCSSIntoOSMPage(copyAnimationStyles)
+}
+
 function makeMenuItem(row) {
     const item = document.createElement("div")
     item.classList.add("template-item")
