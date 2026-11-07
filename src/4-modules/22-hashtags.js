@@ -29,24 +29,19 @@ function makeHashtagsClickable() {
         document.querySelector("#element_versions_list > div p") ??
         document.querySelector(".browse_section > div p") ??
         document.querySelector("#sidebar_content h2 + div > div > p")
-    comment?.childNodes?.forEach(node => {
-        if (node.nodeType !== Node.TEXT_NODE) return
-        const span = document.createElement("span")
-        span.textContent = node.textContent
-        span.innerHTML = span.innerHTML.replaceAll(/\B(#[\p{L}\d_-]+)\b/gu, function (match) {
-            if (match.match(/^#[0-9]+$/)) {
-                return match
-            }
-            const osmchaFilter = { comment: [{ label: match, value: match }] }
-            const osmchaLink = `${osmcha_server_origin}?` + new URLSearchParams({ filters: JSON.stringify(osmchaFilter) }).toString()
-            const a = document.createElement("a")
-            a.href = osmchaLink
-            a.target = "_blank"
-            a.title = t("hashtags.searchInOsmcha")
-            a.textContent = match
-            return a.outerHTML
-        })
-        node.replaceWith(span)
+
+    transformTextNodes(comment ? [comment] : [], /\B(#[\p{L}\d_-]+)\b/gu, function (innerHTML) {
+        if (innerHTML.match(/^#[0-9]+$/)) {
+            return innerHTML
+        }
+        const osmchaFilter = { comment: [{ label: innerHTML, value: innerHTML }] }
+        const osmchaLink = `${osmcha_server_origin}?` + new URLSearchParams({ filters: JSON.stringify(osmchaFilter) }).toString()
+        const a = document.createElement("a")
+        a.href = osmchaLink
+        a.target = "_blank"
+        a.title = t("hashtags.searchInOsmcha")
+        a.textContent = innerHTML
+        return a.outerHTML
     })
 }
 
