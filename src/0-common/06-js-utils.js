@@ -13,6 +13,15 @@ function injectJSIntoPage(text) {
 }
 
 /**
+ * @param {HTMLStyleElement} styleElem
+ * @param {string} text
+ */
+function appendStyleText(styleElem, text) {
+    // eslint-disable-next-line no-restricted-syntax -- required for legacy style injection
+    styleElem.innerHTML += text
+}
+
+/**
  * @param {string} text
  */
 function injectCSSIntoOSMPage(text) {
@@ -27,12 +36,12 @@ function injectCSSIntoOSMPage(text) {
                         await sleep(100)
                         continue
                     }
-                    styleElem.innerHTML += text
+                    appendStyleText(styleElem, text)
                 }
             }, 100)
             return
         }
-        styleElem.innerHTML += text
+        appendStyleText(styleElem, text)
         if (!isSafari) {
             styleElem.parentElement.appendChild(styleElem)
         }
@@ -187,6 +196,7 @@ function escapeHtml(unsafe) {
 
 if (!Element.prototype.setHTML) {
     Element.prototype.setHTML = function (html) {
+        // eslint-disable-next-line no-restricted-syntax -- setHTML fallback for older browsers
         this.innerHTML = html
     }
 }

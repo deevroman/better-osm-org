@@ -721,10 +721,11 @@ function addRevertButton() {
         // sidebar.classList.add("changeset-header")
         const changeset_id = sidebar.innerHTML.match(/([0-9]+)/)[0]
         const reverterTitle = t("changesetPageFixes.reverterTitle", { name: osm_revert_name })
-        // prettier-ignore
-        sidebar.innerHTML +=
-            ` <a href="${osm_revert_origin}/?changesets=${changeset_id}" target=_blank rel="noreferrer" id=revert_button_class title="${reverterTitle}">↩️</a>
-              <a href="${osmcha_server_origin}/changesets/${changeset_id}" id="osmcha_link" target="_blank" rel="noreferrer">${svg.osmchaLogo}</a>`
+        sidebar.setHTML(
+            sidebar.innerHTML +
+                ` <a href="${osm_revert_origin}/?changesets=${changeset_id}" target=_blank rel="noreferrer" id=revert_button_class title="${reverterTitle}">↩️</a>
+                  <a href="${osmcha_server_origin}/changesets/${changeset_id}" id="osmcha_link" target="_blank" rel="noreferrer">${svg.osmchaLogo}</a>`,
+        )
         changesetObjectsSelectionModeEnabled = false
         document.querySelector("#revert_button_class").onclick = async e => {
             if (changesetObjectsSelectionModeEnabled) {
