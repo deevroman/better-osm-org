@@ -15,7 +15,7 @@ function transformTextNodes(nodes, regexp, htmlTransformer) {
             span.textContent = node.textContent
             const newInnerHtml = span.innerHTML.replaceAll(regexp, htmlTransformer)
             if (span.innerHTML !== newInnerHtml) {
-                span.innerHTML = newInnerHtml
+                span.setHTML(newInnerHtml)
                 node.replaceWith(span)
             }
         })

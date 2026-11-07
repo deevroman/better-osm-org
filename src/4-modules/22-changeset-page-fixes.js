@@ -101,8 +101,9 @@ async function restorePrevNextChangesetButtons(changeset_id) {
         const prevLink = document.createElement("a")
         prevLink.classList.add("icon-link")
         prevLink.href = "/changeset/" + prevID
-        prevLink.innerHTML =
-            '<svg width="8" height="11" viewBox="-8 0 8 11"><path d="M-2,2 l-3.5,3.5 l3.5,3.5" fill="none" stroke="currentColor" stroke-width="1.5"></path></svg>'
+        prevLink.setHTML(
+            '<svg width="8" height="11" viewBox="-8 0 8 11"><path d="M-2,2 l-3.5,3.5 l3.5,3.5" fill="none" stroke="currentColor" stroke-width="1.5"></path></svg>',
+        )
         prevLink.appendChild(document.createTextNode(prevID.toString()))
         secondarySecondaryActions.appendChild(prevLink)
     }
@@ -111,8 +112,9 @@ async function restorePrevNextChangesetButtons(changeset_id) {
         const nextLink = document.createElement("a")
         nextLink.classList.add("icon-link")
         nextLink.href = "/changeset/" + nextID
-        nextLink.innerHTML =
-            '<svg width="8" height="11"><path d="M2,2 l3.5,3.5 l-3.5,3.5" fill="none" stroke="currentColor" stroke-width="1.5"></path></svg>'
+        nextLink.setHTML(
+            '<svg width="8" height="11"><path d="M2,2 l3.5,3.5 l-3.5,3.5" fill="none" stroke="currentColor" stroke-width="1.5"></path></svg>',
+        )
         nextLink.prepend(document.createTextNode(nextID.toString()))
         secondarySecondaryActions.appendChild(nextLink)
     }
@@ -907,38 +909,40 @@ function addRevertButton() {
                 } else if (key.textContent === "revert:id") {
                     const cell = i.querySelector("td")
                     if (isSimpleNode(cell) && cell.textContent.match(/^((\d+(;|…?$))+$)/)) {
-                        cell.innerHTML = cell.innerHTML.replaceAll(
-                            /(\d+)(;|$)/g,
-                            `<a href="/changeset/$1" class="changeset_link_in_changeset_tags">$1</a>$2`,
+                        cell.setHTML(
+                            cell.innerHTML.replaceAll(
+                                /(\d+)(;|$)/g,
+                                `<a href="/changeset/$1" class="changeset_link_in_changeset_tags">$1</a>$2`,
+                            ),
                         )
                     } else if (cell.textContent.match(/https:\/\/(www\.)?openstreetmap.org\/changeset\//g)) {
-                        cell.innerHTML = cell.innerHTML.replaceAll(/>https:\/\/(www\.)?openstreetmap.org\/changeset\//g, ">")
+                        cell.setHTML(cell.innerHTML.replaceAll(/>https:\/\/(www\.)?openstreetmap.org\/changeset\//g, ">"))
                     }
                 } else if (key.textContent === "revert:dmp:relation:id" || key.textContent === "revert:dmp:fail:relation:id") {
                     const cell = i.querySelector("td")
                     if (isSimpleNode(cell) && cell.textContent.match(/^((\d+(;|…?$))+$)/)) {
-                        cell.innerHTML = cell.innerHTML.replaceAll(
-                            /(\d+)(;|$)/g,
-                            `<a href="/relation/$1" class="relation_link_in_changeset_tags">$1</a>$2`,
+                        cell.setHTML(
+                            cell.innerHTML.replaceAll(
+                                /(\d+)(;|$)/g,
+                                `<a href="/relation/$1" class="relation_link_in_changeset_tags">$1</a>$2`,
+                            ),
                         )
                     }
                 } else if (key.textContent === "revert:dmp:way:id" || key.textContent === "revert:dmp:fail:way:id") {
                     const cell = i.querySelector("td")
                     if (isSimpleNode(cell) && cell.textContent.match(/^((\d+(;|…?$))+$)/)) {
-                        cell.innerHTML = cell.innerHTML.replaceAll(
-                            /(\d+)(;|$)/g,
-                            `<a href="/way/$1" class="way_link_in_changeset_tags">$1</a>$2`,
+                        cell.setHTML(
+                            cell.innerHTML.replaceAll(/(\d+)(;|$)/g, `<a href="/way/$1" class="way_link_in_changeset_tags">$1</a>$2`),
                         )
                     }
                 } else if (key.textContent === "redacted_changesets") {
                     const cell = i.querySelector("td")
                     if (isSimpleNode(cell) && cell.textContent.match(/^((\d+(,|$))+$)/)) {
-                        cell.innerHTML = cell.innerHTML.replaceAll(
-                            /(\d+)/g,
-                            `<a href="/changeset/$1" class="changeset_link_in_changeset_tags">$1</a>`,
+                        cell.setHTML(
+                            cell.innerHTML.replaceAll(/(\d+)/g, `<a href="/changeset/$1" class="changeset_link_in_changeset_tags">$1</a>`),
                         )
                     } else if (cell.textContent.match(/https:\/\/(www\.)?openstreetmap.org\/changeset\//g)) {
-                        cell.innerHTML = cell.innerHTML.replaceAll(/>https:\/\/(www\.)?openstreetmap.org\/changeset\//g, ">")
+                        cell.setHTML(cell.innerHTML.replaceAll(/>https:\/\/(www\.)?openstreetmap.org\/changeset\//g, ">"))
                     }
                 } else if (key.textContent.startsWith("v:") && GM_config.get("ChangesetQuickLook")) {
                     i.style.display = "none"
@@ -1304,12 +1308,6 @@ function setupCompactChangesetsHistory() {
                     badgesDiv.querySelector(".changeset_line").style.flexDirection = "row-reverse"
                 }
             }
-            const changesBadge = badgesDiv.querySelector("span:not(.changeset_num_comments) svg")
-            if (changesBadge && !changesBadge.classList.contains("better-diff-icon")) {
-                changesBadge.outerHTML = svg.diff
-                changesBadge.style.position = "relative"
-                changesBadge.style.top = "3px"
-            }
             const changesetIDspan = badgesDiv?.querySelector('a[href^="/changeset/"]:not([rel])')?.parentElement
             if (changesetIDspan) {
                 e.appendChild(changesetIDspan)
@@ -1331,7 +1329,7 @@ function setupCompactChangesetsHistory() {
         for (const elem of document.querySelectorAll("ol li:not(:has(.comment)):not(.comments-loaded)")) {
             elem.classList.add("comments-loaded")
             const commentsBadge = elem.querySelector(".changeset_num_comments")
-            commentsBadge.querySelector("i").outerHTML = svg.comment
+            replaceWithSvg(commentsBadge.querySelector("i"), "comment")
             const commentsCount = parseInt(commentsBadge.firstChild.textContent.trim())
             if (commentsCount) {
                 if (commentsCount > 3) {

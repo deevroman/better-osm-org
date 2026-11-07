@@ -6,7 +6,7 @@ function setupPrometheusLink() {
     }
     const hint = document.createElement("div")
     hint.textContent = ""
-    hint.innerHTML = `
+    hint.setHTML(`
 <a href="https://prometheus.openstreetmap.org/d/5rTT87FMk/web-site">Website prometheus</a>
 <br>
 <br>
@@ -14,7 +14,7 @@ function setupPrometheusLink() {
 <br>
 <br>
 <a href="https://github.com/openstreetmap/operations/issues?q=sort%3Aupdated-desc+is%3Aissue+is%3Aopen">OpenStreetMap operations issues</a>
-`
+`)
     document.body.appendChild(hint)
     setTimeout(() => {
         const iframe = GM_addElement("iframe", {

@@ -185,6 +185,12 @@ function escapeHtml(unsafe) {
         .replace(/'/g, "&#039;")
 }
 
+if (!Element.prototype.setHTML) {
+    Element.prototype.setHTML = function (html) {
+        this.innerHTML = html
+    }
+}
+
 /**
  * @template T
  * @param {T[]} arr
