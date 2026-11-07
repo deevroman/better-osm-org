@@ -6230,6 +6230,15 @@ function injectJSIntoPage(text) {
 }
 
 /**
+ * @param {HTMLStyleElement} styleElem
+ * @param {string} text
+ */
+function appendStyleText(styleElem, text) {
+    // eslint-disable-next-line no-restricted-syntax -- required for legacy style injection
+    styleElem.innerHTML += text
+}
+
+/**
  * @param {string} text
  */
 function injectCSSIntoOSMPage(text) {
@@ -6244,12 +6253,12 @@ function injectCSSIntoOSMPage(text) {
                         await sleep(100)
                         continue
                     }
-                    styleElem.innerHTML += text
+                    appendStyleText(styleElem, text)
                 }
             }, 100)
             return
         }
-        styleElem.innerHTML += text
+        appendStyleText(styleElem, text)
         if (!isSafari) {
             styleElem.parentElement.appendChild(styleElem)
         }
@@ -6404,6 +6413,7 @@ function escapeHtml(unsafe) {
 
 if (!Element.prototype.setHTML) {
     Element.prototype.setHTML = function (html) {
+        // eslint-disable-next-line no-restricted-syntax -- setHTML fallback for older browsers
         this.innerHTML = html
     }
 }
@@ -9936,10 +9946,11 @@ function addRevertButton() {
         // sidebar.classList.add("changeset-header")
         const changeset_id = sidebar.innerHTML.match(/([0-9]+)/)[0]
         const reverterTitle = t("changesetPageFixes.reverterTitle", { name: osm_revert_name })
-        // prettier-ignore
-        sidebar.innerHTML +=
-            ` <a href="${osm_revert_origin}/?changesets=${changeset_id}" target=_blank rel="noreferrer" id=revert_button_class title="${reverterTitle}">↩️</a>
-              <a href="${osmcha_server_origin}/changesets/${changeset_id}" id="osmcha_link" target="_blank" rel="noreferrer">${svg.osmchaLogo}</a>`
+        sidebar.setHTML(
+            sidebar.innerHTML +
+                ` <a href="${osm_revert_origin}/?changesets=${changeset_id}" target=_blank rel="noreferrer" id=revert_button_class title="${reverterTitle}">↩️</a>
+                  <a href="${osmcha_server_origin}/changesets/${changeset_id}" id="osmcha_link" target="_blank" rel="noreferrer">${svg.osmchaLogo}</a>`,
+        )
         changesetObjectsSelectionModeEnabled = false
         document.querySelector("#revert_button_class").onclick = async e => {
             if (changesetObjectsSelectionModeEnabled) {
