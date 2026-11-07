@@ -995,17 +995,11 @@ function addRevertButton() {
             elem.title = makeUsernameTitle(info)
         })
     })
-    document.querySelectorAll("#sidebar_content h2 ~ div article p").forEach(c => {
-        c.childNodes?.forEach(node => {
-            if (node.nodeType !== Node.TEXT_NODE) return
-            const span = document.createElement("span")
-            span.textContent = node.textContent
-            span.innerHTML = span.innerHTML.replaceAll(/((changesets )((\d+)([,. ])(\s|$|<\/))+|changeset \d+)/gm, match => {
-                return match.replaceAll(/(\d+)/g, `<a href="/changeset/$1" class="changeset_link_in_comment">$1</a>`)
-            })
-            node.replaceWith(span)
-        })
-    })
+    transformTextNodes(
+        document.querySelectorAll("#sidebar_content h2 ~ div article p"),
+        /((changesets )((\d+)([,. ])(\s|$|<\/))+|changeset \d+)/gm,
+        innerHtml => innerHtml.replaceAll(/(\d+)/g, `<a href="/changeset/$1" class="changeset_link_in_comment">$1</a>`),
+    )
     makeHeaderPartsClickable()
 }
 
