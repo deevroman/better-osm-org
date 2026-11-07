@@ -9053,6 +9053,151 @@ function resetSearchFormFocus() {
 
 //</editor-fold>
 
+//<editor-fold desc="hashtags" defaultstate="collapsed">
+
+/**
+ * @param {HTMLElement[]} nodes
+ * @param {RegExp} regexp
+ * @param {function(string): string} htmlTransformer
+ */
+function transformTextNodes(nodes, regexp, htmlTransformer) {
+    nodes.forEach(p => {
+        p?.childNodes?.forEach(node => {
+            if (node.nodeType !== Node.TEXT_NODE) {
+                return
+            }
+            const span = document.createElement("span")
+            span.textContent = node.textContent
+            const newInnerHtml = span.innerHTML.replaceAll(regexp, htmlTransformer)
+            if (span.innerHTML !== newInnerHtml) {
+                span.innerHTML = newInnerHtml
+                node.replaceWith(span)
+            }
+        })
+    })
+}
+
+function makeHashtagsClickable() {
+    if (!GM_config.get("ImagesAndLinksInTags")) return
+
+    const comment =
+        document.querySelector("#element_versions_list > div p") ??
+        document.querySelector(".browse_section > div p") ??
+        document.querySelector("#sidebar_content h2 + div > div > p")
+
+    transformTextNodes(comment ? [comment] : [], /\B(#[\p{L}\d_-]+)\b/gu, function (innerHTML) {
+        if (innerHTML.match(/^#[0-9]+$/)) {
+            return innerHTML
+        }
+        const osmchaFilter = { comment: [{ label: innerHTML, value: innerHTML }] }
+        const osmchaLink = `${osmcha_server_origin}?` + new URLSearchParams({ filters: JSON.stringify(osmchaFilter) }).toString()
+        const a = document.createElement("a")
+        a.href = osmchaLink
+        a.target = "_blank"
+        a.title = t("hashtags.searchInOsmcha")
+        a.textContent = innerHTML
+        return a.outerHTML
+    })
+}
+
+function makeHashtagsInNotesClickable() {
+    if (!GM_config.get("ImagesAndLinksInTags")) return
+
+    const notesParagraphs = Array.from(document.querySelectorAll("#sidebar_content h4 ~ div:first-of-type > p"))
+    const commentsParagraphs = Array.from(document.querySelectorAll("#sidebar_content article p"))
+    transformTextNodes([...commentsParagraphs, ...notesParagraphs], /(^|\B)(#[\p{L}\d_-]+)(\b|$)/gu, function (innerHtml) {
+        if (innerHtml.match(/^#[0-9]+$/)) {
+            return innerHtml
+        }
+        // const notesReviewLink = "https://ent8r.github.io/NotesReview/?" + new URLSearchParams({
+        //     view: "map",
+        //     status: "open",
+        //     area: "view",
+        //     limit: 30,
+        //     query: match
+        // }).toString()
+
+        const a = document.createElement("a")
+        a.id = "note-link-" + Math.random()
+        a.href = ""
+        a.target = "_blank"
+        a.title = t("hashtags.filterNotesByHashtag")
+        a.textContent = innerHtml
+
+        function fixLink() {
+            const center = getMapCenter()
+            const zoom = getZoom()
+            const notesReviewLink =
+                "https://antonkhorev.github.io/osm-note-viewer/#" +
+                new URLSearchParams({
+                    mode: "search",
+                    q: innerHtml,
+                    bbox: [
+                        Math.round(getMap().getBounds().getWest() * 10000) / 10000,
+                        Math.round(getMap().getBounds().getSouth() * 10000) / 10000,
+                        Math.round(getMap().getBounds().getEast() * 10000) / 10000,
+                        Math.round(getMap().getBounds().getNorth() * 10000) / 10000,
+                    ].join(","),
+                    sort: "created_at",
+                    order: "newest",
+                    closed: "0",
+                    map: `${zoom}/${center.lat}/${center.lng}`,
+                }).toString()
+            const link = document.getElementById(a.id)
+            link.href = notesReviewLink
+            link.onclick = e => {
+                if (e.shiftKey || e.ctrlKey || e.metaKey) {
+                    return
+                }
+                e.preventDefault()
+                if (document.querySelector(".layers-ui").style.display === "none") {
+                    document.querySelector(".control-layers a").click()
+                }
+                Array.from(document.querySelectorAll(".overlay-layers label"))[0].scrollIntoView({ block: "center" })
+                document.querySelector("#filter-notes-by-string").value = innerHtml
+                e.target?.classList?.add("wait-fetch")
+                updateNotesLayer()
+            }
+            console.log("search link in note was fixed")
+        }
+
+        setTimeout(() => {
+            interceptMapManually().then(fixLink)
+        })
+        setTimeout(fixLink, 1000)
+        return a.outerHTML
+    })
+
+    transformTextNodes(notesParagraphs, /(?<=(POI name: ))(.+)/gu, function (innerHtml) {
+        const span = document.createElement("span")
+        span.classList.add("poi-name-in-note")
+        span.title = t("hashtags.clickToCopyName")
+        span.setAttribute("data-name", innerHtml)
+        span.textContent = innerHtml
+        return span.outerHTML
+    })
+
+    transformTextNodes(notesParagraphs, /(?<=(POI types: ))(.+)/gu, function (innerHtml) {
+        injectCSSIntoOSMPage(copyAnimationStyles)
+        const span = document.createElement("span")
+        span.classList.add("poi-name-in-note")
+        span.title = t("hashtags.clickToCopyType")
+        span.setAttribute("data-name", innerHtml)
+        span.textContent = innerHtml
+        return span.outerHTML
+    })
+
+    document.querySelectorAll(".poi-name-in-note").forEach(elem => {
+        elem.style.cursor = "pointer"
+        elem.addEventListener("click", e => {
+            const name = e.target.getAttribute("data-name")
+            navigator.clipboard.writeText(name).then(() => copyAnimation(e, name))
+        })
+    })
+}
+
+//</editor-fold>
+
 //<editor-fold desc="changeset-page-fixes" defaultstate="collapsed">
 
 function makeContextMenuElem(e) {
@@ -10593,151 +10738,6 @@ function setupCompactChangesetsHistory() {
     }
 
     void initCorporateMappersList()
-}
-
-//</editor-fold>
-
-//<editor-fold desc="hashtags" defaultstate="collapsed">
-
-/**
- * @param {HTMLElement[]} nodes
- * @param {RegExp} regexp
- * @param {function(string): string} htmlTransformer
- */
-function transformTextNodes(nodes, regexp, htmlTransformer) {
-    nodes.forEach(p => {
-        p?.childNodes?.forEach(node => {
-            if (node.nodeType !== Node.TEXT_NODE) {
-                return
-            }
-            const span = document.createElement("span")
-            span.textContent = node.textContent
-            const newInnerHtml = span.innerHTML.replaceAll(regexp, htmlTransformer)
-            if (span.innerHTML !== newInnerHtml) {
-                span.innerHTML = newInnerHtml
-                node.replaceWith(span)
-            }
-        })
-    })
-}
-
-function makeHashtagsClickable() {
-    if (!GM_config.get("ImagesAndLinksInTags")) return
-
-    const comment =
-        document.querySelector("#element_versions_list > div p") ??
-        document.querySelector(".browse_section > div p") ??
-        document.querySelector("#sidebar_content h2 + div > div > p")
-
-    transformTextNodes(comment ? [comment] : [], /\B(#[\p{L}\d_-]+)\b/gu, function (innerHTML) {
-        if (innerHTML.match(/^#[0-9]+$/)) {
-            return innerHTML
-        }
-        const osmchaFilter = { comment: [{ label: innerHTML, value: innerHTML }] }
-        const osmchaLink = `${osmcha_server_origin}?` + new URLSearchParams({ filters: JSON.stringify(osmchaFilter) }).toString()
-        const a = document.createElement("a")
-        a.href = osmchaLink
-        a.target = "_blank"
-        a.title = t("hashtags.searchInOsmcha")
-        a.textContent = innerHTML
-        return a.outerHTML
-    })
-}
-
-function makeHashtagsInNotesClickable() {
-    if (!GM_config.get("ImagesAndLinksInTags")) return
-
-    const notesParagraphs = Array.from(document.querySelectorAll("#sidebar_content h4 ~ div:first-of-type > p"))
-    const commentsParagraphs = Array.from(document.querySelectorAll("#sidebar_content article p"))
-    transformTextNodes([...commentsParagraphs, ...notesParagraphs], /(^|\B)(#[\p{L}\d_-]+)(\b|$)/gu, function (innerHtml) {
-        if (innerHtml.match(/^#[0-9]+$/)) {
-            return innerHtml
-        }
-        // const notesReviewLink = "https://ent8r.github.io/NotesReview/?" + new URLSearchParams({
-        //     view: "map",
-        //     status: "open",
-        //     area: "view",
-        //     limit: 30,
-        //     query: match
-        // }).toString()
-
-        const a = document.createElement("a")
-        a.id = "note-link-" + Math.random()
-        a.href = ""
-        a.target = "_blank"
-        a.title = t("hashtags.filterNotesByHashtag")
-        a.textContent = innerHtml
-
-        function fixLink() {
-            const center = getMapCenter()
-            const zoom = getZoom()
-            const notesReviewLink =
-                "https://antonkhorev.github.io/osm-note-viewer/#" +
-                new URLSearchParams({
-                    mode: "search",
-                    q: innerHtml,
-                    bbox: [
-                        Math.round(getMap().getBounds().getWest() * 10000) / 10000,
-                        Math.round(getMap().getBounds().getSouth() * 10000) / 10000,
-                        Math.round(getMap().getBounds().getEast() * 10000) / 10000,
-                        Math.round(getMap().getBounds().getNorth() * 10000) / 10000,
-                    ].join(","),
-                    sort: "created_at",
-                    order: "newest",
-                    closed: "0",
-                    map: `${zoom}/${center.lat}/${center.lng}`,
-                }).toString()
-            const link = document.getElementById(a.id)
-            link.href = notesReviewLink
-            link.onclick = e => {
-                if (e.shiftKey || e.ctrlKey || e.metaKey) {
-                    return
-                }
-                e.preventDefault()
-                if (document.querySelector(".layers-ui").style.display === "none") {
-                    document.querySelector(".control-layers a").click()
-                }
-                Array.from(document.querySelectorAll(".overlay-layers label"))[0].scrollIntoView({ block: "center" })
-                document.querySelector("#filter-notes-by-string").value = innerHtml
-                e.target?.classList?.add("wait-fetch")
-                updateNotesLayer()
-            }
-            console.log("search link in note was fixed")
-        }
-
-        setTimeout(() => {
-            interceptMapManually().then(fixLink)
-        })
-        setTimeout(fixLink, 1000)
-        return a.outerHTML
-    })
-
-    transformTextNodes(notesParagraphs, /(?<=(POI name: ))(.+)/gu, function (innerHtml) {
-        const span = document.createElement("span")
-        span.classList.add("poi-name-in-note")
-        span.title = t("hashtags.clickToCopyName")
-        span.setAttribute("data-name", innerHtml)
-        span.textContent = innerHtml
-        return span.outerHTML
-    })
-
-    transformTextNodes(notesParagraphs, /(?<=(POI types: ))(.+)/gu, function (innerHtml) {
-        injectCSSIntoOSMPage(copyAnimationStyles)
-        const span = document.createElement("span")
-        span.classList.add("poi-name-in-note")
-        span.title = t("hashtags.clickToCopyType")
-        span.setAttribute("data-name", innerHtml)
-        span.textContent = innerHtml
-        return span.outerHTML
-    })
-
-    document.querySelectorAll(".poi-name-in-note").forEach(elem => {
-        elem.style.cursor = "pointer"
-        elem.addEventListener("click", e => {
-            const name = e.target.getAttribute("data-name")
-            navigator.clipboard.writeText(name).then(() => copyAnimation(e, name))
-        })
-    })
 }
 
 //</editor-fold>
