@@ -41,8 +41,11 @@ function transformTextNodes(nodes, regexp, htmlTransformer) {
             }
             const span = document.createElement("span")
             span.textContent = node.textContent
-            span.innerHTML = span.innerHTML.replaceAll(regexp, htmlTransformer)
-            node.replaceWith(span)
+            const newInnerHtml = span.innerHTML.replaceAll(regexp, htmlTransformer)
+            if (span.innerHTML !== newInnerHtml) {
+                span.innerHTML = newInnerHtml
+                node.replaceWith(span)
+            }
         })
     })
 }
