@@ -1,7 +1,7 @@
 //<editor-fold desc="hashtags" defaultstate="collapsed">
 
 /**
- * @param {HTMLElement[]} nodes
+ * @param {HTMLElement[]|NodeListOf} nodes
  * @param {RegExp} regexp
  * @param {function(string): string} htmlTransformer
  */
