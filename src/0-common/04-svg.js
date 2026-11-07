@@ -280,7 +280,15 @@ function insertSvg(elem, name) {
         throw new TypeError(`Unknown SVG: ${name}`)
     }
 
-    elem.innerHTML = svg[name]
+    elem.setHTML(svg[name])
+}
+
+function replaceWithSvg(elem, name) {
+    if (!Object.hasOwn(svg, name)) {
+        throw new TypeError(`Unknown SVG: ${name}`)
+    }
+
+    elem.replaceWith(new DOMParser().parseFromString(svg[name], "text/html").body.firstElementChild)
 }
 
 //</editor-fold>

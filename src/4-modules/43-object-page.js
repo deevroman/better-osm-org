@@ -183,19 +183,21 @@ function makePanoramaxValue(elem) {
         return
     }
     elem.classList.add("panoramaxed")
-    elem.innerHTML = elem.innerHTML.replaceAll(
-        /(?<=(^|;))([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})(&amp;xyz=-?[0-9]+(\.[0-9]+)?\/-?[0-9]+(\.[0-9]+)?\/-?[0-9]+(\.[0-9]+)?)?/gi,
-        function (match) {
-            const a = document.createElement("a")
-            a.textContent = match.replaceAll("&amp;", "&")
-            a.classList.add("preview-img-link")
-            a.target = "_blank"
-            const browseSection = elem?.parentElement?.parentElement?.parentElement?.parentElement?.parentElement
-            const lat = browseSection?.querySelector(".latitude")?.textContent?.replace(",", ".")
-            const lon = browseSection?.querySelector(".longitude")?.textContent?.replace(",", ".")
-            a.href = `${panoramaxDiscoveryServer}/#focus=pic&pic=` + match.replaceAll("&amp;", "&") + (lat ? `&map=16/${lat}/${lon}` : "")
-            return a.outerHTML
-        },
+    elem.setHTML(
+        elem.innerHTML.replaceAll(
+            /(?<=(^|;))([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})(&amp;xyz=-?[0-9]+(\.[0-9]+)?\/-?[0-9]+(\.[0-9]+)?\/-?[0-9]+(\.[0-9]+)?)?/gi,
+            function (match) {
+                const a = document.createElement("a")
+                a.textContent = match.replaceAll("&amp;", "&")
+                a.classList.add("preview-img-link")
+                a.target = "_blank"
+                const browseSection = elem?.parentElement?.parentElement?.parentElement?.parentElement?.parentElement
+                const lat = browseSection?.querySelector(".latitude")?.textContent?.replace(",", ".")
+                const lon = browseSection?.querySelector(".longitude")?.textContent?.replace(",", ".")
+                a.href = `${panoramaxDiscoveryServer}/#focus=pic&pic=` + match.replaceAll("&amp;", "&") + (lat ? `&map=16/${lat}/${lon}` : "")
+                return a.outerHTML
+            },
+        ),
     )
     elem.querySelectorAll(`a:not(.added-preview-img)[href^="${MAIN_PANORAMAX_DISCOVERY_SERVER}/"]`).forEach(a => {
         a.classList.add("added-preview-img")
@@ -270,21 +272,23 @@ function makeMapillaryValue(elem) {
         return
     }
     elem.classList.add("mapillared")
-    elem.innerHTML = elem.innerHTML.replaceAll(
-        /(?<=(^|;))([0-9]+)(?=(;|&|$))(&amp;x=-?[0-9]+(\.[0-9]+)?&amp;y=-?[0-9]+(\.[0-9]+)?&amp;zoom=-?[0-9]+(\.[0-9]+)?)?/g,
-        function (match) {
-            const a = document.createElement("a")
-            a.textContent = match.replaceAll("&amp;", "&")
-            a.classList.add("preview-mapillary-img-link")
-            a.target = "_blank"
-            const browseSection = elem?.parentElement?.parentElement?.parentElement?.parentElement?.parentElement
-            const lat = browseSection?.querySelector(".latitude")?.textContent?.replace(",", ".")
-            const lon = browseSection?.querySelector(".longitude")?.textContent?.replace(",", ".")
-            a.href =
-                `https://www.mapillary.com/app/?focus=photo${lat ? "&lat=" + lat + "&lng=" + lon + "&z=16" : ""}&pKey=` +
-                arguments[0].replaceAll("&amp;", "&")
-            return a.outerHTML
-        },
+    elem.setHTML(
+        elem.innerHTML.replaceAll(
+            /(?<=(^|;))([0-9]+)(?=(;|&|$))(&amp;x=-?[0-9]+(\.[0-9]+)?&amp;y=-?[0-9]+(\.[0-9]+)?&amp;zoom=-?[0-9]+(\.[0-9]+)?)?/g,
+            function (match) {
+                const a = document.createElement("a")
+                a.textContent = match.replaceAll("&amp;", "&")
+                a.classList.add("preview-mapillary-img-link")
+                a.target = "_blank"
+                const browseSection = elem?.parentElement?.parentElement?.parentElement?.parentElement?.parentElement
+                const lat = browseSection?.querySelector(".latitude")?.textContent?.replace(",", ".")
+                const lon = browseSection?.querySelector(".longitude")?.textContent?.replace(",", ".")
+                a.href =
+                    `https://www.mapillary.com/app/?focus=photo${lat ? "&lat=" + lat + "&lng=" + lon + "&z=16" : ""}&pKey=` +
+                    arguments[0].replaceAll("&amp;", "&")
+                return a.outerHTML
+            },
+        ),
     )
     setTimeout(async () => {
         for (const a of elem.querySelectorAll('a:not(.added-preview-mapillary-img-link)[href^="https://www.mapillary.com/app/"]')) {
@@ -515,7 +519,7 @@ function makeRefBelpostValue(elem) {
         a.href = "https://belpost.by/Pochtovyyeyashchiki/" + elem.textContent
         a.rel = "noreferrer"
         a.textContent = elem.textContent
-        elem.innerHTML = a.outerHTML
+        elem.setHTML(a.outerHTML)
     }
 }
 

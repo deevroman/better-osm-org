@@ -430,10 +430,11 @@ async function askCustomStyleUrl() {
     closeBtn.style.all = "unset"
     closeBtn.style.cursor = "pointer"
     closeBtn.style.marginLeft = "auto"
-    closeBtn.innerHTML =
+    closeBtn.setHTML(
         '<svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">' +
-        '  <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z"/>' +
-        "</svg>"
+            '  <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z"/>' +
+            "</svg>",
+    )
     closeBtn.querySelector("svg").style.height = "1.5rem"
     closeBtn.onclick = () => popup.remove()
     h.append(closeBtn)
@@ -662,8 +663,9 @@ async function askCustomStyleUrl() {
 
     const note = document.createElement("span")
     note.style.color = "gray"
-    note.innerHTML =
-        "You can <a target='_blank' href='https://github.com/deevroman/better-osm-org/issues/new'>suggest</a> other styles. One of styles <a target='_blank' href='https://github.com/pnorman/maplibre-styles'>collection</a>"
+    note.setHTML(
+        "You can <a target='_blank' href='https://github.com/deevroman/better-osm-org/issues/new'>suggest</a> other styles. One of styles <a target='_blank' href='https://github.com/pnorman/maplibre-styles'>collection</a>",
+    )
     popup.appendChild(note)
     document.body.appendChild(popup)
     popup.querySelector('label:has([href^="https://github.com/versatiles-org/versatiles-style"])')?.querySelector("input")?.focus()
@@ -851,10 +853,7 @@ async function askCustomTileUrl() {
     closeBtn.style.all = "unset"
     closeBtn.style.cursor = "pointer"
     closeBtn.style.marginLeft = "auto"
-    closeBtn.innerHTML =
-        '<svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">' +
-        '  <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z"/>' +
-        "</svg>"
+    insertSvg(closeBtn, "close")
     closeBtn.querySelector("svg").style.height = "1.5rem"
     closeBtn.onclick = () => popup.remove()
     h.append(closeBtn)
@@ -1001,10 +1000,11 @@ async function askCustomTileUrl() {
 
     const note = document.createElement("span")
     note.style.color = "gray"
-    note.innerHTML =
+    note.setHTML(
         "For transparent tiles, switch to ShortBread or MapTiler layer<br/>" +
-        "You can <a target='_blank' href='https://github.com/deevroman/better-osm-org/issues/new'>suggest</a> other layer. " +
-        "One of <a href='https://github.com/osmlab/editor-layer-index'>layers collection</a>"
+            "You can <a target='_blank' href='https://github.com/deevroman/better-osm-org/issues/new'>suggest</a> other layer. " +
+            "One of <a href='https://github.com/osmlab/editor-layer-index'>layers collection</a>",
+    )
     popup.appendChild(note)
     document.body.appendChild(popup)
     popup.querySelector("label:has([type=radio]:checked)")?.querySelector("input")?.focus()

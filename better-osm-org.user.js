@@ -6062,7 +6062,15 @@ function insertSvg(elem, name) {
         throw new TypeError(`Unknown SVG: ${name}`)
     }
 
-    elem.innerHTML = svg[name]
+    elem.setHTML(svg[name])
+}
+
+function replaceWithSvg(elem, name) {
+    if (!Object.hasOwn(svg, name)) {
+        throw new TypeError(`Unknown SVG: ${name}`)
+    }
+
+    elem.replaceWith(new DOMParser().parseFromString(svg[name], "text/html").body.firstElementChild)
 }
 
 //</editor-fold>
@@ -6392,6 +6400,12 @@ function escapeHtml(unsafe) {
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;")
+}
+
+if (!Element.prototype.setHTML) {
+    Element.prototype.setHTML = function (html) {
+        this.innerHTML = html
+    }
 }
 
 /**
@@ -9071,7 +9085,7 @@ function transformTextNodes(nodes, regexp, htmlTransformer) {
             span.textContent = node.textContent
             const newInnerHtml = span.innerHTML.replaceAll(regexp, htmlTransformer)
             if (span.innerHTML !== newInnerHtml) {
-                span.innerHTML = newInnerHtml
+                span.setHTML(newInnerHtml)
                 node.replaceWith(span)
             }
         })
@@ -9302,8 +9316,9 @@ async function restorePrevNextChangesetButtons(changeset_id) {
         const prevLink = document.createElement("a")
         prevLink.classList.add("icon-link")
         prevLink.href = "/changeset/" + prevID
-        prevLink.innerHTML =
-            '<svg width="8" height="11" viewBox="-8 0 8 11"><path d="M-2,2 l-3.5,3.5 l3.5,3.5" fill="none" stroke="currentColor" stroke-width="1.5"></path></svg>'
+        prevLink.setHTML(
+            '<svg width="8" height="11" viewBox="-8 0 8 11"><path d="M-2,2 l-3.5,3.5 l3.5,3.5" fill="none" stroke="currentColor" stroke-width="1.5"></path></svg>',
+        )
         prevLink.appendChild(document.createTextNode(prevID.toString()))
         secondarySecondaryActions.appendChild(prevLink)
     }
@@ -9312,8 +9327,9 @@ async function restorePrevNextChangesetButtons(changeset_id) {
         const nextLink = document.createElement("a")
         nextLink.classList.add("icon-link")
         nextLink.href = "/changeset/" + nextID
-        nextLink.innerHTML =
-            '<svg width="8" height="11"><path d="M2,2 l3.5,3.5 l-3.5,3.5" fill="none" stroke="currentColor" stroke-width="1.5"></path></svg>'
+        nextLink.setHTML(
+            '<svg width="8" height="11"><path d="M2,2 l3.5,3.5 l-3.5,3.5" fill="none" stroke="currentColor" stroke-width="1.5"></path></svg>',
+        )
         nextLink.prepend(document.createTextNode(nextID.toString()))
         secondarySecondaryActions.appendChild(nextLink)
     }
@@ -10108,38 +10124,40 @@ function addRevertButton() {
                 } else if (key.textContent === "revert:id") {
                     const cell = i.querySelector("td")
                     if (isSimpleNode(cell) && cell.textContent.match(/^((\d+(;|…?$))+$)/)) {
-                        cell.innerHTML = cell.innerHTML.replaceAll(
-                            /(\d+)(;|$)/g,
-                            `<a href="/changeset/$1" class="changeset_link_in_changeset_tags">$1</a>$2`,
+                        cell.setHTML(
+                            cell.innerHTML.replaceAll(
+                                /(\d+)(;|$)/g,
+                                `<a href="/changeset/$1" class="changeset_link_in_changeset_tags">$1</a>$2`,
+                            ),
                         )
                     } else if (cell.textContent.match(/https:\/\/(www\.)?openstreetmap.org\/changeset\//g)) {
-                        cell.innerHTML = cell.innerHTML.replaceAll(/>https:\/\/(www\.)?openstreetmap.org\/changeset\//g, ">")
+                        cell.setHTML(cell.innerHTML.replaceAll(/>https:\/\/(www\.)?openstreetmap.org\/changeset\//g, ">"))
                     }
                 } else if (key.textContent === "revert:dmp:relation:id" || key.textContent === "revert:dmp:fail:relation:id") {
                     const cell = i.querySelector("td")
                     if (isSimpleNode(cell) && cell.textContent.match(/^((\d+(;|…?$))+$)/)) {
-                        cell.innerHTML = cell.innerHTML.replaceAll(
-                            /(\d+)(;|$)/g,
-                            `<a href="/relation/$1" class="relation_link_in_changeset_tags">$1</a>$2`,
+                        cell.setHTML(
+                            cell.innerHTML.replaceAll(
+                                /(\d+)(;|$)/g,
+                                `<a href="/relation/$1" class="relation_link_in_changeset_tags">$1</a>$2`,
+                            ),
                         )
                     }
                 } else if (key.textContent === "revert:dmp:way:id" || key.textContent === "revert:dmp:fail:way:id") {
                     const cell = i.querySelector("td")
                     if (isSimpleNode(cell) && cell.textContent.match(/^((\d+(;|…?$))+$)/)) {
-                        cell.innerHTML = cell.innerHTML.replaceAll(
-                            /(\d+)(;|$)/g,
-                            `<a href="/way/$1" class="way_link_in_changeset_tags">$1</a>$2`,
+                        cell.setHTML(
+                            cell.innerHTML.replaceAll(/(\d+)(;|$)/g, `<a href="/way/$1" class="way_link_in_changeset_tags">$1</a>$2`),
                         )
                     }
                 } else if (key.textContent === "redacted_changesets") {
                     const cell = i.querySelector("td")
                     if (isSimpleNode(cell) && cell.textContent.match(/^((\d+(,|$))+$)/)) {
-                        cell.innerHTML = cell.innerHTML.replaceAll(
-                            /(\d+)/g,
-                            `<a href="/changeset/$1" class="changeset_link_in_changeset_tags">$1</a>`,
+                        cell.setHTML(
+                            cell.innerHTML.replaceAll(/(\d+)/g, `<a href="/changeset/$1" class="changeset_link_in_changeset_tags">$1</a>`),
                         )
                     } else if (cell.textContent.match(/https:\/\/(www\.)?openstreetmap.org\/changeset\//g)) {
-                        cell.innerHTML = cell.innerHTML.replaceAll(/>https:\/\/(www\.)?openstreetmap.org\/changeset\//g, ">")
+                        cell.setHTML(cell.innerHTML.replaceAll(/>https:\/\/(www\.)?openstreetmap.org\/changeset\//g, ">"))
                     }
                 } else if (key.textContent.startsWith("v:") && GM_config.get("ChangesetQuickLook")) {
                     i.style.display = "none"
@@ -10505,12 +10523,6 @@ function setupCompactChangesetsHistory() {
                     badgesDiv.querySelector(".changeset_line").style.flexDirection = "row-reverse"
                 }
             }
-            const changesBadge = badgesDiv.querySelector("span:not(.changeset_num_comments) svg")
-            if (changesBadge && !changesBadge.classList.contains("better-diff-icon")) {
-                changesBadge.outerHTML = svg.diff
-                changesBadge.style.position = "relative"
-                changesBadge.style.top = "3px"
-            }
             const changesetIDspan = badgesDiv?.querySelector('a[href^="/changeset/"]:not([rel])')?.parentElement
             if (changesetIDspan) {
                 e.appendChild(changesetIDspan)
@@ -10532,7 +10544,7 @@ function setupCompactChangesetsHistory() {
         for (const elem of document.querySelectorAll("ol li:not(:has(.comment)):not(.comments-loaded)")) {
             elem.classList.add("comments-loaded")
             const commentsBadge = elem.querySelector(".changeset_num_comments")
-            commentsBadge.querySelector("i").outerHTML = svg.comment
+            replaceWithSvg(commentsBadge.querySelector("i"), "comment")
             const commentsCount = parseInt(commentsBadge.firstChild.textContent.trim())
             if (commentsCount) {
                 if (commentsCount > 3) {
@@ -14459,10 +14471,11 @@ async function askCustomStyleUrl() {
     closeBtn.style.all = "unset"
     closeBtn.style.cursor = "pointer"
     closeBtn.style.marginLeft = "auto"
-    closeBtn.innerHTML =
+    closeBtn.setHTML(
         '<svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">' +
-        '  <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z"/>' +
-        "</svg>"
+            '  <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z"/>' +
+            "</svg>",
+    )
     closeBtn.querySelector("svg").style.height = "1.5rem"
     closeBtn.onclick = () => popup.remove()
     h.append(closeBtn)
@@ -14691,8 +14704,9 @@ async function askCustomStyleUrl() {
 
     const note = document.createElement("span")
     note.style.color = "gray"
-    note.innerHTML =
-        "You can <a target='_blank' href='https://github.com/deevroman/better-osm-org/issues/new'>suggest</a> other styles. One of styles <a target='_blank' href='https://github.com/pnorman/maplibre-styles'>collection</a>"
+    note.setHTML(
+        "You can <a target='_blank' href='https://github.com/deevroman/better-osm-org/issues/new'>suggest</a> other styles. One of styles <a target='_blank' href='https://github.com/pnorman/maplibre-styles'>collection</a>",
+    )
     popup.appendChild(note)
     document.body.appendChild(popup)
     popup.querySelector('label:has([href^="https://github.com/versatiles-org/versatiles-style"])')?.querySelector("input")?.focus()
@@ -14880,10 +14894,7 @@ async function askCustomTileUrl() {
     closeBtn.style.all = "unset"
     closeBtn.style.cursor = "pointer"
     closeBtn.style.marginLeft = "auto"
-    closeBtn.innerHTML =
-        '<svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">' +
-        '  <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z"/>' +
-        "</svg>"
+    insertSvg(closeBtn, "close")
     closeBtn.querySelector("svg").style.height = "1.5rem"
     closeBtn.onclick = () => popup.remove()
     h.append(closeBtn)
@@ -15030,10 +15041,11 @@ async function askCustomTileUrl() {
 
     const note = document.createElement("span")
     note.style.color = "gray"
-    note.innerHTML =
+    note.setHTML(
         "For transparent tiles, switch to ShortBread or MapTiler layer<br/>" +
-        "You can <a target='_blank' href='https://github.com/deevroman/better-osm-org/issues/new'>suggest</a> other layer. " +
-        "One of <a href='https://github.com/osmlab/editor-layer-index'>layers collection</a>"
+            "You can <a target='_blank' href='https://github.com/deevroman/better-osm-org/issues/new'>suggest</a> other layer. " +
+            "One of <a href='https://github.com/osmlab/editor-layer-index'>layers collection</a>",
+    )
     popup.appendChild(note)
     document.body.appendChild(popup)
     popup.querySelector("label:has([type=radio]:checked)")?.querySelector("input")?.focus()
@@ -15912,19 +15924,21 @@ function makePanoramaxValue(elem) {
         return
     }
     elem.classList.add("panoramaxed")
-    elem.innerHTML = elem.innerHTML.replaceAll(
-        /(?<=(^|;))([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})(&amp;xyz=-?[0-9]+(\.[0-9]+)?\/-?[0-9]+(\.[0-9]+)?\/-?[0-9]+(\.[0-9]+)?)?/gi,
-        function (match) {
-            const a = document.createElement("a")
-            a.textContent = match.replaceAll("&amp;", "&")
-            a.classList.add("preview-img-link")
-            a.target = "_blank"
-            const browseSection = elem?.parentElement?.parentElement?.parentElement?.parentElement?.parentElement
-            const lat = browseSection?.querySelector(".latitude")?.textContent?.replace(",", ".")
-            const lon = browseSection?.querySelector(".longitude")?.textContent?.replace(",", ".")
-            a.href = `${panoramaxDiscoveryServer}/#focus=pic&pic=` + match.replaceAll("&amp;", "&") + (lat ? `&map=16/${lat}/${lon}` : "")
-            return a.outerHTML
-        },
+    elem.setHTML(
+        elem.innerHTML.replaceAll(
+            /(?<=(^|;))([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})(&amp;xyz=-?[0-9]+(\.[0-9]+)?\/-?[0-9]+(\.[0-9]+)?\/-?[0-9]+(\.[0-9]+)?)?/gi,
+            function (match) {
+                const a = document.createElement("a")
+                a.textContent = match.replaceAll("&amp;", "&")
+                a.classList.add("preview-img-link")
+                a.target = "_blank"
+                const browseSection = elem?.parentElement?.parentElement?.parentElement?.parentElement?.parentElement
+                const lat = browseSection?.querySelector(".latitude")?.textContent?.replace(",", ".")
+                const lon = browseSection?.querySelector(".longitude")?.textContent?.replace(",", ".")
+                a.href = `${panoramaxDiscoveryServer}/#focus=pic&pic=` + match.replaceAll("&amp;", "&") + (lat ? `&map=16/${lat}/${lon}` : "")
+                return a.outerHTML
+            },
+        ),
     )
     elem.querySelectorAll(`a:not(.added-preview-img)[href^="${MAIN_PANORAMAX_DISCOVERY_SERVER}/"]`).forEach(a => {
         a.classList.add("added-preview-img")
@@ -15999,21 +16013,23 @@ function makeMapillaryValue(elem) {
         return
     }
     elem.classList.add("mapillared")
-    elem.innerHTML = elem.innerHTML.replaceAll(
-        /(?<=(^|;))([0-9]+)(?=(;|&|$))(&amp;x=-?[0-9]+(\.[0-9]+)?&amp;y=-?[0-9]+(\.[0-9]+)?&amp;zoom=-?[0-9]+(\.[0-9]+)?)?/g,
-        function (match) {
-            const a = document.createElement("a")
-            a.textContent = match.replaceAll("&amp;", "&")
-            a.classList.add("preview-mapillary-img-link")
-            a.target = "_blank"
-            const browseSection = elem?.parentElement?.parentElement?.parentElement?.parentElement?.parentElement
-            const lat = browseSection?.querySelector(".latitude")?.textContent?.replace(",", ".")
-            const lon = browseSection?.querySelector(".longitude")?.textContent?.replace(",", ".")
-            a.href =
-                `https://www.mapillary.com/app/?focus=photo${lat ? "&lat=" + lat + "&lng=" + lon + "&z=16" : ""}&pKey=` +
-                arguments[0].replaceAll("&amp;", "&")
-            return a.outerHTML
-        },
+    elem.setHTML(
+        elem.innerHTML.replaceAll(
+            /(?<=(^|;))([0-9]+)(?=(;|&|$))(&amp;x=-?[0-9]+(\.[0-9]+)?&amp;y=-?[0-9]+(\.[0-9]+)?&amp;zoom=-?[0-9]+(\.[0-9]+)?)?/g,
+            function (match) {
+                const a = document.createElement("a")
+                a.textContent = match.replaceAll("&amp;", "&")
+                a.classList.add("preview-mapillary-img-link")
+                a.target = "_blank"
+                const browseSection = elem?.parentElement?.parentElement?.parentElement?.parentElement?.parentElement
+                const lat = browseSection?.querySelector(".latitude")?.textContent?.replace(",", ".")
+                const lon = browseSection?.querySelector(".longitude")?.textContent?.replace(",", ".")
+                a.href =
+                    `https://www.mapillary.com/app/?focus=photo${lat ? "&lat=" + lat + "&lng=" + lon + "&z=16" : ""}&pKey=` +
+                    arguments[0].replaceAll("&amp;", "&")
+                return a.outerHTML
+            },
+        ),
     )
     setTimeout(async () => {
         for (const a of elem.querySelectorAll('a:not(.added-preview-mapillary-img-link)[href^="https://www.mapillary.com/app/"]')) {
@@ -16244,7 +16260,7 @@ function makeRefBelpostValue(elem) {
         a.href = "https://belpost.by/Pochtovyyeyashchiki/" + elem.textContent
         a.rel = "noreferrer"
         a.textContent = elem.textContent
-        elem.innerHTML = a.outerHTML
+        elem.setHTML(a.outerHTML)
     }
 }
 
@@ -18026,7 +18042,7 @@ async function replaceRealWayVersion(it, objectStates, current) {
     if (Object.keys(current.changes).length > 1 && divForNodesReplace.classList?.contains("empty-version")) {
         divForNodesReplace.querySelector("summary")?.remove()
         const div = document.createElement("div")
-        div.innerHTML = divForNodesReplace.innerHTML
+        div.replaceChildren(...divForNodesReplace.childNodes)
         div.setAttribute("way-version", divForNodesReplace.getAttribute("way-version"))
         divForNodesReplace.replaceWith(div)
         divForNodesReplace = div
@@ -19119,7 +19135,7 @@ async function replaceRealRelationVersion(it, objectStates, current) {
     if (Object.keys(current.changes).length > 1 && divForMembersReplace.classList?.contains("empty-version")) {
         divForMembersReplace.querySelector("summary")?.remove()
         const div = document.createElement("div")
-        div.innerHTML = divForMembersReplace.innerHTML
+        div.replaceChildren(...divForMembersReplace.childNodes)
         div.setAttribute("relation-version", divForMembersReplace.getAttribute("relation-version"))
         divForMembersReplace.replaceWith(div)
         divForMembersReplace = div
@@ -19775,7 +19791,7 @@ async function restoreObjectHistory(showUnredactedBtn) {
     Array.from(document.querySelectorAll("details.empty-version")).forEach(i => {
         i.querySelector("summary")?.remove()
         const div = document.createElement("div")
-        div.innerHTML = i.innerHTML
+        div.replaceChildren(...i.childNodes)
         i.replaceWith(div)
     })
     const classesForClean = ["processed", "history-diff-new-tag", "history-diff-modified-tag", "non-modified-tag", "empty-version"]
@@ -20268,7 +20284,7 @@ function transformDiffWithColors() {
         const spoiler = document.createElement("details")
         const summary = document.createElement("summary")
         summary.textContent = elem.querySelector("a").textContent
-        spoiler.innerHTML = elem.innerHTML
+        spoiler.replaceChildren(...elem.childNodes)
         spoiler.prepend(summary)
         spoiler.classList.add("empty-version")
         spoiler.classList.add("browse-" + location.pathname.match(/(node|way|relation)/)[1])
@@ -20550,9 +20566,10 @@ function transformDiffWithColors() {
             )
             const td = document.createElement("td")
             if (k.includes("colour")) {
-                td.innerHTML =
+                td.setHTML(
                     '<svg width="14" height="14" class="float-end m-1"><title></title>' +
-                    '<rect x="0.5" y="0.5" width="13" height="13" fill="" stroke="#2222"></rect></svg>'
+                        '<rect x="0.5" y="0.5" width="13" height="13" fill="" stroke="#2222"></rect></svg>',
+                )
                 td.querySelector("svg rect").setAttribute("fill", v)
                 td.appendChild(document.createTextNode(v))
             } else {
@@ -26090,7 +26107,7 @@ async function addHoverForRelationMembers() {
                     injectJSIntoPage(`
                     (() => {
                         let tmp = document.createElement("span")
-                        tmp.innerHTML = '<svg id="kek" width="100" height="100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="6" stroke="black" stroke-width="3" fill="none" /></svg>'
+                        tmp.setHTML('<svg id="kek" width="100" height="100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="6" stroke="black" stroke-width="3" fill="none" /></svg>')
                         window.prevdo = {
                             maxWidth: 10,
                             maxHeight: 10,
@@ -29807,13 +29824,13 @@ function simplifyHDCYIframe() {
             document.getElementById("authenticate").remove()
             window.parent.postMessage({ height: document.body.scrollHeight }, "*")
         } else {
-            warn.innerHTML = `To see more than just public profiles, do the following:<br/>
+            warn.setHTML(`To see more than just public profiles, do the following:<br/>
 0. Turn off tracking protection if your browser has it (for example in Brave or Vivaldi)<br/>
 1. <a href="https://www.hdyc.neis-one.org/" target="_blank"> Log in to HDYC</a> <br/>
 2. Open the browser console (F12) <br/>
 3. Open the Application tab <br/>
 4. In the left panel, select <i>Storage</i>→<i>Cookies</i>→<i>https://www.hdyc.neis-one.org</i><br/>
-5. Click on the cell with the name <i>SameSite</i> and type <i>None</i> in it`
+5. Click on the cell with the name <i>SameSite</i> and type <i>None</i> in it`)
             document.getElementById("authenticate").before(warn)
             const img_help = document.createElement("img")
             img_help.onload = () => {
@@ -36148,7 +36165,7 @@ function setupPrometheusLink() {
     }
     const hint = document.createElement("div")
     hint.textContent = ""
-    hint.innerHTML = `
+    hint.setHTML(`
 <a href="https://prometheus.openstreetmap.org/d/5rTT87FMk/web-site">Website prometheus</a>
 <br>
 <br>
@@ -36156,7 +36173,7 @@ function setupPrometheusLink() {
 <br>
 <br>
 <a href="https://github.com/openstreetmap/operations/issues?q=sort%3Aupdated-desc+is%3Aissue+is%3Aopen">OpenStreetMap operations issues</a>
-`
+`)
     document.body.appendChild(hint)
     setTimeout(() => {
         const iframe = GM_addElement("iframe", {

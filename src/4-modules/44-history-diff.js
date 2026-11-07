@@ -1004,7 +1004,7 @@ async function replaceRealWayVersion(it, objectStates, current) {
     if (Object.keys(current.changes).length > 1 && divForNodesReplace.classList?.contains("empty-version")) {
         divForNodesReplace.querySelector("summary")?.remove()
         const div = document.createElement("div")
-        div.innerHTML = divForNodesReplace.innerHTML
+        div.replaceChildren(...divForNodesReplace.childNodes)
         div.setAttribute("way-version", divForNodesReplace.getAttribute("way-version"))
         divForNodesReplace.replaceWith(div)
         divForNodesReplace = div
@@ -2097,7 +2097,7 @@ async function replaceRealRelationVersion(it, objectStates, current) {
     if (Object.keys(current.changes).length > 1 && divForMembersReplace.classList?.contains("empty-version")) {
         divForMembersReplace.querySelector("summary")?.remove()
         const div = document.createElement("div")
-        div.innerHTML = divForMembersReplace.innerHTML
+        div.replaceChildren(...divForMembersReplace.childNodes)
         div.setAttribute("relation-version", divForMembersReplace.getAttribute("relation-version"))
         divForMembersReplace.replaceWith(div)
         divForMembersReplace = div
@@ -2753,7 +2753,7 @@ async function restoreObjectHistory(showUnredactedBtn) {
     Array.from(document.querySelectorAll("details.empty-version")).forEach(i => {
         i.querySelector("summary")?.remove()
         const div = document.createElement("div")
-        div.innerHTML = i.innerHTML
+        div.replaceChildren(...i.childNodes)
         i.replaceWith(div)
     })
     const classesForClean = ["processed", "history-diff-new-tag", "history-diff-modified-tag", "non-modified-tag", "empty-version"]
@@ -3246,7 +3246,7 @@ function transformDiffWithColors() {
         const spoiler = document.createElement("details")
         const summary = document.createElement("summary")
         summary.textContent = elem.querySelector("a").textContent
-        spoiler.innerHTML = elem.innerHTML
+        spoiler.replaceChildren(...elem.childNodes)
         spoiler.prepend(summary)
         spoiler.classList.add("empty-version")
         spoiler.classList.add("browse-" + location.pathname.match(/(node|way|relation)/)[1])
@@ -3528,9 +3528,10 @@ function transformDiffWithColors() {
             )
             const td = document.createElement("td")
             if (k.includes("colour")) {
-                td.innerHTML =
+                td.setHTML(
                     '<svg width="14" height="14" class="float-end m-1"><title></title>' +
-                    '<rect x="0.5" y="0.5" width="13" height="13" fill="" stroke="#2222"></rect></svg>'
+                        '<rect x="0.5" y="0.5" width="13" height="13" fill="" stroke="#2222"></rect></svg>',
+                )
                 td.querySelector("svg rect").setAttribute("fill", v)
                 td.appendChild(document.createTextNode(v))
             } else {

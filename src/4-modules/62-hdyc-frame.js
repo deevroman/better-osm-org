@@ -124,13 +124,13 @@ function simplifyHDCYIframe() {
             document.getElementById("authenticate").remove()
             window.parent.postMessage({ height: document.body.scrollHeight }, "*")
         } else {
-            warn.innerHTML = `To see more than just public profiles, do the following:<br/>
+            warn.setHTML(`To see more than just public profiles, do the following:<br/>
 0. Turn off tracking protection if your browser has it (for example in Brave or Vivaldi)<br/>
 1. <a href="https://www.hdyc.neis-one.org/" target="_blank"> Log in to HDYC</a> <br/>
 2. Open the browser console (F12) <br/>
 3. Open the Application tab <br/>
 4. In the left panel, select <i>Storage</i>→<i>Cookies</i>→<i>https://www.hdyc.neis-one.org</i><br/>
-5. Click on the cell with the name <i>SameSite</i> and type <i>None</i> in it`
+5. Click on the cell with the name <i>SameSite</i> and type <i>None</i> in it`)
             document.getElementById("authenticate").before(warn)
             const img_help = document.createElement("img")
             img_help.onload = () => {

@@ -610,7 +610,7 @@ async function addHoverForRelationMembers() {
                     injectJSIntoPage(`
                     (() => {
                         let tmp = document.createElement("span")
-                        tmp.innerHTML = '<svg id="kek" width="100" height="100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="6" stroke="black" stroke-width="3" fill="none" /></svg>'
+                        tmp.setHTML('<svg id="kek" width="100" height="100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="6" stroke="black" stroke-width="3" fill="none" /></svg>')
                         window.prevdo = {
                             maxWidth: 10,
                             maxHeight: 10,
