@@ -9,8 +9,8 @@
     "lint:final:eslint": "node build.js && (cd .. && ./src/node_modules/.bin/eslint better-osm-org.user.js --config src/eslint-final.config.mjs --no-config-lookup --global process --quiet)"
   },
   "devDependencies": {
-    "eslint": "^10.1.0",
-    "oxlint": "^1.57.0",
-    "prettier": "^3.8.1"
+    "eslint": "^10.14.0",
+    "oxlint": "^1.92.0",
+    "prettier": "^3.9.10"
   }
 }
