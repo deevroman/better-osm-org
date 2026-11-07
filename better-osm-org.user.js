@@ -8526,7 +8526,7 @@ async function tryFindDeletedChangesetAuthor(changesetID, datetime, type, objID)
         foundedInfo = await tryFindDeletedChangesetAuthorViaWhosthat(datetime, changesetID)
     }
     if (!foundedInfo.user) {
-        foundedInfo = await tryFindDeletedChangesetAuthorViaChangesetMetadata(changesetID)
+        foundedInfo = await tryFindDeletedChangesetAuthorViaChangesetMetadata(datetime, changesetID)
     }
     return foundedInfo
 }
@@ -8539,6 +8539,7 @@ async function tryFindDeletedChangesetAuthor(changesetID, datetime, type, objID)
 // https://osm.org/node/4122049406 (/replication/changesets/005/638/ contains .tmp files)
 // https://osm.org/node/2/history (very hard)
 // https://osm.org/changeset/5427478
+// https://osm.org/changeset/6178972
 async function findChangesetInDiff(e) {
     e.preventDefault()
     e.stopPropagation()
