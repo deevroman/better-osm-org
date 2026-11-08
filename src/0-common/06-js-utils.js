@@ -61,6 +61,27 @@ function injectCSSIntoSimplePage(text) {
     })
 }
 
+const registeredOSMStyles = new Map()
+let registeredOSMStylesInjected = false
+
+/**
+ * @param {string} name
+ * @param {() => string} getStyleText
+ */
+function registerOSMStyle(name, getStyleText) {
+    registeredOSMStyles.set(name, getStyleText)
+}
+
+function injectRegisteredOSMStyles() {
+    if (registeredOSMStylesInjected) return
+    registeredOSMStylesInjected = true
+
+    const styleText = [...registeredOSMStyles.values()].map(getStyleText => getStyleText()).join("\n")
+    if (styleText) {
+        injectCSSIntoOSMPage(styleText)
+    }
+}
+
 // In Tampermonkey access to Math.* very slow
 const min = Math.min
 const max = Math.max

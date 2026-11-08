@@ -128,7 +128,7 @@ if (shouldServe) {
 
             let out
             if (url.searchParams.has("master.user.js")) {
-                out = execSync("git show master:better-osm-org.user.js", { encoding: "utf8" })
+                out = execSync("git show master:better-osm-org.user.js", { encoding: "utf8", maxBuffer: 50 * 1024 * 1024 })
             } else {
                 out = fs.readFileSync(outPath, "utf8")
             }

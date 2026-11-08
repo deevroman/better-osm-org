@@ -180,8 +180,6 @@ async function mapClickHandler(e) {
             window.open(location.origin + targetURL)
         }
     }
-    addCompactSidebarStyle()
-
     console.log(elements)
 }
 

@@ -540,7 +540,6 @@ function addStreetCompletePhotos(isClosedNote) {
                 i.after(img)
             }
             document.querySelector("#sidebar").style.resize = "horizontal"
-            addCompactSidebarStyle()
             // hideSearchForm()
         }
     })
@@ -759,6 +758,21 @@ function addAltClickHandlerForNotes() {
     )
 }
 
+function registerNotesFiltersStyles() {
+    registerOSMStyle(
+        "notes-filters",
+        () => `
+            .wait-fetch {
+                cursor: progress !important;
+            }
+
+            label:has(:not(:checked)) + #download-notes {
+              display: none;
+            }
+        `,
+    )
+}
+
 function addNotesFiltersButtons() {
     if (document.getElementById("notes-filter")) {
         return
@@ -770,15 +784,6 @@ function addNotesFiltersButtons() {
     if (!getWindow().fetchIntercepterScriptInited) {
         return
     }
-    injectCSSIntoOSMPage(`
-        .wait-fetch {
-            cursor: progress !important;
-        }
-
-        label:has(:not(:checked)) + #download-notes {
-          display: none;
-        }
-    `)
     const checkbox = noteLabel.querySelector("input")
     const filters = document.createElement("div")
 

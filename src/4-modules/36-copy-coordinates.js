@@ -7,20 +7,18 @@ function removeCopyCoordinatesMenuItem() {
     copyCoordinatesMenuItem = null
 }
 
-let contextMenuStylesAdded = false
-
-function addContextMenuStyles() {
-    if (contextMenuStylesAdded) return
-    contextMenuStylesAdded = true
-    injectCSSIntoOSMPage(`
+function registerCopyCoordinatesStyles() {
+    registerOSMStyle(
+        "copy-coordinates",
+        () => `
         .copy-coordinates-btn:not(:hover) {
             color: gray;
         }
-    `)
+    `,
+    )
 }
 
 function addCopyCoordinatesMenuItem(prevItem) {
-    addContextMenuStyles()
     removeCopyCoordinatesMenuItem()
     if (!measurerAdded) {
         return

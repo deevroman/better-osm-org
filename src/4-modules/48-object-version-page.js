@@ -61,7 +61,6 @@ async function addHoverForNodesParents() {
 }
 
 function showBboxMenu(e, bbox) {
-    injectContextMenuCSS()
     document.querySelectorAll(".betterOsmContextMenu").forEach(i => i.remove())
     const menu = makeContextMenuElem(e)
     ;[
@@ -1037,7 +1036,6 @@ function addCopyCoordinatesButtons() {
             e.stopPropagation()
             e.stopImmediatePropagation()
 
-            injectContextMenuCSS()
             document.querySelectorAll(".betterOsmContextMenu").forEach(i => i.remove())
             const menu = makeContextMenuElem(e)
             Object.entries(coordinatesFormatters).forEach(([format, formatter], ind) => {
@@ -1129,7 +1127,6 @@ function addRelationHistoryViewerLinks() {
     }
     const id = parseInt(location.pathname.match(/\/relation\/(\d+)/)[1])
     const type = "relation"
-    injectCSSIntoOSMPage(contextMenuCSS)
     const viewInExternal = document.createElement("a")
     viewInExternal.classList.add("relation-viewer-link")
     insertSvg(viewInExternal, "externalLink")
@@ -1212,7 +1209,6 @@ function makeVersionPageBetter() {
     if (!match) {
         return
     }
-    addCompactSidebarStyle()
     externalizeLinks(document.querySelectorAll("#sidebar_content p a"))
     externalizeLinks(document.querySelectorAll("#sidebar_content table a"))
     const browseSectionSelector = document.querySelector("#sidebar_content_frame")

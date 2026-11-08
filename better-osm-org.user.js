@@ -4253,36 +4253,37 @@ function runOnDOMContentLoaded(callback) {
 }
 
 function preventWhiteFlashesInIdEditor() {
-    if (isDarkMode()) {
-        if (location.pathname === "/edit") {
-            injectCSSIntoOSMPage(
-                `@media ${mediaQueryForWebsiteTheme} {
-                #id-embed {
-                    background: #212529 !important;
-                }
-            }`,
-            )
-        } else {
-            injectCSSIntoOSMPage(
-                `@media ${mediaQueryForWebsiteTheme} {
-                html {
-                    background: #212529 !important;
-                }
+    if (!isDarkMode()) {
+        return
+    }
+    if (location.pathname === "/edit") {
+        injectCSSIntoOSMPage(
+            `@media ${mediaQueryForWebsiteTheme} {
+            #id-embed {
+                background: #212529 !important;
+            }
+        }`,
+        )
+    } else {
+        injectCSSIntoOSMPage(
+            `@media ${mediaQueryForWebsiteTheme} {
+            html {
+                background: #212529 !important;
+            }
 
-                body {
-                    background: #212529 !important;
-                }
+            body {
+                background: #212529 !important;
+            }
 
-                #id-embed {
-                    background: #212529 !important;
-                }
+            #id-embed {
+                background: #212529 !important;
+            }
 
-                #id-container {
-                    background: #212529 !important;
-                }
-            }`,
-            )
-        }
+            #id-container {
+                background: #212529 !important;
+            }
+        }`,
+        )
     }
 }
 
@@ -4554,12 +4555,8 @@ const copyAnimationStyles = `
     }
 `
 
-let copyAnimationStylesInjected = false
-
-function injectCopyAnimationStyles() {
-    if (copyAnimationStylesInjected) return
-    copyAnimationStylesInjected = true
-    injectCSSIntoOSMPage(copyAnimationStyles)
+function registerCopyAnimationStyles() {
+    registerOSMStyle("copy-animation", () => copyAnimationStyles)
 }
 
 function makeMenuItem(row) {
@@ -6284,6 +6281,27 @@ function injectCSSIntoSimplePage(text) {
     return GM_addElement(document.head, "style", {
         textContent: text,
     })
+}
+
+const registeredOSMStyles = new Map()
+let registeredOSMStylesInjected = false
+
+/**
+ * @param {string} name
+ * @param {() => string} getStyleText
+ */
+function registerOSMStyle(name, getStyleText) {
+    registeredOSMStyles.set(name, getStyleText)
+}
+
+function injectRegisteredOSMStyles() {
+    if (registeredOSMStylesInjected) return
+    registeredOSMStylesInjected = true
+
+    const styleText = [...registeredOSMStyles.values()].map(getStyleText => getStyleText()).join("\n")
+    if (styleText) {
+        injectCSSIntoOSMPage(styleText)
+    }
 }
 
 // In Tampermonkey access to Math.* very slow
@@ -9211,7 +9229,6 @@ function makeHashtagsInNotesClickable() {
     })
 
     transformTextNodes(notesParagraphs, /(?<=(POI types: ))(.+)/gu, function (innerHtml) {
-        injectCopyAnimationStyles()
         const span = document.createElement("span")
         span.classList.add("poi-name-in-note")
         span.title = t("hashtags.clickToCopyType")
@@ -9668,7 +9685,6 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
         if (changesetProps["check_user"] && changesetProps["check_user"] !== currentUser) {
             return
         }
-        injectContextMenuCSS()
 
         const menu = makeContextMenuElem(e)
         osmchaTags.forEach(i => {
@@ -9953,12 +9969,24 @@ function addRevertButton() {
         hideSearchForm()
         // sidebar.classList.add("changeset-header")
         const changeset_id = sidebar.innerHTML.match(/([0-9]+)/)[0]
-        const reverterTitle = t("changesetPageFixes.reverterTitle", { name: osm_revert_name })
-        sidebar.setHTML(
-            sidebar.innerHTML +
-                ` <a href="${osm_revert_origin}/?changesets=${changeset_id}" target=_blank rel="noreferrer" id=revert_button_class title="${reverterTitle}">↩️</a>
-                  <a href="${osmcha_server_origin}/changesets/${changeset_id}" id="osmcha_link" target="_blank" rel="noreferrer">${svg.osmchaLogo}</a>`,
-        )
+
+        const revertLink = document.createElement("a")
+        revertLink.href = `${osm_revert_origin}/?changesets=${changeset_id}`
+        revertLink.target = "_blank"
+        revertLink.rel = "noreferrer"
+        revertLink.id = "revert_button_class"
+        revertLink.title = t("changesetPageFixes.reverterTitle", { name: osm_revert_name })
+        revertLink.textContent = "↩️"
+
+        const osmchaLink = document.createElement("a")
+        osmchaLink.href = `${osmcha_server_origin}/changesets/${changeset_id}`
+        osmchaLink.target = "_blank"
+        osmchaLink.rel = "noreferrer"
+        osmchaLink.id = "osmcha_link"
+        insertSvg(osmchaLink, "osmchaLogo")
+
+        sidebar.append(" ", revertLink, " ", osmchaLink)
+
         changesetObjectsSelectionModeEnabled = false
         document.querySelector("#revert_button_class").onclick = async e => {
             if (changesetObjectsSelectionModeEnabled) {
@@ -10314,7 +10342,7 @@ const compactSidebarStyleText = `
     }
     
     @media (min-width: 768px) {
-        .map-layout #sidebar:not(.increased-specificity) {
+        .map-layout #sidebar.wider:not(.increased-specificity):not(.increased-specificity-blyat) {
           width: 450px;
           flex-basis: unset;
         }
@@ -10452,12 +10480,8 @@ ${copyAnimationStyles}
 
     `
 
-let styleForSidebarApplied = false
-
-function addCompactSidebarStyle() {
-    if (styleForSidebarApplied) return
-    styleForSidebarApplied = true
-    injectCSSIntoOSMPage(compactSidebarStyleText)
+function registerCompactSidebarStyles() {
+    registerOSMStyle("compact-sidebar", () => compactSidebarStyleText)
 }
 
 async function getChangesetComments(changeset_id) {
@@ -10492,12 +10516,6 @@ const suspectImageryUsed = ["localhost", "127.0.0.1", "google", "구글", "yande
 
 function setupCompactChangesetsHistory() {
     if (!location.pathname.includes("/history") && !location.pathname.startsWith("/changeset")) {
-        // prettier-ignore
-        if (!styleForSidebarApplied && (location.pathname.startsWith("/node")
-            || location.pathname.startsWith("/way")
-            || location.pathname.startsWith("/relation"))) {
-            addCompactSidebarStyle()
-        }
         return
     }
 
@@ -10505,8 +10523,6 @@ function setupCompactChangesetsHistory() {
         externalizeLinks(document.querySelectorAll("#sidebar_content p:first-of-type a"))
         externalizeLinks(document.querySelector("#sidebar_content ul")?.querySelectorAll("a:not(.page-link)"))
     }
-
-    addCompactSidebarStyle()
 
     // увы, инвалидация в этом месте ломает зум при загрузке объекте самим сайтом
     // try {
@@ -11383,8 +11399,6 @@ async function mapClickHandler(e) {
             window.open(location.origin + targetURL)
         }
     }
-    addCompactSidebarStyle()
-
     console.log(elements)
 }
 
@@ -11975,7 +11989,6 @@ function addStreetCompletePhotos(isClosedNote) {
                 i.after(img)
             }
             document.querySelector("#sidebar").style.resize = "horizontal"
-            addCompactSidebarStyle()
             // hideSearchForm()
         }
     })
@@ -12194,6 +12207,21 @@ function addAltClickHandlerForNotes() {
     )
 }
 
+function registerNotesFiltersStyles() {
+    registerOSMStyle(
+        "notes-filters",
+        () => `
+            .wait-fetch {
+                cursor: progress !important;
+            }
+
+            label:has(:not(:checked)) + #download-notes {
+              display: none;
+            }
+        `,
+    )
+}
+
 function addNotesFiltersButtons() {
     if (document.getElementById("notes-filter")) {
         return
@@ -12205,15 +12233,6 @@ function addNotesFiltersButtons() {
     if (!getWindow().fetchIntercepterScriptInited) {
         return
     }
-    injectCSSIntoOSMPage(`
-        .wait-fetch {
-            cursor: progress !important;
-        }
-
-        label:has(:not(:checked)) + #download-notes {
-          display: none;
-        }
-    `)
     const checkbox = noteLabel.querySelector("input")
     const filters = document.createElement("div")
 
@@ -12554,6 +12573,25 @@ function setupHideNoteHighlight() {
 
 //<editor-fold desc="spy-glass" defaultstate="collapsed">
 
+function registerSpyGlassStyles() {
+    registerOSMStyle(
+        "spy-glass",
+        () => `
+            path.spy-glass-stroke-polyline {
+                filter: drop-shadow(2px 2px 0 yellow) drop-shadow(-2px -2px 0 yellow) drop-shadow(2px -2px 0 yellow) drop-shadow(-2px 2px 0 yellow);
+            }
+
+            table.spy-glass tr > td:first-of-type {
+                width: 200px;
+            }
+
+            #map.spy-glass {
+                cursor: pointer;
+            }
+        `,
+    )
+}
+
 function addSpyGlassButtons() {
     if (getWindow().fetchIntercepterScriptInited !== true) {
         return
@@ -12565,19 +12603,6 @@ function addSpyGlassButtons() {
     if (!mapDataLabel) {
         return
     }
-    injectCSSIntoOSMPage(`
-    path.spy-glass-stroke-polyline {
-        filter: drop-shadow(2px 2px 0 yellow) drop-shadow(-2px -2px 0 yellow) drop-shadow(2px -2px 0 yellow) drop-shadow(-2px 2px 0 yellow);
-    }
-    
-    table.spy-glass tr > td:first-of-type {
-        width: 200px;
-    }
-    
-    #map.spy-glass {
-        cursor: pointer;
-    }
-    `)
     const spyGlassBtn = document.createElement("span")
     spyGlassBtn.id = "spy-glass"
     spyGlassBtn.style.cursor = "pointer"
@@ -13543,20 +13568,18 @@ function removeCopyCoordinatesMenuItem() {
     copyCoordinatesMenuItem = null
 }
 
-let contextMenuStylesAdded = false
-
-function addContextMenuStyles() {
-    if (contextMenuStylesAdded) return
-    contextMenuStylesAdded = true
-    injectCSSIntoOSMPage(`
+function registerCopyCoordinatesStyles() {
+    registerOSMStyle(
+        "copy-coordinates",
+        () => `
         .copy-coordinates-btn:not(:hover) {
             color: gray;
         }
-    `)
+    `,
+    )
 }
 
 function addCopyCoordinatesMenuItem(prevItem) {
-    addContextMenuStyles()
     removeCopyCoordinatesMenuItem()
     if (!measurerAdded) {
         return
@@ -14417,6 +14440,51 @@ const githubMapStylesURL = `https://raw.githubusercontent.com/deevroman/better-o
 
 const mapStylesDatabase = resourceCacher(githubMapStylesURL, "custom-vector-map-styles", "vector map styles list", 6 * 60 * 60 * 1000, "json")
 
+function registerCustomStylePopupStyles() {
+    registerOSMStyle(
+        "custom-vector-style-popup",
+        () => `
+            .vector-tiles-selector-popup {
+                position: relative;
+                width: fit-content;
+                max-height: calc(100vh - 55px);
+                overflow-y: auto;
+                background: var(--bs-body-bg);
+                border: 1px solid rgba(204,204,204,0.5);
+                padding: 12px;
+                border-radius: 6px;
+                box-shadow: 0 4px 12px rgba(0,0,0,.2);
+                font-family: sans-serif;
+                z-index: 9999;
+            }
+            .vector-tiles-selector-popup label:hover {
+                background: light-dark("gray", "gray");
+            }
+        `,
+    )
+    registerOSMStyle(
+        "custom-tile-popup",
+        () => `
+            .map-layers-selector-popup {
+                position: relative;
+                width: fit-content;
+                max-height: calc(100vh - 55px);
+                overflow-y: auto;
+                background: var(--bs-body-bg);
+                border: 1px solid rgba(204,204,204,0.5);
+                padding: 12px;
+                border-radius: 6px;
+                box-shadow: 0 4px 12px rgba(0,0,0,.2);
+                font-family: sans-serif;
+                z-index: 9999;
+            }
+            .map-layers-selector-popup label:hover {
+                background: light-dark("gray", "gray");
+            }
+        `,
+    )
+}
+
 async function askCustomStyleUrl() {
     if (!initCustomFetch) {
         alert(t("satellite.customStyleSetupHelpAlert"))
@@ -14458,25 +14526,6 @@ async function askCustomStyleUrl() {
     const popup = document.createElement("div")
     popup.classList.add("vector-tiles-selector-popup")
     const radioContainer = document.createElement("div")
-
-    injectCSSIntoOSMPage(`
-    .vector-tiles-selector-popup {
-        position: relative;
-        width: fit-content;
-        max-height: calc(100vh - 55px);
-        overflow-y: auto;
-        background: var(--bs-body-bg);
-        border: 1px solid rgba(204,204,204,0.5);
-        padding: 12px;
-        border-radius: 6px;
-        box-shadow: 0 4px 12px rgba(0,0,0,.2);
-        font-family: sans-serif;
-        z-index: 9999;
-    }
-    .vector-tiles-selector-popup label:hover {
-        background: light-dark("gray", "gray");
-    }
-`)
 
     const h = document.createElement("h3")
     h.style.display = "flex"
@@ -14881,25 +14930,6 @@ async function askCustomTileUrl() {
     const popup = document.createElement("div")
     popup.classList.add("map-layers-selector-popup")
     const radioContainer = document.createElement("div")
-
-    injectCSSIntoOSMPage(`
-    .map-layers-selector-popup {
-        position: relative;
-        width: fit-content;
-        max-height: calc(100vh - 55px);
-        overflow-y: auto;
-        background: var(--bs-body-bg);
-        border: 1px solid rgba(204,204,204,0.5);
-        padding: 12px;
-        border-radius: 6px;
-        box-shadow: 0 4px 12px rgba(0,0,0,.2);
-        font-family: sans-serif;
-        z-index: 9999;
-    }
-    .map-layers-selector-popup label:hover {
-        background: light-dark("gray", "gray");
-    }
-`)
 
     const h = document.createElement("h3")
     h.style.display = "flex"
@@ -16454,8 +16484,6 @@ function makeXmasFeatureEasterEgg() {
 
 let viewerIframe = null
 
-let contextMenuCSSInjected = false
-
 const contextMenuCSS = `
     #building-3d-view,
     #building-indoor-view {
@@ -16515,10 +16543,8 @@ const contextMenuCSS = `
     }
 `
 
-function injectContextMenuCSS() {
-    if (contextMenuCSSInjected) return
-    contextMenuCSSInjected = true
-    injectCSSIntoOSMPage(contextMenuCSS)
+function registerContextMenuStyles() {
+    registerOSMStyle("context-menu", () => contextMenuCSS)
 }
 
 // prettier-ignore
@@ -16689,7 +16715,6 @@ function makeViewerValue(valueCell, key) {
             }
         }
     }
-    injectContextMenuCSS()
     const parent = document.querySelector(".browse-tag-list").parentElement.previousElementSibling
     parent.style.display = "flex"
 
@@ -18418,7 +18443,6 @@ function setupWayVersionView() {
                 }
             }
             if (GM_config.get("FullVersionsDiff")) {
-                addQuickLookStyles()
                 await showFullObjectHistory("way", parseInt(wayID))
             }
         }
@@ -19501,7 +19525,6 @@ function setupRelationVersionView() {
             }
             if (isDebug() && GM_config.get("FullVersionsDiff")) {
                 downloadAllVersionsBtn.textContent += " downloading intermediate versions β ..."
-                addQuickLookStyles()
                 await showFullObjectHistory("relation", parseInt(relationID))
             }
             e.target.remove()
@@ -20043,14 +20066,18 @@ async function unrollPaginationInHistory() {
     })
 }
 
-function addDiffInHistoryStyle() {
+function registerHistoryDiffStyles() {
+    registerOSMStyle("history-diff", getHistoryDiffStyleText)
+}
+
+function getHistoryDiffStyleText() {
     const styleText =
         `
     .turbo-progress-bar {
         display: none;
     }
 
-    .compact-toggle-btn {
+    .compact-toggle-btn:not(.increased-specificity-for-fucked-safari) {
         position: relative;
         top: -2px;
         cursor: pointer;
@@ -20072,17 +20099,17 @@ function addDiffInHistoryStyle() {
     }
 
     @media ${mediaQueryForWebsiteTheme} {
-        .compact-toggle-btn {
+        .compact-toggle-btn:not(.increased-specificity-for-fucked-safari) {
             background: var(--bs-gray-800);
             border-color: var(--bs-gray-800);
         }
 
-        .compact-toggle-btn:hover {
+        .compact-toggle-btn:not(.increased-specificity-for-fucked-safari):hover {
             background: var(--bs-gray-700);
             border-color: var(--bs-gray-700);
         }
 
-        .compact-toggle-btn:active {
+        .compact-toggle-btn:not(.increased-specificity-for-fucked-safari):active {
             background: var(--bs-gray-700) !important;
             border-color: var(--bs-gray-700) !important;
         }
@@ -20285,7 +20312,7 @@ function addDiffInHistoryStyle() {
     }
     `
             : ``)
-    injectCSSIntoOSMPage(styleText)
+    return styleText
 }
 
 function historyPaginationClick() {
@@ -20829,8 +20856,6 @@ function addDiffInHistory(reason = "url_change") {
         sidebar.appendChild(document.createTextNode("\xA0"))
         sidebar.appendChild(compactToggle)
     }
-
-    addDiffInHistoryStyle()
 
     if (!document.querySelector(".tag-added") && !document.querySelector(".tag-unmodified")) {
         transformDiffWithColors()
@@ -23179,12 +23204,12 @@ function getPrevTargetLastVersions(objHistory, version) {
     return [prevVersion, targetVersion, lastVersion, objHistory]
 }
 
-let quickLookStylesInjected = false
+function registerQuickLookStyles() {
+    registerOSMStyle("quick-look", getQuickLookStyleText)
+}
 
-function addQuickLookStyles() {
-    if (quickLookStylesInjected) return
-    quickLookStylesInjected = true
-    const styleText =
+function getQuickLookStyleText() {
+    return (
         `
         .edits-wars-log tr:nth-child(even) td, .edits-wars-log tr:nth-child(even) th {
             background-color: color-mix(in srgb, var(--bs-body-bg), black 25%);
@@ -23462,11 +23487,7 @@ function addQuickLookStyles() {
         }
         `
             : "")
-    try {
-        injectCSSIntoOSMPage(styleText)
-    } catch {
-        /* empty */
-    }
+    )
 }
 
 async function preloadChangeset(changesetID) {
@@ -24657,7 +24678,6 @@ async function addChangesetQuickLook() {
         allTagsOfObjectsVisible = true
         return
     }
-    addQuickLookStyles()
     if (document.querySelector(".quick-look")) return true
     const sidebar = document.querySelector("#sidebar_content h2")
     if (!sidebar) {
@@ -25577,7 +25597,6 @@ async function addHoverForNodesParents() {
 }
 
 function showBboxMenu(e, bbox) {
-    injectContextMenuCSS()
     document.querySelectorAll(".betterOsmContextMenu").forEach(i => i.remove())
     const menu = makeContextMenuElem(e)
     ;[
@@ -26553,7 +26572,6 @@ function addCopyCoordinatesButtons() {
             e.stopPropagation()
             e.stopImmediatePropagation()
 
-            injectContextMenuCSS()
             document.querySelectorAll(".betterOsmContextMenu").forEach(i => i.remove())
             const menu = makeContextMenuElem(e)
             Object.entries(coordinatesFormatters).forEach(([format, formatter], ind) => {
@@ -26645,7 +26663,6 @@ function addRelationHistoryViewerLinks() {
     }
     const id = parseInt(location.pathname.match(/\/relation\/(\d+)/)[1])
     const type = "relation"
-    injectCSSIntoOSMPage(contextMenuCSS)
     const viewInExternal = document.createElement("a")
     viewInExternal.classList.add("relation-viewer-link")
     insertSvg(viewInExternal, "externalLink")
@@ -26728,7 +26745,6 @@ function makeVersionPageBetter() {
     if (!match) {
         return
     }
-    addCompactSidebarStyle()
     externalizeLinks(document.querySelectorAll("#sidebar_content p a"))
     externalizeLinks(document.querySelectorAll("#sidebar_content table a"))
     const browseSectionSelector = document.querySelector("#sidebar_content_frame")
@@ -29039,7 +29055,6 @@ out meta;
         }
         if (names.length) {
             userNamesP.textContent = t("userProfile.usernames")
-            injectCopyAnimationStyles()
             names.forEach(name => {
                 const usernameSpan = document.createElement("span")
                 usernameSpan.textContent = name
@@ -29255,13 +29270,11 @@ async function processIDsOnDeletedUserPage(data, elemForResult) {
         idSpan.onclick = e => {
             navigator.clipboard.writeText(id).then(() => copyAnimation(e, id))
         }
-        injectCopyAnimationStyles()
         elemForResult.appendChild(idSpan)
         elemForResult.appendChild(document.createElement("br"))
         if (data[i].names?.length > 1) {
             const p = document.createElement("p")
             p.textContent = t("userProfile.usernames")
-            injectCopyAnimationStyles()
             data[i].names
                 .map(i => i.name)
                 .forEach(name => {
@@ -29490,7 +29503,6 @@ function addUserID(userDetails, userID) {
     userDetails.appendChild(dt)
     userDetails.appendChild(document.createTextNode("\xA0"))
     userDetails.appendChild(dd)
-    injectCopyAnimationStyles()
 }
 
 async function addUsernames(userDetails, userID, user) {
@@ -29682,7 +29694,6 @@ function makeUsernameHeaderClickable(usernameHeader) {
         navigator.clipboard.writeText(username).then(() => copyAnimation(e, username))
     }
     usernameHeader.replaceWith(span)
-    injectCopyAnimationStyles()
 }
 
 async function setupUserProfile() {
@@ -30231,14 +30242,13 @@ function updateUrlTemplateContext() {
 }
 
 let coordinatesObserver = null
-let dropdownStyleAdded = false
 
-function addDropdownStyle() {
-    if (dropdownStyleAdded) {
-        return
-    }
-    dropdownStyleAdded = true
-    injectCSSIntoOSMPage(`
+function registerDropdownStyles() {
+    registerOSMStyle("edit-menu-dropdown", getDropdownStyleText)
+}
+
+function getDropdownStyleText() {
+    return `
     /* make attribution panel compact */
     @media (max-width: 500px) {
 
@@ -30443,7 +30453,7 @@ function addDropdownStyle() {
     
     }
         
-    `)
+    `
 }
 
 let dropdownObserver = null
@@ -30873,7 +30883,6 @@ async function _setupNewEditorsLinks(mutationsList) {
             return
         }
     }
-    addDropdownStyle()
     if (isMobile && document.querySelector("#map")) {
         document.querySelectorAll('button[data-bs-target="#select_language_dialog"]:not(.with-link-before)').forEach(langSwitchBtn => {
             langSwitchBtn.classList.add("with-link-before")
@@ -32429,9 +32438,6 @@ out geom;
 //<editor-fold desc="osc-viewer" defaultstate="collapsed">
 
 function makeChangesetSidebar(changesetID, stat) {
-    addCompactSidebarStyle()
-    addQuickLookStyles()
-
     const sidebar_content = document.querySelector("#sidebar_content")
     sidebar_content.replaceChildren()
 
@@ -34346,13 +34352,12 @@ function actionClearRecentHotkeyActions() {
     })
 }
 
-let hotkeyCommandsPopupStylesInjected = false
+function registerHotkeyCommandsPopupStyles() {
+    registerOSMStyle("hotkey-commands-popup", getHotkeyCommandsPopupStyleText)
+}
 
-function ensureHotkeyCommandsPopupStyles() {
-    if (hotkeyCommandsPopupStylesInjected) {
-        return
-    }
-    injectCSSIntoOSMPage(`
+function getHotkeyCommandsPopupStyleText() {
+    return `
         #better-osm-hotkey-commands-popup {
             position: fixed;
             inset: 0;
@@ -34496,8 +34501,7 @@ function ensureHotkeyCommandsPopupStyles() {
                 opacity: 0.75;
             }
         }
-    `)
-    hotkeyCommandsPopupStylesInjected = true
+    `
 }
 
 function closeHotkeyCommandsPopup() {
@@ -34510,8 +34514,6 @@ async function showHotkeyCommandsPopup() {
         existingPopup.remove()
         return
     }
-
-    ensureHotkeyCommandsPopupStyles()
 
     const currentContexts = getCurrentHotkeyContexts()
     const availableCommands = getAvailableHotkeyCommandsForCurrentPage()
@@ -35096,7 +35098,6 @@ function actionOpenInVespucci() {
 }
 
 function actionOpenOwnHistoryPage() {
-    addCompactSidebarStyle()
     const targetURL = document.querySelector('.dropdown-item[href^="/user/"]').getAttribute("href") + "/history"
     if (targetURL !== location.pathname) {
         try {
@@ -35116,7 +35117,6 @@ function actionOpenRelevantHistoryPage() {
             getWindow().OSM.router.route(historyPath)
         }
     } else if (isHomeOrNotePage()) {
-        addCompactSidebarStyle()
         document.querySelector('.nav-link[href*="/history"]')?.click()
     } else if (location.pathname.includes("/user/")) {
         document.querySelector('a[href^="/user/"][href$="/history"]')?.click()
@@ -36542,9 +36542,9 @@ if (isOsmServer() || isIdeditorInstance()) {
 function setupIDframe() {
     if (GM_config.get("DarkModeForID")) {
         injectCSSIntoOSMPage(`
-                @media ${mediaQueryForWebsiteTheme} {
-                    ${GM_getResourceText("DARK_THEME_FOR_ID_CSS")}
-                }`)
+            @media ${mediaQueryForWebsiteTheme} {
+                ${GM_getResourceText("DARK_THEME_FOR_ID_CSS")}
+            }`)
     }
     GM_registerMenuCommand("Show iD OAuth token", function () {
         const token = extractOauthToken()
@@ -36648,6 +36648,19 @@ function applyModules(path) {
     }
 }
 
+function makeSidebarWider() {
+    const sidebar = document.querySelector("#sidebar")
+    if (sidebar && !sidebar.classList.contains("wider")) {
+        const mediumDeviceWidth = window.getComputedStyle(document.documentElement).getPropertyValue("--bs-breakpoint-md")
+        const isMediumDevice = window.matchMedia(`(max-width: ${mediumDeviceWidth})`).matches
+        document.querySelector("#sidebar").classList.add("wider")
+        if (!isMediumDevice) {
+            getMap()?.invalidateSize(intoPage({ pan: false }))
+            getMap()?.panBy(intoPage([100, 0]), intoPage({ animate: false }))
+        }
+    }
+}
+
 function cleanupBeforeNewLocation(path) {
     try {
         shiftKeyZClicks = 0
@@ -36672,6 +36685,9 @@ function cleanupBeforeNewLocation(path) {
             !path.startsWith("/node") && !path.startsWith("/way") && path !== "/relation" &&
             !path.startsWith("/note")) {
             showSearchForm()
+        }
+        if (path !== "/" && GM_config.get("CompactChangesetsHistory")) {
+            makeSidebarWider()
         }
     } catch {
         /* empty */
@@ -36729,15 +36745,6 @@ function setupOSMWebsite() {
         setTimeout(loadFriends, 4000)
     }
     setTimeout(() => {
-        if (GM_config.get("CompactChangesetsHistory")) {
-            document.querySelector('.nav-link[href^="/history"]')?.addEventListener(
-                "click",
-                () => {
-                    addCompactSidebarStyle()
-                },
-                { once: true },
-            )
-        }
         document.querySelectorAll('nav a[href="/export"]').forEach(i =>
             i.addEventListener("contextmenu", async e => {
                 e.preventDefault()
@@ -37398,16 +37405,6 @@ function makeCommandsMenu() {
 // TODO сначала проверить сайт, а после инициализировать GM_config и вызывать main
 function _main() {
     "use strict"
-    if (GM_config.get("DebugMode")) {
-        _isDebug = true
-    }
-    if (location.origin === ogf_prod_server.origin && !isDebug()) {
-        return
-    }
-    if (GM_config.get("ColorblindFriendlyPalette")) {
-        setColorblindFriendlyPalette()
-    }
-    setCustomPalette()
     if (location.origin === "https://www.hdyc.neis-one.org" || location.origin === "https://hdyc.neis-one.org") {
         simplifyHDCYIframe()
         return
@@ -37455,6 +37452,48 @@ function _main() {
 
 function main() {
     performance.mark("BETTER_OSM_MAIN_CALL")
+    if (GM_config.get("DebugMode")) {
+        _isDebug = true
+    }
+    if (GM_config.get("ColorblindFriendlyPalette")) {
+        setColorblindFriendlyPalette()
+    }
+    setCustomPalette()
+
+    if (isOsmServer()) {
+        registerCopyAnimationStyles()
+        registerCopyCoordinatesStyles()
+        registerContextMenuStyles()
+        registerHotkeyCommandsPopupStyles()
+        registerQuickLookStyles()
+        registerNotesFiltersStyles()
+        if (isDebug()) {
+            registerSpyGlassStyles()
+        }
+        if (GM_config.get("VersionsDiff")) {
+            registerHistoryDiffStyles()
+        }
+        if (GM_config.get("SatelliteLayers")) {
+            registerCustomStylePopupStyles()
+        }
+        if (GM_config.get("NewEditorsLinks")) {
+            registerDropdownStyles()
+        }
+        if (GM_config.get("CompactChangesetsHistory")) {
+            registerCompactSidebarStyles()
+            if (location.pathname !== "/") {
+                try {
+                    const sidebar = document.querySelector("#sidebar")
+                    if (sidebar && !sidebar.classList.contains("wider")) {
+                        sidebar.classList.add("wider")
+                        getMap()?.invalidateSize(intoPage({ pan: false }))
+                    }
+                } catch (err) {}
+            }
+        }
+        injectRegisteredOSMStyles()
+    }
+
     runOnDOMContentLoaded(_main)
 }
 //</editor-fold>

@@ -1,9 +1,6 @@
 //<editor-fold desc="osc-viewer" defaultstate="collapsed">
 
 function makeChangesetSidebar(changesetID, stat) {
-    addCompactSidebarStyle()
-    addQuickLookStyles()
-
     const sidebar_content = document.querySelector("#sidebar_content")
     sidebar_content.replaceChildren()
 

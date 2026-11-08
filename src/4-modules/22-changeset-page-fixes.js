@@ -435,7 +435,6 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
         if (changesetProps["check_user"] && changesetProps["check_user"] !== currentUser) {
             return
         }
-        injectContextMenuCSS()
 
         const menu = makeContextMenuElem(e)
         osmchaTags.forEach(i => {
@@ -720,12 +719,24 @@ function addRevertButton() {
         hideSearchForm()
         // sidebar.classList.add("changeset-header")
         const changeset_id = sidebar.innerHTML.match(/([0-9]+)/)[0]
-        const reverterTitle = t("changesetPageFixes.reverterTitle", { name: osm_revert_name })
-        sidebar.setHTML(
-            sidebar.innerHTML +
-                ` <a href="${osm_revert_origin}/?changesets=${changeset_id}" target=_blank rel="noreferrer" id=revert_button_class title="${reverterTitle}">↩️</a>
-                  <a href="${osmcha_server_origin}/changesets/${changeset_id}" id="osmcha_link" target="_blank" rel="noreferrer">${svg.osmchaLogo}</a>`,
-        )
+
+        const revertLink = document.createElement("a")
+        revertLink.href = `${osm_revert_origin}/?changesets=${changeset_id}`
+        revertLink.target = "_blank"
+        revertLink.rel = "noreferrer"
+        revertLink.id = "revert_button_class"
+        revertLink.title = t("changesetPageFixes.reverterTitle", { name: osm_revert_name })
+        revertLink.textContent = "↩️"
+
+        const osmchaLink = document.createElement("a")
+        osmchaLink.href = `${osmcha_server_origin}/changesets/${changeset_id}`
+        osmchaLink.target = "_blank"
+        osmchaLink.rel = "noreferrer"
+        osmchaLink.id = "osmcha_link"
+        insertSvg(osmchaLink, "osmchaLogo")
+
+        sidebar.append(" ", revertLink, " ", osmchaLink)
+
         changesetObjectsSelectionModeEnabled = false
         document.querySelector("#revert_button_class").onclick = async e => {
             if (changesetObjectsSelectionModeEnabled) {
@@ -1081,7 +1092,7 @@ const compactSidebarStyleText = `
     }
     
     @media (min-width: 768px) {
-        .map-layout #sidebar:not(.increased-specificity) {
+        .map-layout #sidebar.wider:not(.increased-specificity):not(.increased-specificity-blyat) {
           width: 450px;
           flex-basis: unset;
         }
@@ -1219,12 +1230,8 @@ ${copyAnimationStyles}
 
     `
 
-let styleForSidebarApplied = false
-
-function addCompactSidebarStyle() {
-    if (styleForSidebarApplied) return
-    styleForSidebarApplied = true
-    injectCSSIntoOSMPage(compactSidebarStyleText)
+function registerCompactSidebarStyles() {
+    registerOSMStyle("compact-sidebar", () => compactSidebarStyleText)
 }
 
 async function getChangesetComments(changeset_id) {
@@ -1259,12 +1266,6 @@ const suspectImageryUsed = ["localhost", "127.0.0.1", "google", "구글", "yande
 
 function setupCompactChangesetsHistory() {
     if (!location.pathname.includes("/history") && !location.pathname.startsWith("/changeset")) {
-        // prettier-ignore
-        if (!styleForSidebarApplied && (location.pathname.startsWith("/node")
-            || location.pathname.startsWith("/way")
-            || location.pathname.startsWith("/relation"))) {
-            addCompactSidebarStyle()
-        }
         return
     }
 
@@ -1272,8 +1273,6 @@ function setupCompactChangesetsHistory() {
         externalizeLinks(document.querySelectorAll("#sidebar_content p:first-of-type a"))
         externalizeLinks(document.querySelector("#sidebar_content ul")?.querySelectorAll("a:not(.page-link)"))
     }
-
-    addCompactSidebarStyle()
 
     // увы, инвалидация в этом месте ломает зум при загрузке объекте самим сайтом
     // try {

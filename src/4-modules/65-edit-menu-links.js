@@ -110,14 +110,13 @@ function updateUrlTemplateContext() {
 }
 
 let coordinatesObserver = null
-let dropdownStyleAdded = false
 
-function addDropdownStyle() {
-    if (dropdownStyleAdded) {
-        return
-    }
-    dropdownStyleAdded = true
-    injectCSSIntoOSMPage(`
+function registerDropdownStyles() {
+    registerOSMStyle("edit-menu-dropdown", getDropdownStyleText)
+}
+
+function getDropdownStyleText() {
+    return `
     /* make attribution panel compact */
     @media (max-width: 500px) {
 
@@ -322,7 +321,7 @@ function addDropdownStyle() {
     
     }
         
-    `)
+    `
 }
 
 let dropdownObserver = null
@@ -752,7 +751,6 @@ async function _setupNewEditorsLinks(mutationsList) {
             return
         }
     }
-    addDropdownStyle()
     if (isMobile && document.querySelector("#map")) {
         document.querySelectorAll('button[data-bs-target="#select_language_dialog"]:not(.with-link-before)').forEach(langSwitchBtn => {
             langSwitchBtn.classList.add("with-link-before")

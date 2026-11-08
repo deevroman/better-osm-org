@@ -357,6 +357,51 @@ const githubMapStylesURL = `https://raw.githubusercontent.com/deevroman/better-o
 
 const mapStylesDatabase = resourceCacher(githubMapStylesURL, "custom-vector-map-styles", "vector map styles list", 6 * 60 * 60 * 1000, "json")
 
+function registerCustomStylePopupStyles() {
+    registerOSMStyle(
+        "custom-vector-style-popup",
+        () => `
+            .vector-tiles-selector-popup {
+                position: relative;
+                width: fit-content;
+                max-height: calc(100vh - 55px);
+                overflow-y: auto;
+                background: var(--bs-body-bg);
+                border: 1px solid rgba(204,204,204,0.5);
+                padding: 12px;
+                border-radius: 6px;
+                box-shadow: 0 4px 12px rgba(0,0,0,.2);
+                font-family: sans-serif;
+                z-index: 9999;
+            }
+            .vector-tiles-selector-popup label:hover {
+                background: light-dark("gray", "gray");
+            }
+        `,
+    )
+    registerOSMStyle(
+        "custom-tile-popup",
+        () => `
+            .map-layers-selector-popup {
+                position: relative;
+                width: fit-content;
+                max-height: calc(100vh - 55px);
+                overflow-y: auto;
+                background: var(--bs-body-bg);
+                border: 1px solid rgba(204,204,204,0.5);
+                padding: 12px;
+                border-radius: 6px;
+                box-shadow: 0 4px 12px rgba(0,0,0,.2);
+                font-family: sans-serif;
+                z-index: 9999;
+            }
+            .map-layers-selector-popup label:hover {
+                background: light-dark("gray", "gray");
+            }
+        `,
+    )
+}
+
 async function askCustomStyleUrl() {
     if (!initCustomFetch) {
         alert(t("satellite.customStyleSetupHelpAlert"))
@@ -398,25 +443,6 @@ async function askCustomStyleUrl() {
     const popup = document.createElement("div")
     popup.classList.add("vector-tiles-selector-popup")
     const radioContainer = document.createElement("div")
-
-    injectCSSIntoOSMPage(`
-    .vector-tiles-selector-popup {
-        position: relative;
-        width: fit-content;
-        max-height: calc(100vh - 55px);
-        overflow-y: auto;
-        background: var(--bs-body-bg);
-        border: 1px solid rgba(204,204,204,0.5);
-        padding: 12px;
-        border-radius: 6px;
-        box-shadow: 0 4px 12px rgba(0,0,0,.2);
-        font-family: sans-serif;
-        z-index: 9999;
-    }
-    .vector-tiles-selector-popup label:hover {
-        background: light-dark("gray", "gray");
-    }
-`)
 
     const h = document.createElement("h3")
     h.style.display = "flex"
@@ -821,25 +847,6 @@ async function askCustomTileUrl() {
     const popup = document.createElement("div")
     popup.classList.add("map-layers-selector-popup")
     const radioContainer = document.createElement("div")
-
-    injectCSSIntoOSMPage(`
-    .map-layers-selector-popup {
-        position: relative;
-        width: fit-content;
-        max-height: calc(100vh - 55px);
-        overflow-y: auto;
-        background: var(--bs-body-bg);
-        border: 1px solid rgba(204,204,204,0.5);
-        padding: 12px;
-        border-radius: 6px;
-        box-shadow: 0 4px 12px rgba(0,0,0,.2);
-        font-family: sans-serif;
-        z-index: 9999;
-    }
-    .map-layers-selector-popup label:hover {
-        background: light-dark("gray", "gray");
-    }
-`)
 
     const h = document.createElement("h3")
     h.style.display = "flex"
