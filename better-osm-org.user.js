@@ -9169,7 +9169,7 @@ function makeHashtagsInNotesClickable() {
         // }).toString()
 
         const a = document.createElement("a")
-        a.id = "note-link-" + Math.random()
+        a.classList.add("note-link-" + Math.random())
         a.href = ""
         a.target = "_blank"
         a.title = t("hashtags.filterNotesByHashtag")
@@ -9194,7 +9194,7 @@ function makeHashtagsInNotesClickable() {
                     closed: "0",
                     map: `${zoom}/${center.lat}/${center.lng}`,
                 }).toString()
-            const link = document.getElementById(a.id)
+            const link = document.getElementsByClassName(a.getAttribute("random-id"))
             link.href = notesReviewLink
             link.onclick = e => {
                 if (e.shiftKey || e.ctrlKey || e.metaKey) {
