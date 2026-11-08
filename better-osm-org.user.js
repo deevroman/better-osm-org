@@ -11240,7 +11240,7 @@ function getBooxAroundPoint(lat, lng, halfSizeMeters) {
 }
 
 async function getElementsAroundNode(lat, lng) {
-    for (const radius of [15, 70, 300, 750, 2000, 5000]) {
+    for (const radius of [70, 300, 750, 2000, 5000]) {
         console.time(`/map call radius=${radius}`)
         const response = await fetch(`${osm_server.apiBase}map.json?bbox=${getBooxAroundPoint(lat, lng, radius)}`)
         console.timeEnd(`/map call radius=${radius}`)
@@ -11989,6 +11989,7 @@ function addStreetCompletePhotos(isClosedNote) {
                 i.after(img)
             }
             document.querySelector("#sidebar").style.resize = "horizontal"
+            makeSidebarWider()
             // hideSearchForm()
         }
     })
@@ -36649,6 +36650,9 @@ function applyModules(path) {
 }
 
 function makeSidebarWider() {
+    if (!GM_config.get("CompactChangesetsHistory")) {
+        return
+    }
     const sidebar = document.querySelector("#sidebar")
     if (sidebar && !sidebar.classList.contains("wider")) {
         const mediumDeviceWidth = window.getComputedStyle(document.documentElement).getPropertyValue("--bs-breakpoint-md")
@@ -36686,8 +36690,10 @@ function cleanupBeforeNewLocation(path) {
             !path.startsWith("/note")) {
             showSearchForm()
         }
-        if (path !== "/" && GM_config.get("CompactChangesetsHistory")) {
-            makeSidebarWider()
+        if (path !== "/") {
+            if (isObjectPage() || isHistoryPage() || isChangesetPage()) {
+                makeSidebarWider()
+            }
         }
     } catch {
         /* empty */

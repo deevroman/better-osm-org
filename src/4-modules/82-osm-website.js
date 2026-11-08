@@ -80,6 +80,9 @@ function applyModules(path) {
 }
 
 function makeSidebarWider() {
+    if (!GM_config.get("CompactChangesetsHistory")) {
+        return
+    }
     const sidebar = document.querySelector("#sidebar")
     if (sidebar && !sidebar.classList.contains("wider")) {
         const mediumDeviceWidth = window.getComputedStyle(document.documentElement).getPropertyValue("--bs-breakpoint-md")
@@ -117,8 +120,10 @@ function cleanupBeforeNewLocation(path) {
             !path.startsWith("/note")) {
             showSearchForm()
         }
-        if (path !== "/" && GM_config.get("CompactChangesetsHistory")) {
-            makeSidebarWider()
+        if (path !== "/") {
+            if (isObjectPage() || isHistoryPage() || isChangesetPage()) {
+                makeSidebarWider()
+            }
         }
     } catch {
         /* empty */
