@@ -123,7 +123,6 @@ function makeHashtagsInNotesClickable() {
     })
 
     transformTextNodes(notesParagraphs, /(?<=(POI types: ))(.+)/gu, function (innerHtml) {
-        injectCopyAnimationStyles()
         const span = document.createElement("span")
         span.classList.add("poi-name-in-note")
         span.title = t("hashtags.clickToCopyType")

@@ -52,7 +52,6 @@ out meta;
         }
         if (names.length) {
             userNamesP.textContent = t("userProfile.usernames")
-            injectCopyAnimationStyles()
             names.forEach(name => {
                 const usernameSpan = document.createElement("span")
                 usernameSpan.textContent = name
@@ -268,13 +267,11 @@ async function processIDsOnDeletedUserPage(data, elemForResult) {
         idSpan.onclick = e => {
             navigator.clipboard.writeText(id).then(() => copyAnimation(e, id))
         }
-        injectCopyAnimationStyles()
         elemForResult.appendChild(idSpan)
         elemForResult.appendChild(document.createElement("br"))
         if (data[i].names?.length > 1) {
             const p = document.createElement("p")
             p.textContent = t("userProfile.usernames")
-            injectCopyAnimationStyles()
             data[i].names
                 .map(i => i.name)
                 .forEach(name => {
@@ -503,7 +500,6 @@ function addUserID(userDetails, userID) {
     userDetails.appendChild(dt)
     userDetails.appendChild(document.createTextNode("\xA0"))
     userDetails.appendChild(dd)
-    injectCopyAnimationStyles()
 }
 
 async function addUsernames(userDetails, userID, user) {
@@ -695,7 +691,6 @@ function makeUsernameHeaderClickable(usernameHeader) {
         navigator.clipboard.writeText(username).then(() => copyAnimation(e, username))
     }
     usernameHeader.replaceWith(span)
-    injectCopyAnimationStyles()
 }
 
 async function setupUserProfile() {

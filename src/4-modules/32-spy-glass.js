@@ -1,5 +1,24 @@
 //<editor-fold desc="spy-glass" defaultstate="collapsed">
 
+function registerSpyGlassStyles() {
+    registerOSMStyle(
+        "spy-glass",
+        () => `
+            path.spy-glass-stroke-polyline {
+                filter: drop-shadow(2px 2px 0 yellow) drop-shadow(-2px -2px 0 yellow) drop-shadow(2px -2px 0 yellow) drop-shadow(-2px 2px 0 yellow);
+            }
+
+            table.spy-glass tr > td:first-of-type {
+                width: 200px;
+            }
+
+            #map.spy-glass {
+                cursor: pointer;
+            }
+        `,
+    )
+}
+
 function addSpyGlassButtons() {
     if (getWindow().fetchIntercepterScriptInited !== true) {
         return
@@ -11,19 +30,6 @@ function addSpyGlassButtons() {
     if (!mapDataLabel) {
         return
     }
-    injectCSSIntoOSMPage(`
-    path.spy-glass-stroke-polyline {
-        filter: drop-shadow(2px 2px 0 yellow) drop-shadow(-2px -2px 0 yellow) drop-shadow(2px -2px 0 yellow) drop-shadow(-2px 2px 0 yellow);
-    }
-    
-    table.spy-glass tr > td:first-of-type {
-        width: 200px;
-    }
-    
-    #map.spy-glass {
-        cursor: pointer;
-    }
-    `)
     const spyGlassBtn = document.createElement("span")
     spyGlassBtn.id = "spy-glass"
     spyGlassBtn.style.cursor = "pointer"

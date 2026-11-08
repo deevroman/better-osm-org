@@ -1489,13 +1489,12 @@ function actionClearRecentHotkeyActions() {
     })
 }
 
-let hotkeyCommandsPopupStylesInjected = false
+function registerHotkeyCommandsPopupStyles() {
+    registerOSMStyle("hotkey-commands-popup", getHotkeyCommandsPopupStyleText)
+}
 
-function ensureHotkeyCommandsPopupStyles() {
-    if (hotkeyCommandsPopupStylesInjected) {
-        return
-    }
-    injectCSSIntoOSMPage(`
+function getHotkeyCommandsPopupStyleText() {
+    return `
         #better-osm-hotkey-commands-popup {
             position: fixed;
             inset: 0;
@@ -1639,8 +1638,7 @@ function ensureHotkeyCommandsPopupStyles() {
                 opacity: 0.75;
             }
         }
-    `)
-    hotkeyCommandsPopupStylesInjected = true
+    `
 }
 
 function closeHotkeyCommandsPopup() {
@@ -1653,8 +1651,6 @@ async function showHotkeyCommandsPopup() {
         existingPopup.remove()
         return
     }
-
-    ensureHotkeyCommandsPopupStyles()
 
     const currentContexts = getCurrentHotkeyContexts()
     const availableCommands = getAvailableHotkeyCommandsForCurrentPage()
@@ -2239,7 +2235,6 @@ function actionOpenInVespucci() {
 }
 
 function actionOpenOwnHistoryPage() {
-    addCompactSidebarStyle()
     const targetURL = document.querySelector('.dropdown-item[href^="/user/"]').getAttribute("href") + "/history"
     if (targetURL !== location.pathname) {
         try {
@@ -2259,7 +2254,6 @@ function actionOpenRelevantHistoryPage() {
             getWindow().OSM.router.route(historyPath)
         }
     } else if (isHomeOrNotePage()) {
-        addCompactSidebarStyle()
         document.querySelector('.nav-link[href*="/history"]')?.click()
     } else if (location.pathname.includes("/user/")) {
         document.querySelector('a[href^="/user/"][href$="/history"]')?.click()

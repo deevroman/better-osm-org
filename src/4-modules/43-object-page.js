@@ -694,8 +694,6 @@ function makeXmasFeatureEasterEgg() {
 
 let viewerIframe = null
 
-let contextMenuCSSInjected = false
-
 const contextMenuCSS = `
     #building-3d-view,
     #building-indoor-view {
@@ -755,10 +753,8 @@ const contextMenuCSS = `
     }
 `
 
-function injectContextMenuCSS() {
-    if (contextMenuCSSInjected) return
-    contextMenuCSSInjected = true
-    injectCSSIntoOSMPage(contextMenuCSS)
+function registerContextMenuStyles() {
+    registerOSMStyle("context-menu", () => contextMenuCSS)
 }
 
 // prettier-ignore
@@ -929,7 +925,6 @@ function makeViewerValue(valueCell, key) {
             }
         }
     }
-    injectContextMenuCSS()
     const parent = document.querySelector(".browse-tag-list").parentElement.previousElementSibling
     parent.style.display = "flex"
 

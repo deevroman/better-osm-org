@@ -687,36 +687,37 @@ function runOnDOMContentLoaded(callback) {
 }
 
 function preventWhiteFlashesInIdEditor() {
-    if (isDarkMode()) {
-        if (location.pathname === "/edit") {
-            injectCSSIntoOSMPage(
-                `@media ${mediaQueryForWebsiteTheme} {
-                #id-embed {
-                    background: #212529 !important;
-                }
-            }`,
-            )
-        } else {
-            injectCSSIntoOSMPage(
-                `@media ${mediaQueryForWebsiteTheme} {
-                html {
-                    background: #212529 !important;
-                }
+    if (!isDarkMode()) {
+        return
+    }
+    if (location.pathname === "/edit") {
+        injectCSSIntoOSMPage(
+            `@media ${mediaQueryForWebsiteTheme} {
+            #id-embed {
+                background: #212529 !important;
+            }
+        }`,
+        )
+    } else {
+        injectCSSIntoOSMPage(
+            `@media ${mediaQueryForWebsiteTheme} {
+            html {
+                background: #212529 !important;
+            }
 
-                body {
-                    background: #212529 !important;
-                }
+            body {
+                background: #212529 !important;
+            }
 
-                #id-embed {
-                    background: #212529 !important;
-                }
+            #id-embed {
+                background: #212529 !important;
+            }
 
-                #id-container {
-                    background: #212529 !important;
-                }
-            }`,
-            )
-        }
+            #id-container {
+                background: #212529 !important;
+            }
+        }`,
+        )
     }
 }
 

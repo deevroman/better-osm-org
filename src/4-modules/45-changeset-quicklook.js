@@ -2296,12 +2296,12 @@ function getPrevTargetLastVersions(objHistory, version) {
     return [prevVersion, targetVersion, lastVersion, objHistory]
 }
 
-let quickLookStylesInjected = false
+function registerQuickLookStyles() {
+    registerOSMStyle("quick-look", getQuickLookStyleText)
+}
 
-function addQuickLookStyles() {
-    if (quickLookStylesInjected) return
-    quickLookStylesInjected = true
-    const styleText =
+function getQuickLookStyleText() {
+    return (
         `
         .edits-wars-log tr:nth-child(even) td, .edits-wars-log tr:nth-child(even) th {
             background-color: color-mix(in srgb, var(--bs-body-bg), black 25%);
@@ -2579,11 +2579,7 @@ function addQuickLookStyles() {
         }
         `
             : "")
-    try {
-        injectCSSIntoOSMPage(styleText)
-    } catch {
-        /* empty */
-    }
+    )
 }
 
 async function preloadChangeset(changesetID) {
@@ -3774,7 +3770,6 @@ async function addChangesetQuickLook() {
         allTagsOfObjectsVisible = true
         return
     }
-    addQuickLookStyles()
     if (document.querySelector(".quick-look")) return true
     const sidebar = document.querySelector("#sidebar_content h2")
     if (!sidebar) {

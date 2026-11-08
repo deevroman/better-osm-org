@@ -1361,7 +1361,6 @@ function setupWayVersionView() {
                 }
             }
             if (GM_config.get("FullVersionsDiff")) {
-                addQuickLookStyles()
                 await showFullObjectHistory("way", parseInt(wayID))
             }
         }
@@ -2444,7 +2443,6 @@ function setupRelationVersionView() {
             }
             if (isDebug() && GM_config.get("FullVersionsDiff")) {
                 downloadAllVersionsBtn.textContent += " downloading intermediate versions β ..."
-                addQuickLookStyles()
                 await showFullObjectHistory("relation", parseInt(relationID))
             }
             e.target.remove()
@@ -2986,14 +2984,18 @@ async function unrollPaginationInHistory() {
     })
 }
 
-function addDiffInHistoryStyle() {
+function registerHistoryDiffStyles() {
+    registerOSMStyle("history-diff", getHistoryDiffStyleText)
+}
+
+function getHistoryDiffStyleText() {
     const styleText =
         `
     .turbo-progress-bar {
         display: none;
     }
 
-    .compact-toggle-btn {
+    .compact-toggle-btn:not(.increased-specificity-for-fucked-safari) {
         position: relative;
         top: -2px;
         cursor: pointer;
@@ -3015,17 +3017,17 @@ function addDiffInHistoryStyle() {
     }
 
     @media ${mediaQueryForWebsiteTheme} {
-        .compact-toggle-btn {
+        .compact-toggle-btn:not(.increased-specificity-for-fucked-safari) {
             background: var(--bs-gray-800);
             border-color: var(--bs-gray-800);
         }
 
-        .compact-toggle-btn:hover {
+        .compact-toggle-btn:not(.increased-specificity-for-fucked-safari):hover {
             background: var(--bs-gray-700);
             border-color: var(--bs-gray-700);
         }
 
-        .compact-toggle-btn:active {
+        .compact-toggle-btn:not(.increased-specificity-for-fucked-safari):active {
             background: var(--bs-gray-700) !important;
             border-color: var(--bs-gray-700) !important;
         }
@@ -3228,7 +3230,7 @@ function addDiffInHistoryStyle() {
     }
     `
             : ``)
-    injectCSSIntoOSMPage(styleText)
+    return styleText
 }
 
 function historyPaginationClick() {
@@ -3772,8 +3774,6 @@ function addDiffInHistory(reason = "url_change") {
         sidebar.appendChild(document.createTextNode("\xA0"))
         sidebar.appendChild(compactToggle)
     }
-
-    addDiffInHistoryStyle()
 
     if (!document.querySelector(".tag-added") && !document.querySelector(".tag-unmodified")) {
         transformDiffWithColors()

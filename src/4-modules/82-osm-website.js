@@ -79,6 +79,19 @@ function applyModules(path) {
     }
 }
 
+function makeSidebarWider() {
+    const sidebar = document.querySelector("#sidebar")
+    if (sidebar && !sidebar.classList.contains("wider")) {
+        const mediumDeviceWidth = window.getComputedStyle(document.documentElement).getPropertyValue("--bs-breakpoint-md")
+        const isMediumDevice = window.matchMedia(`(max-width: ${mediumDeviceWidth})`).matches
+        document.querySelector("#sidebar").classList.add("wider")
+        if (!isMediumDevice) {
+            getMap()?.invalidateSize(intoPage({ pan: false }))
+            getMap()?.panBy(intoPage([100, 0]), intoPage({ animate: false }))
+        }
+    }
+}
+
 function cleanupBeforeNewLocation(path) {
     try {
         shiftKeyZClicks = 0
@@ -103,6 +116,9 @@ function cleanupBeforeNewLocation(path) {
             !path.startsWith("/node") && !path.startsWith("/way") && path !== "/relation" &&
             !path.startsWith("/note")) {
             showSearchForm()
+        }
+        if (path !== "/" && GM_config.get("CompactChangesetsHistory")) {
+            makeSidebarWider()
         }
     } catch {
         /* empty */
@@ -160,15 +176,6 @@ function setupOSMWebsite() {
         setTimeout(loadFriends, 4000)
     }
     setTimeout(() => {
-        if (GM_config.get("CompactChangesetsHistory")) {
-            document.querySelector('.nav-link[href^="/history"]')?.addEventListener(
-                "click",
-                () => {
-                    addCompactSidebarStyle()
-                },
-                { once: true },
-            )
-        }
         document.querySelectorAll('nav a[href="/export"]').forEach(i =>
             i.addEventListener("contextmenu", async e => {
                 e.preventDefault()

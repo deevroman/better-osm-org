@@ -212,9 +212,9 @@ if (isOsmServer() || isIdeditorInstance()) {
 function setupIDframe() {
     if (GM_config.get("DarkModeForID")) {
         injectCSSIntoOSMPage(`
-                @media ${mediaQueryForWebsiteTheme} {
-                    ${GM_getResourceText("DARK_THEME_FOR_ID_CSS")}
-                }`)
+            @media ${mediaQueryForWebsiteTheme} {
+                ${GM_getResourceText("DARK_THEME_FOR_ID_CSS")}
+            }`)
     }
     GM_registerMenuCommand("Show iD OAuth token", function () {
         const token = extractOauthToken()

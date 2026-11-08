@@ -239,12 +239,8 @@ const copyAnimationStyles = `
     }
 `
 
-let copyAnimationStylesInjected = false
-
-function injectCopyAnimationStyles() {
-    if (copyAnimationStylesInjected) return
-    copyAnimationStylesInjected = true
-    injectCSSIntoOSMPage(copyAnimationStyles)
+function registerCopyAnimationStyles() {
+    registerOSMStyle("copy-animation", () => copyAnimationStyles)
 }
 
 function makeMenuItem(row) {
