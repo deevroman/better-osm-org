@@ -14,7 +14,7 @@ function getWaynodesCentroid(wayNodes) {
     }
 }
 
-function getBooxAroundPoint(lat, lng, halfSizeMeters) {
+function getBboxAroundPoint(lat, lng, halfSizeMeters) {
     const dLat = halfSizeMeters / 111320
     const dLng = halfSizeMeters / (111320 * Math.cos((lat * Math.PI) / 180))
     return [lng - dLng, lat - dLat, lng + dLng, lat + dLat].join(",")
@@ -23,7 +23,7 @@ function getBooxAroundPoint(lat, lng, halfSizeMeters) {
 async function getElementsAroundNode(lat, lng) {
     for (const radius of [70, 300, 750, 2000, 5000]) {
         console.time(`/map call radius=${radius}`)
-        const response = await fetch(`${osm_server.apiBase}map.json?bbox=${getBooxAroundPoint(lat, lng, radius)}`)
+        const response = await fetch(`${osm_server.apiBase}map.json?bbox=${getBboxAroundPoint(lat, lng, radius)}`)
         console.timeEnd(`/map call radius=${radius}`)
         if (!response.ok) {
             throw new Error(`OSM API error: ${response.status}`)
