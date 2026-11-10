@@ -2402,38 +2402,44 @@ function actionGoToNextSearchResultPage(e) {
 }
 
 function actionChangesetObjectsTimeTrack() {
-    if (location.pathname.startsWith("/changeset")) {
-        const params = new URLSearchParams(location.search)
-        const changesetIDs = params.get("changesets")?.split(",") ?? [parseInt(location.pathname.match(/changeset\/(\d+)/)[1])]
-        const objects = []
-        if (changesetIDs) {
-            setTimeout(async () => {
-                for (const i of changesetIDs) {
-                    ;(await getChangeset(i)).data.querySelectorAll("node,way,relation").forEach(obj => {
-                        objects.push(obj)
-                    })
-                }
-                objects.sort((a, b) => {
-                    const A = new Date(a.getAttribute("timestamp"))
-                    const B = new Date(b.getAttribute("timestamp"))
-                    if (A < B) return -1
-                    if (A > B) return 1
-                    return 0
-                })
-                const nodesList = []
-                for (let object of objects) {
-                    if (object.nodeName === "node" && object.getAttribute("visible") === "true") {
-                        nodesList.push([object.getAttribute("lat"), object.getAttribute("lon")])
-                    } else if (object.nodeName === "way") {
-                        // TODO
-                    }
-                }
-                showNodeMarker(nodesList[0][0], nodesList[0][1], "#ff0000", null, "customObjects", 8)
-                showNodeMarker(nodesList.at(-1)[0], nodesList.at(-1)[1], "#00ff04", null, "customObjects", 8)
-                showActiveWay(nodesList, c("#0022ff"), false, null, true, 2)
+    if (!location.pathname.startsWith("/changeset")) {
+        return
+    }
+    const params = new URLSearchParams(location.search)
+    const changesetIDs = params.get("changesets")?.split(",") ?? [parseInt(location.pathname.match(/changeset\/(\d+)/)[1])]
+    if (!changesetIDs) {
+        return
+    }
+    const objects = []
+    setTimeout(async () => {
+        for (const i of changesetIDs) {
+            ;(await getChangeset(i)).data.querySelectorAll("node,way,relation").forEach(obj => {
+                objects.push(obj)
             })
         }
-    }
+        objects.sort((a, b) => {
+            const A = new Date(a.getAttribute("timestamp"))
+            const B = new Date(b.getAttribute("timestamp"))
+            if (A < B) {
+                return -1
+            }
+            if (A > B) {
+                return 1
+            }
+            return 0
+        })
+        const nodesList = []
+        for (let object of objects) {
+            if (object.nodeName === "node" && object.getAttribute("visible") === "true") {
+                nodesList.push([object.getAttribute("lat"), object.getAttribute("lon")])
+            } else if (object.nodeName === "way") {
+                // TODO
+            }
+        }
+        showNodeMarker(nodesList[0][0], nodesList[0][1], "#ff0000", null, "customObjects", 8)
+        showNodeMarker(nodesList.at(-1)[0], nodesList.at(-1)[1], "#00ff04", null, "customObjects", 8)
+        showActiveWay(nodesList, c("#0022ff"), false, null, true, 2)
+    })
 }
 
 function actionGoToPrevChangesetObjectHotkey(e) {
