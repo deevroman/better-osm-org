@@ -6268,7 +6268,7 @@ function injectCSSIntoOSMPage(text) {
             styleElem.parentElement.appendChild(styleElem)
         }
     } else {
-        return GM_addElement(document.head ?? document.documentElement, "style", {
+        return GM_addElement("style", {
             textContent: text,
         })
     }
@@ -6278,7 +6278,7 @@ function injectCSSIntoOSMPage(text) {
  * @param {string} text
  */
 function injectCSSIntoSimplePage(text) {
-    return GM_addElement(document.head, "style", {
+    return GM_addElement("style", {
         textContent: text,
     })
 }
