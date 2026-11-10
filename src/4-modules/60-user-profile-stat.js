@@ -31,11 +31,16 @@ async function loadChangesetsBetween(user, fromTime, toTime) {
         curTime = new Date(res.changesets[res.changesets.length - 1].created_at)
     }
     console.log(`${changesets.length} changesets from ${fromTime} to ${toTime} fetched`)
-    changesets.forEach(i => {
-        if (i.comments_count) {
-            void getChangesetComments(i.id)
-        }
-    })
+    changesets
+        .filter(i => i.comments_count)
+        .forEach((i, index) => {
+            if (isOHMServer() || isOGFServer()) {
+                return
+            }
+            if (index < 7) {
+                void sleep(300).then(() => void getChangesetComments(i.id))
+            }
+        })
     return changesets
 }
 
