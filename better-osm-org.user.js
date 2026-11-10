@@ -6268,7 +6268,7 @@ function injectCSSIntoOSMPage(text) {
             styleElem.parentElement.appendChild(styleElem)
         }
     } else {
-        return GM_addElement(document.head, "style", {
+        return GM_addElement(document.head ?? document.documentElement, "style", {
             textContent: text,
         })
     }
