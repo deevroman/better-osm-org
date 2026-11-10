@@ -57,6 +57,10 @@ function main() {
     }
     setCustomPalette()
 
+    if (!isDebug && isOGFServer()) {
+        return
+    }
+
     if (isOsmServer()) {
         registerCopyAnimationStyles()
         registerCopyCoordinatesStyles()
