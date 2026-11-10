@@ -3649,10 +3649,8 @@ function transformDiffWithColors() {
                         }
                     }
                     if (nextVersion && !nextVersion.querySelector("turbo-frame:has(.spinner-border)")) {
-                        const nextChildMembers = Array.from(nextVersion.querySelectorAll("details ul.list-unstyled li")).map(
-                            el => el.textContent,
-                        )
-                        const curChildNodes = Array.from(ver.querySelectorAll("details ul.list-unstyled li")).map(el => el.textContent)
+                        const nextChildMembers = Array.from(nextVersion.querySelectorAll("details ul.list-unstyled li"), el => el.textContent)
+                        const curChildNodes = Array.from(ver.querySelectorAll("details ul.list-unstyled li"), el => el.textContent)
 
                         if (
                             nextChildMembers.length !== curChildNodes.length ||
