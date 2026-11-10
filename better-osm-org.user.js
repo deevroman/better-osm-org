@@ -8894,7 +8894,7 @@ function renderRestriction(rel, color, layer) {
             return [
                 [...Object.values(fromMercator(x - 10, y - 10))],
                 [...Object.values(fromMercator(x + 10, y + 10))]
-            ];
+            ]
         }
 
         const imgLayer = getWindow()
