@@ -20837,7 +20837,8 @@ function addDiffInHistory(reason = "url_change") {
     document.querySelectorAll("#element_versions_list > div").forEach(i => i.classList.add("browse-section"))
     cleanAllObjects()
     hideSearchForm()
-    if (document.activeElement?.nodeName !== "A" && document.activeElement?.nodeName !== "SVG") {
+    if (reason === "url_change" && document.activeElement?.nodeName !== "A" && document.activeElement?.nodeName !== "SVG") {
+        // важно не выставлять при развёртке пагинации, иначе лагает
         // в хроме фокус не выставляется
         document.querySelector("#sidebar").focus({ focusVisible: false }) // focusVisible работает только в Firefox
         document.querySelector("#sidebar").blur()
