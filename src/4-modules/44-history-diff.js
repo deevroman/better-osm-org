@@ -150,8 +150,8 @@ async function loadNodesViaHistoryCalls(nodes) {
         }
         return targetNodesHistory
     }
-
-    return (await Promise.all(arraySplit(nodes, 5).map(_do))).flat()
+    const batches = isOGFServer() ? 1 : 5
+    return (await Promise.all(arraySplit(nodes, batches).map(_do))).flat()
 }
 
 /**
