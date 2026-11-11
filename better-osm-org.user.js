@@ -17277,6 +17277,15 @@ async function getNodeHistory(nodeID) {
 const enrichedHistories = new Set()
 
 /**
+ * Set when the server cannot return the oldest versions of an object (trimmed history,
+ * as on OGF). The versioned batch endpoint answers 404 for the whole batch then, and a
+ * burst of 404s looks exactly like probing to a rule that counts distinct error URLs,
+ * so request histories per object instead.
+ * @type {boolean}
+ */
+let serverHistoryIsTrimmed = false
+
+/**
  * @template T
  * @param apiHistory T[]
  * @param objType
@@ -17462,6 +17471,10 @@ async function loadWayVersionNodes(wayID, version, changesetID = null) {
     }
     console.debug("Loading way", wayID, version)
     const wayHistory = await getWayHistory(wayID)
+    // OGF trims its old history: a way whose history starts above v1 cannot use the
+    // versioned batch endpoint, which answers 404 for the whole batch and so emits a
+    // burst of error URLs. Read histories per object on that server instead.
+    const wayHistoryIsTrimmed = isOGFServer() && wayHistory.length > 0 && wayHistory[0].version > 1
 
     const targetVersion =
         wayHistory.find(v => v.version === version) ??
@@ -17478,7 +17491,7 @@ async function loadWayVersionNodes(wayID, version, changesetID = null) {
     }
     const notCached = targetVersion.nodes.filter(nodeID => !nodesHistories[nodeID] && nodeID > 0)
     // console.debug("Not cached nodes histories for download:", notCached.length, "/", targetVersion.nodes)
-    if (notCached.length < 2 || osm_server === local_server) {
+    if (notCached.length < 2 || osm_server === local_server || wayHistoryIsTrimmed) {
         // https://github.com/openstreetmap/openstreetmap-website/issues/5183
         return [targetVersion, await loadNodesViaHistoryCalls(targetVersion.nodes)]
     }
@@ -17493,11 +17506,17 @@ async function loadWayVersionNodes(wayID, version, changesetID = null) {
         console.debug(`Batch #${i}/${notCached.length}`)
         batches.push(notCached.slice(i, i + batchSize))
     }
+    let lastVersionsBatchFailed = false
     await Promise.all(
         batches.map(async batch => {
             const res = await fetchRetry(osm_server.apiBase + "nodes.json?nodes=" + batch.join(","), { signal: getAbortController().signal })
             if (!res.ok) {
+                if (res.status === 404) {
+                    serverHistoryIsTrimmed = true
+                }
+                lastVersionsBatchFailed = true
                 console.trace(res)
+                return
             }
             const nodes = (await res.json()).elements
             lastVersions.push(...nodes)
@@ -17514,6 +17533,9 @@ async function loadWayVersionNodes(wayID, version, changesetID = null) {
             })
         }),
     )
+    if (lastVersionsBatchFailed) {
+        return [targetVersion, await loadNodesViaHistoryCalls(targetVersion.nodes)]
+    }
 
     const longHistoryNodes = lastVersions.filter(n => n?.version !== 1)
     const lastVersionsMap = Object.groupBy(lastVersions, ({ id }) => id)
@@ -17555,9 +17577,19 @@ async function loadWayVersionNodes(wayID, version, changesetID = null) {
     // console.groupCollapsed(`w${wayID}v${version}`)
     await Promise.all(
         queryArgs.map(async args => {
+            if (serverHistoryIsTrimmed) {
+                // The versions below the oldest one still stored do not exist, so the
+                // batch would answer 404 for all of them. Read the histories instead.
+                const newArgs = args.split(",").map(i => parseInt(i.match(/(\d+)v(\d+)/)[1]))
+                ;(await loadNodesViaHistoryCalls(newArgs)).forEach(i => {
+                    versions.push(...i)
+                })
+                return
+            }
             const url = osm_server.apiBase + "nodes.json?nodes=" + args
             const res = await fetchRetry(url, { signal: getAbortController().signal })
             if (res.status === 404) {
+                serverHistoryIsTrimmed = true
                 console.log("%c Some nodes was hidden. Start slow fetching :(", "background: #222; color: #bada55")
                 const newArgs = args.split(",").map(i => parseInt(i.match(/(\d+)v(\d+)/)[1]))
                 // это нарушает инвариант, что versions не содержит последней версии
@@ -28845,44 +28877,98 @@ async function betterUserStat() {
                 } else {
                     colorDiff.style.opacity = `${Math.sqrt(newData[0] / maxPerDay)}`
                 }
-                let tooltipText = getTooltipSummary(new Date(day.getAttribute("data-date")), newData[0])
+                const summaryText = getTooltipSummary(new Date(day.getAttribute("data-date")), newData[0])
+                /** @type {{line: string, changesetID: number|null}[]} */
+                const changesetLines = []
                 if (newData[0]) {
-                    tooltipText += "\n"
                     for (let changeset of newData[2]) {
-                        let changesetComment = ""
                         if (changeset.comments_count) {
                             colorDiff.style.opacity = `${Math.min(0.7, Math.max(0.35, Math.sqrt(newData[0] / maxPerDay)))}`
                             colorDiff.style.background = "red"
-                            changesetComment = "💬 " + changeset.comment
-                            ;(await getChangesetComments(changeset.id)).forEach(mapperCommentText => {
-                                changesetComment +=
-                                    "\n - " +
+                            changesetLines.push({ line: "💬 " + changeset.comment, changesetID: changeset.id })
+                        } else {
+                            changesetLines.push({ line: "• " + changeset.comment, changesetID: null })
+                        }
+                    }
+                }
+                /**
+                 * @param {Map<number, Object[]>} commentsByChangesetID
+                 * @return {string}
+                 */
+                const renderTooltipText = commentsByChangesetID => {
+                    let text = summaryText
+                    if (changesetLines.length) {
+                        text += "\n"
+                        for (const { line, changesetID } of changesetLines) {
+                            text += line + "\n"
+                            for (const mapperCommentText of commentsByChangesetID.get(changesetID) ?? []) {
+                                text +=
+                                    " - " +
                                     mapperCommentText["user"] +
                                     ": " +
                                     shortOsmOrgLinksInText(mapperCommentText["text"])?.slice(0, 500)
                                 if (mapperCommentText["text"].length > 500) {
-                                    changesetComment += "..."
+                                    text += "..."
                                 }
-                            })
-                        } else {
-                            changesetComment = "• " + changeset.comment
+                                text += "\n"
+                            }
                         }
-                        tooltipText += changesetComment + "\n"
                     }
+                    if (banInfo) {
+                        text += "\n⛔" + banInfo.text
+                    }
+                    return text
                 }
-                if (banInfo) {
-                    tooltipText += "\n⛔" + banInfo.text
-                }
+                const changesetsWithComments = changesetLines.flatMap(i => (i.changesetID === null ? [] : [i.changesetID]))
+                const collapsedTooltipText = renderTooltipText(new Map())
                 day.appendChild(colorDiff)
-                getWindow()
-                    .$(day)
-                    .tooltip(
-                        intoPage({
-                            title: tooltipText,
-                            customClass: "wide",
-                            delay: { show: 0, hide: 0 },
-                        }),
-                    )
+                if (changesetsWithComments.length) {
+                    // Load discussions only when the tooltip is opened. One request per
+                    // commented changeset, fired while the calendar renders, is enough to
+                    // trip a limiter that counts distinct non-static URLs (e.g. the
+                    // crowdsecurity/http-crawl-non_statics scenario in CrowdSec).
+                    let loadedTooltipText = null
+                    let loading = false
+                    day.addEventListener("mouseenter", async () => {
+                        if (loading || loadedTooltipText !== null) {
+                            return
+                        }
+                        loading = true
+                        try {
+                            const commentsByChangesetID = new Map()
+                            for (const changesetID of changesetsWithComments) {
+                                commentsByChangesetID.set(changesetID, await getChangesetComments(changesetID))
+                            }
+                            loadedTooltipText = renderTooltipText(commentsByChangesetID)
+                            const describedBy = day.getAttribute("aria-describedby")
+                            const tooltipInner = describedBy && document.getElementById(describedBy)?.querySelector(".tooltip-inner")
+                            if (tooltipInner) {
+                                tooltipInner.textContent = loadedTooltipText
+                            }
+                        } finally {
+                            loading = false
+                        }
+                    })
+                    getWindow()
+                        .$(day)
+                        .tooltip(
+                            intoPageWithFun({
+                                title: () => loadedTooltipText ?? collapsedTooltipText,
+                                customClass: "wide",
+                                delay: { show: 0, hide: 0 },
+                            }),
+                        )
+                } else {
+                    getWindow()
+                        .$(day)
+                        .tooltip(
+                            intoPage({
+                                title: collapsedTooltipText,
+                                customClass: "wide",
+                                delay: { show: 0, hide: 0 },
+                            }),
+                        )
+                }
             } else {
                 day.removeAttribute("data-count")
                 day.setAttribute("href", "")
