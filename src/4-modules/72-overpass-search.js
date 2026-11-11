@@ -246,14 +246,13 @@ out geom;
         cleanAllObjects()
         getWindow().jsonLayer?.remove()
         jsonLayer?.remove()
-        // TODO
         jsonLayer = renderOSMGeoJSON(xml, {
             style: {
                 color: "red",
             },
         })
+        // TODO
         jsonLayer.bringToFront()
-        debugger
         startPhotosRender(xml)
         console.timeEnd("render overpass response")
 
