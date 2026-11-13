@@ -48,7 +48,9 @@ const colorsPalette = {
     "rgba(238, 51, 9, 0.6).nodes-changed-row": "rgba(238, 51, 9, 0.6)",
 
     "rgba(4, 123, 0, 0.6).history-diff-new-tag" : "rgba(4, 123, 0, 0.6)",
-    "rgba(238, 51, 9, 0.4).history-diff-deleted-tag": "rgba(238, 51, 9, 0.4)"
+    "rgba(238, 51, 9, 0.4).history-diff-deleted-tag": "rgba(238, 51, 9, 0.4)",
+
+    "#ff0000.overpass-search": "#ff0000",
 }
 
 const defaultColorsPalette = { ...colorsPalette }
@@ -96,7 +98,9 @@ const colorblindFriendlyPalette = {
     "rgba(238, 51, 9, 0.6).nodes-changed-row": "rgb(242, 0, 0)",
 
     "rgba(4, 123, 0, 0.6).history-diff-new-tag" : "#1A385C",
-    "rgba(238, 51, 9, 0.4).history-diff-deleted-tag": "#732a1d"
+    "rgba(238, 51, 9, 0.4).history-diff-deleted-tag": "#732a1d",
+
+    "#ff0000.overpass-search": "#f34c4c",
 }
 
 function setColorblindFriendlyPalette() {

@@ -6131,7 +6131,9 @@ const colorsPalette = {
     "rgba(238, 51, 9, 0.6).nodes-changed-row": "rgba(238, 51, 9, 0.6)",
 
     "rgba(4, 123, 0, 0.6).history-diff-new-tag" : "rgba(4, 123, 0, 0.6)",
-    "rgba(238, 51, 9, 0.4).history-diff-deleted-tag": "rgba(238, 51, 9, 0.4)"
+    "rgba(238, 51, 9, 0.4).history-diff-deleted-tag": "rgba(238, 51, 9, 0.4)",
+
+    "#ff0000.overpass-search": "#ff0000",
 }
 
 const defaultColorsPalette = { ...colorsPalette }
@@ -6179,7 +6181,9 @@ const colorblindFriendlyPalette = {
     "rgba(238, 51, 9, 0.6).nodes-changed-row": "rgb(242, 0, 0)",
 
     "rgba(4, 123, 0, 0.6).history-diff-new-tag" : "#1A385C",
-    "rgba(238, 51, 9, 0.4).history-diff-deleted-tag": "#732a1d"
+    "rgba(238, 51, 9, 0.4).history-diff-deleted-tag": "#732a1d",
+
+    "#ff0000.overpass-search": "#f34c4c",
 }
 
 function setColorblindFriendlyPalette() {
@@ -10243,7 +10247,7 @@ function addRevertButton() {
         betterChangesetCommentForm(textarea)
     }
     const tagsHeader = document.querySelector("#sidebar_content h4")
-    if (tagsHeader) {
+    if (tagsHeader && !tagsHeader.parentElement.classList.contains("col")) {
         tagsHeader.remove()
     }
     const primaryButtons = document.querySelector("[name=subscribe], [name=unsubscribe]")
@@ -16561,7 +16565,7 @@ const allowedRelationTypes = new Set([
     "super-relation", "carriageway", "restriction:on_red", "area", "relation", "gallery", "through_route", "right_of_way",
     "linestring", "unposted_route", "water", "operator", "land_area", "navigation", "golf_course", "traffic_signals_group",
     "proposed", "segmented_tag", "road", "man_made", "transit", "construction", "access", "guidepost_destination", "fixme",
-    "label", "defaults", "lanelet", "traffic separation scheme", "station", "kit", "golf", "sport",
+    "label", "defaults", "lanelet", "traffic separation scheme", "station", "kit", "golf", "sport", "controlled_parking_zone"
 ])
 
 function makeTypeValue(elem, objType) {
@@ -32409,7 +32413,7 @@ out geom;
         jsonLayer?.remove()
         jsonLayer = renderOSMGeoJSON(xml, {
             style: {
-                color: "red",
+                color: c("#ff0000", ".overpass-search"),
             },
         })
         // TODO

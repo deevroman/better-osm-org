@@ -992,7 +992,7 @@ function addRevertButton() {
         betterChangesetCommentForm(textarea)
     }
     const tagsHeader = document.querySelector("#sidebar_content h4")
-    if (tagsHeader) {
+    if (tagsHeader && !tagsHeader.parentElement.classList.contains("col")) {
         tagsHeader.remove()
     }
     const primaryButtons = document.querySelector("[name=subscribe], [name=unsubscribe]")
