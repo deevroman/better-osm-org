@@ -248,7 +248,7 @@ out geom;
         jsonLayer?.remove()
         jsonLayer = renderOSMGeoJSON(xml, {
             style: {
-                color: "red",
+                color: c("#ff0000", ".overpass-search"),
             },
         })
         // TODO
