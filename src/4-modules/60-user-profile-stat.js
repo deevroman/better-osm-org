@@ -31,16 +31,6 @@ async function loadChangesetsBetween(user, fromTime, toTime) {
         curTime = new Date(res.changesets[res.changesets.length - 1].created_at)
     }
     console.log(`${changesets.length} changesets from ${fromTime} to ${toTime} fetched`)
-    changesets
-        .filter(i => i.comments_count)
-        .forEach((i, index) => {
-            if (isOHMServer() || isOGFServer()) {
-                return
-            }
-            if (index < 7) {
-                void sleep(300).then(() => void getChangesetComments(i.id))
-            }
-        })
     return changesets
 }
 
@@ -426,44 +416,98 @@ async function betterUserStat() {
                 } else {
                     colorDiff.style.opacity = `${Math.sqrt(newData[0] / maxPerDay)}`
                 }
-                let tooltipText = getTooltipSummary(new Date(day.getAttribute("data-date")), newData[0])
+                const summaryText = getTooltipSummary(new Date(day.getAttribute("data-date")), newData[0])
+                /** @type {{line: string, changesetID: number|null}[]} */
+                const changesetLines = []
                 if (newData[0]) {
-                    tooltipText += "\n"
                     for (let changeset of newData[2]) {
-                        let changesetComment = ""
                         if (changeset.comments_count) {
                             colorDiff.style.opacity = `${Math.min(0.7, Math.max(0.35, Math.sqrt(newData[0] / maxPerDay)))}`
                             colorDiff.style.background = "red"
-                            changesetComment = "💬 " + changeset.comment
-                            ;(await getChangesetComments(changeset.id)).forEach(mapperCommentText => {
-                                changesetComment +=
-                                    "\n - " +
+                            changesetLines.push({ line: "💬 " + changeset.comment, changesetID: changeset.id })
+                        } else {
+                            changesetLines.push({ line: "• " + changeset.comment, changesetID: null })
+                        }
+                    }
+                }
+                /**
+                 * @param {Map<number, Object[]>} commentsByChangesetID
+                 * @return {string}
+                 */
+                const renderTooltipText = commentsByChangesetID => {
+                    let text = summaryText
+                    if (changesetLines.length) {
+                        text += "\n"
+                        for (const { line, changesetID } of changesetLines) {
+                            text += line + "\n"
+                            for (const mapperCommentText of commentsByChangesetID.get(changesetID) ?? []) {
+                                text +=
+                                    " - " +
                                     mapperCommentText["user"] +
                                     ": " +
                                     shortOsmOrgLinksInText(mapperCommentText["text"])?.slice(0, 500)
                                 if (mapperCommentText["text"].length > 500) {
-                                    changesetComment += "..."
+                                    text += "..."
                                 }
-                            })
-                        } else {
-                            changesetComment = "• " + changeset.comment
+                                text += "\n"
+                            }
                         }
-                        tooltipText += changesetComment + "\n"
                     }
+                    if (banInfo) {
+                        text += "\n⛔" + banInfo.text
+                    }
+                    return text
                 }
-                if (banInfo) {
-                    tooltipText += "\n⛔" + banInfo.text
-                }
+                const changesetsWithComments = changesetLines.flatMap(i => (i.changesetID === null ? [] : [i.changesetID]))
+                const collapsedTooltipText = renderTooltipText(new Map())
                 day.appendChild(colorDiff)
-                getWindow()
-                    .$(day)
-                    .tooltip(
-                        intoPage({
-                            title: tooltipText,
-                            customClass: "wide",
-                            delay: { show: 0, hide: 0 },
-                        }),
-                    )
+                if (changesetsWithComments.length) {
+                    // Load discussions only when the tooltip is opened. One request per
+                    // commented changeset, fired while the calendar renders, is enough to
+                    // trip a limiter that counts distinct non-static URLs (e.g. the
+                    // crowdsecurity/http-crawl-non_statics scenario in CrowdSec).
+                    let loadedTooltipText = null
+                    let loading = false
+                    day.addEventListener("mouseenter", async () => {
+                        if (loading || loadedTooltipText !== null) {
+                            return
+                        }
+                        loading = true
+                        try {
+                            const commentsByChangesetID = new Map()
+                            for (const changesetID of changesetsWithComments) {
+                                commentsByChangesetID.set(changesetID, await getChangesetComments(changesetID))
+                            }
+                            loadedTooltipText = renderTooltipText(commentsByChangesetID)
+                            const describedBy = day.getAttribute("aria-describedby")
+                            const tooltipInner = describedBy && document.getElementById(describedBy)?.querySelector(".tooltip-inner")
+                            if (tooltipInner) {
+                                tooltipInner.textContent = loadedTooltipText
+                            }
+                        } finally {
+                            loading = false
+                        }
+                    })
+                    getWindow()
+                        .$(day)
+                        .tooltip(
+                            intoPageWithFun({
+                                title: () => loadedTooltipText ?? collapsedTooltipText,
+                                customClass: "wide",
+                                delay: { show: 0, hide: 0 },
+                            }),
+                        )
+                } else {
+                    getWindow()
+                        .$(day)
+                        .tooltip(
+                            intoPage({
+                                title: collapsedTooltipText,
+                                customClass: "wide",
+                                delay: { show: 0, hide: 0 },
+                            }),
+                        )
+                }
             } else {
                 day.removeAttribute("data-count")
                 day.setAttribute("href", "")
@@ -490,6 +534,25 @@ async function betterUserStat() {
             }
         }
     }
+
+    // Keep discussions warm for the tooltips, but only once the user starts using the
+    // filters: preloading them when the profile opens fires a request per commented
+    // changeset at once, which limiter rules treat as crawling.
+    let discussionsPreloaded = false
+    function preloadDiscussions() {
+        if (discussionsPreloaded) {
+            return
+        }
+        discussionsPreloaded = true
+        changesets
+            .filter(i => i.comments_count)
+            .slice(0, 7)
+            .forEach((i, index) => {
+                void sleep(300 * (index + 1)).then(() => void getChangesetComments(i.id))
+            })
+    }
+    filterInputByEditor.addEventListener("mousedown", preloadDiscussions)
+    searchByComment.addEventListener("mousedown", preloadDiscussions)
 
     filterInputByEditor.oninput = inputHandler
     searchByComment.oninput = inputHandler
