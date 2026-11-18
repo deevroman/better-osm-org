@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.8.0
+// @version         1.8.1
 // @changelog       v1.8.0: use red color for Overpass search results, fix sidebar jumps
 // @changelog       v1.7.7: indoor viewers link for object with indoor=*, shop=mall, comment button in Edit Tags
 // @changelog       v1.7.3: Notes resolve buttons in iD, Open in Vespucci action, Drag&Drop for JSON array and .osc β
