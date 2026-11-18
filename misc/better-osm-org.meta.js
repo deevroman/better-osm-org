@@ -1,0 +1,189 @@
+// ==UserScript==
+// @name            Better osm.org
+// @name:ru         Better osm.org
+// @version         1.8.0
+// @changelog       v1.8.0: use red color for Overpass search results, fix sidebar jumps
+// @changelog       v1.7.7: indoor viewers link for object with indoor=*, shop=mall, comment button in Edit Tags
+// @changelog       v1.7.3: Notes resolve buttons in iD, Open in Vespucci action, Drag&Drop for JSON array and .osc β
+// @changelog       v1.7.2: Direct messages templates, retries for osm-revert, ctrl + S to save active object
+// @changelog       v1.7.2: Validate building:min_level, highlight suspect words in source=*, and imagery_used=
+// @changelog       v1.7.0: Calculating the area for multipolygons and boundaries, customizable overpass api server
+// @changelog       v1.6.9: Tags editor, ctrl + S to save Overpass results, suggest Osmcha tags after dislike
+// @changelog       v1.6.6: Under experimental flag: clickable POIs, full history for relations, level0 reborn links
+// @changelog       v1.6.6: Links to regional Taginfo on taginfo.osm.org and Overpass links on #combinations page
+// @changelog       v1.6.6: Download visible notes as .kml, Nodes restorer, parameters for vector styles
+// @changelog       v1.6.5: Warn about tracking params in website=* ans similar tags
+// @changelog       v1.6.5: Add translations for Russian, Ukrainian, German, French, Croatian, Turkish
+// @changelog       v1.6.3: F1 hotkey for hotkeys list, preview Panoramax photos in Overpass search results, CSV reader
+// @changelog       v1.6.3: Validate phone=*, email=*, short keys and keys with the first capital letter
+// @changelog       v1.6.0: OpenGeoFiction support under debug flag in settings, add OSM2World 3D viewer, type=* validator
+// @changelog       v1.6.0: Note marker in Overpass Turbo, more stable Overpass search
+// @changelog       v1.5.9: memorizing the last satellite layer, simple vector style editor
+// @changelog       v1.5.7: filter notes by creation date, Panoramax uploader (you need to enable it in the settings)
+// @changelog       v1.5.5: render child relations on relation page by hover
+// @changelog       v1.5.0: Shift + S: custom map layers, Shift + V: custom vector map styles, date for ESRI layer
+// @changelog       v1.5.0: KeyV: switch between raster and vector styles, render light:direction=* and direction=12-34
+// @changelog       v1.5.0: Initial OpenHistoricalMap support: changeset viewer
+// @changelog       v1.4.8: Highlight changesets with review_requested=yes
+// @changelog       v1.4.6: Copy coordinates button in map context menu, copy coordinates button for relations
+// @changelog       v1.4.0: More links in Edit menu, the ability to add custom links (like OSM Smart Menu)
+// @changelog       Changelog archive: https://github.com/deevroman/better-osm-org/blob/master/misc/CHANGELOG.md
+// @changelog       Changelog with illustrations: https://c.osm.org/t/121670/268
+// @changelog       OSM Wiki: https://osm.wiki/Better-osm-org
+// @description     Several improvements for advanced users of openstreetmap.org
+// @description:ru  Скрипт, добавляющий на openstreetmap.org полезные картографам функции
+// @author       deevroman
+// @match        https://www.openstreetmap.org/*
+// @exclude      https://www.openstreetmap.org/api*
+// @exclude      https://www.openstreetmap.org/reports/new/*
+// @exclude      https://www.openstreetmap.org/profile/*
+// @exclude      https://www.openstreetmap.org/diary/*
+// @exclude      https://www.openstreetmap.org/account*
+// @exclude      https://www.openstreetmap.org/oauth2/*
+// @exclude      https://www.openstreetmap.org/login*
+// @match        https://www.openhistoricalmap.org/*
+// @match        https://opengeofiction.net/*
+// @match        https://master.apis.dev.openstreetmap.org/*
+// @exclude      https://master.apis.dev.openstreetmap.org/api/*
+// @exclude      https://master.apis.dev.openstreetmap.org/account*
+// @exclude      https://master.apis.dev.openstreetmap.org/diary/*
+// @exclude      https://master.apis.dev.openstreetmap.org/oauth2/*
+// @match        https://ideditor.netlify.app/*
+// @match        https://ideditor-release.netlify.app/*
+// @match        https://taginfo.openstreetmap.org/*
+// @match        https://taginfo.geofabrik.de/*
+// @match        https://www.hdyc.neis-one.org/*
+// @match        https://hdyc.neis-one.org/*
+// @match        https://osmcha.org/*
+// @match        https://osmcha.openhistoricalmap.org/*
+// @match        https://overpass-turbo.eu/*
+// @match        https://maps.mail.ru/osm/tools/overpass/*
+// @match        https://revert.monicz.dev/*
+// @exclude      https://www.openhistoricalmap.org/api*
+// @exclude      https://www.openhistoricalmap.org/account*
+// @exclude      https://www.openhistoricalmap.org/diary/*
+// @exclude      https://www.openhistoricalmap.org/oauth2/*
+// @exclude      https://opengeofiction.net/api*
+// @exclude      https://opengeofiction.net/account*
+// @exclude      https://opengeofiction.net/diary/*
+// @exclude      https://opengeofiction.net/oauth2/*
+// @match        https://wiki.openstreetmap.org/wiki/Proposal:*
+// @match        https://wiki.openstreetmap.org/wiki/Proposal%3A*
+// @exclude      https://taginfo.openstreetmap.org/embed/*
+// @match        https://github.com/openstreetmap/openstreetmap-website/issues/new*
+// @match        https://github.com/openstreetmap/id/issues/new*
+// @match        https://github.com/Zverik/osmtags-editor/issues/new*
+// @match        https://github.com/deevroman/better-osm-org/issues/new*
+// @license      WTFPL
+// @namespace    https://github.com/deevroman/better-osm-org
+// @updateURL    https://github.com/deevroman/better-osm-org/raw/master/misc/better-osm-org.meta.js
+// @downloadURL  https://github.com/deevroman/better-osm-org/raw/master/better-osm-org.user.js
+// @supportURL   https://github.com/deevroman/better-osm-org/issues
+// @icon         https://www.openstreetmap.org/favicon.ico
+// @require      https://raw.githubusercontent.com/deevroman/GM_config/fixed-for-chromium/gm_config.js#sha256=ea04cb4254619543f8bca102756beee3e45e861077a75a5e74d72a5c131c580b
+// @require      https://raw.githubusercontent.com/deevroman/exif-js/aad22d0e24726efd1440a008ad08ab704731fcfd/exif.js#sha256=79c449a11e9e485318ca8eff108e1cbcc0ec8b8aa3f0a40294021a2898319147
+// @require      https://raw.githubusercontent.com/deevroman/osmtogeojson/c97381a0c86c0a021641dd47d7bea01fb5514716/osmtogeojson.js#sha256=663bb5bbae47d5d12bff9cf1c87b8f973e85fab4b1f83453810aae99add54592
+// @require      https://raw.githubusercontent.com/deevroman/better-osm-org/5a949d7b1b0897472396758dd5c1aaa514bba6c6/misc/assets/snow-animation.js#sha256=3b6cd76818c5575ea49aceb7bf4dc528eb8a7cb228b701329a41bb50f0800a5d
+// @require      https://raw.githubusercontent.com/deevroman/opening_hours.js/03d9af5c0b3c8dcec6b6ecadc3ef419bee4b52c1/opening_hours+deps.min.js#sha256=b0a9be43fe081d13db2aff69b36417ef18a9e0707629741e627a9b30f948cab9
+// @require      https://raw.githubusercontent.com/deevroman/unzipit/refs/heads/master/dist/unzipit.min.js#sha256=13a41f257bc1fd90adeaf6731e02838cf740299235ece90634f12e117e22e2ff
+// @require      https://raw.githubusercontent.com/deevroman/bz2/342be4403bf5ba835bb2c9ba54ad008bba428d60/index.js#sha256=8c19861a31e7fb403824e513e1afd23f75c5024f610671490ebc86f2eca61845
+// @require      https://raw.githubusercontent.com/deevroman/better-osm-org/9a020e54eef1aefef15f4fa97c31296b57cad1b1/misc/assets/libphonenumber-min.js#sha256=4fa4cc15faf634acd0f4f858842f6866405dd65e4be41f1aa286967e85b8956e
+// @incompatible safari https://github.com/deevroman/better-osm-org/issues/13
+// @grant        GM.getValue
+// @grant        GM.setValue
+// @grant        GM.listValues
+// @grant        GM.deleteValue
+// @grant        GM_registerMenuCommand
+// @grant        GM_getResourceURL
+// @grant        GM_getResourceText
+// @grant        GM_addElement
+// @grant        GM.xmlHttpRequest
+// @grant        GM_info
+// @grant        GM_openInTab
+// @note         for get diffs for finding deleted users
+// @connect      planet.openstreetmap.org
+// @connect      planet.maps.mail.ru
+// @note         overpass instances
+// @connect      maps.mail.ru
+// @connect      overpass.private.coffee
+// @connect      turbo.overpass.private.coffee
+// @connect      overpass-api.openhistoricalmap.org
+// @connect      overpass.opengeofiction.net
+// @connect      overpass-api.de
+// @connect      api.fairwaymapper.com
+// @connect      www.hdyc.neis-one.org
+// @connect      hdyc.neis-one.org
+// @connect      resultmaps.neis-one.org
+// @connect      www.openstreetmap.org
+// @connect      osmcha.org
+// @connect      raw.githubusercontent.com
+// @note         for images preview from Wikimedia Commons, Panoramax, Mapillary, StreetComplete
+// @connect      en.wikipedia.org
+// @connect      commons.wikimedia.org
+// @connect      graph.mapillary.com
+// @connect      fbcdn.net
+// @connect      api.panoramax.xyz
+// @connect      panoramax.openstreetmap.fr
+// @connect      panoramax.ign.fr
+// @connect      panoramax.mapcomplete.org
+// @connect      panoramax.multimob.be
+// @connect      panoramax.liswu.me
+// @connect      panoramax.osm-hr.org
+// @connect      panoramax.osm.tw
+// @connect      panoramax.libre.net.ar
+// @connect      panoramax.koenhabets.nl
+// @connect      panoramax.basi.re
+// @connect      westnordost.de
+// @connect      streetcomplete.app
+// @connect      3dmr.eu
+// @note         for downloading gps-tracks — osm stores tracks in AWS
+// @connect      amazonaws.com
+// @note         for satellite images and custom tiles
+// @connect      server.arcgisonline.com
+// @connect      services.arcgisonline.com
+// @connect      clarity.maptiles.arcgis.com
+// @connect      wayback.maptiles.arcgis.com
+// @connect      apps.kontur.io
+// @connect      vector.openstreetmap.org
+// @connect      vtiles.openhistoricalmap.org
+// @connect      openhistoricalmap.org
+// @connect      api.maptiler.com
+// @connect      api.jawg.io
+// @connect      tile.jawg.io
+// @connect      map.atownsend.org.uk
+// @connect      tiles.openfreemap.org
+// @connect      tiles.openrailwaymap.org
+// @connect      frexosm.ru
+// @connect      static-tiles-lclu.s3.us-west-1.amazonaws.com
+// @connect      demotiles.maplibre.org
+// @connect      router.project-osrm.org
+// @connect      tiles.indoorequal.org
+// @connect      tile.openstreetmap.org
+// @connect      a.tile-cyclosm.openstreetmap.fr
+// @connect      b.tile-cyclosm.openstreetmap.fr
+// @connect      c.tile-cyclosm.openstreetmap.fr
+// @connect      tile-a.openstreetmap.fr
+// @connect      tile-b.openstreetmap.fr
+// @connect      tile-c.openstreetmap.fr
+// @connect      api.thunderforest.com
+// @connect      tile.tracestrack.com
+// @note         * for custom layers. ViolentMonkey ignores @connect by default,
+// @note         Tampermonkey will show a warning before connecting to a host that is not listed above
+// @connect      *
+// @connect      geoscribble.osmz.ru
+// @connect      geoportal.dgu.hr
+// @note         geocoder
+// @connect      photon.komoot.io
+// @connect      whosthat.osmz.ru
+// @connect      content-a.strava.com
+// @connect      strava-heatmap.tiles.freemap.sk
+// @connect      proxy.nakarte.me
+// @note         for downloading routers data age
+// @connect      map.project-osrm.org
+// @connect      valhalla1.openstreetmap.de
+// @sandbox      JavaScript
+// @resource     OAUTH_HTML https://raw.githubusercontent.com/deevroman/better-osm-org/master/misc/assets/finish-oauth.html?bypass_cache
+// @resource     DARK_THEME_FOR_ID_CSS https://gist.githubusercontent.com/deevroman/55f35da68ab1efb57b7ba4636bdf013d/raw/1e91d589ca8cb51c693a119424a45d9f773c265e/dark.css
+// @resource     REGIONAL_TAGINFOS https://raw.githubusercontent.com/deevroman/better-osm-org/refs/heads/dev/misc/assets/regional-taginfo-list.html
+// @run-at       document-start
+// ==/UserScript==

@@ -76,7 +76,7 @@
 // @match        https://github.com/deevroman/better-osm-org/issues/new*
 // @license      WTFPL
 // @namespace    https://github.com/deevroman/better-osm-org
-// @updateURL    https://github.com/deevroman/better-osm-org/raw/master/better-osm-org.user.js
+// @updateURL    https://github.com/deevroman/better-osm-org/raw/master/misc/better-osm-org.meta.js
 // @downloadURL  https://github.com/deevroman/better-osm-org/raw/master/better-osm-org.user.js
 // @supportURL   https://github.com/deevroman/better-osm-org/issues
 // @icon         https://www.openstreetmap.org/favicon.ico
