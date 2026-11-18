@@ -77,8 +77,8 @@
 // @match        https://github.com/deevroman/better-osm-org/issues/new*
 // @license      WTFPL
 // @namespace    https://github.com/deevroman/better-osm-org
-// @updateURL    https://github.com/deevroman/better-osm-org/raw/master/misc/better-osm-org.meta.js
-// @downloadURL  https://github.com/deevroman/better-osm-org/raw/master/better-osm-org.user.js
+// @updateURL    https://raw.githubusercontent.com/deevroman/better-osm-org/master/misc/better-osm-org.meta.js
+// @downloadURL  https://raw.githubusercontent.com/deevroman/better-osm-org/master/better-osm-org.user.js
 // @supportURL   https://github.com/deevroman/better-osm-org/issues
 // @icon         https://www.openstreetmap.org/favicon.ico
 // @require      https://raw.githubusercontent.com/deevroman/GM_config/fixed-for-chromium/gm_config.js#sha256=ea04cb4254619543f8bca102756beee3e45e861077a75a5e74d72a5c131c580b
