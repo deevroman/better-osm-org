@@ -86,7 +86,7 @@ echo "Starting E2E entrypoint"
 cd "${WORKDIR_TMP}"
 
 set +e
-node src/build.js
+(cd src && node build.js)
 BUILD_EXIT_CODE=$?
 
 if [ "${BUILD_EXIT_CODE}" -eq 0 ]; then
