@@ -18,15 +18,6 @@
 // @changelog       v1.6.3: Validate phone=*, email=*, short keys and keys with the first capital letter
 // @changelog       v1.6.0: OpenGeoFiction support under debug flag in settings, add OSM2World 3D viewer, type=* validator
 // @changelog       v1.6.0: Note marker in Overpass Turbo, more stable Overpass search
-// @changelog       v1.5.9: memorizing the last satellite layer, simple vector style editor
-// @changelog       v1.5.7: filter notes by creation date, Panoramax uploader (you need to enable it in the settings)
-// @changelog       v1.5.5: render child relations on relation page by hover
-// @changelog       v1.5.0: Shift + S: custom map layers, Shift + V: custom vector map styles, date for ESRI layer
-// @changelog       v1.5.0: KeyV: switch between raster and vector styles, render light:direction=* and direction=12-34
-// @changelog       v1.5.0: Initial OpenHistoricalMap support: changeset viewer
-// @changelog       v1.4.8: Highlight changesets with review_requested=yes
-// @changelog       v1.4.6: Copy coordinates button in map context menu, copy coordinates button for relations
-// @changelog       v1.4.0: More links in Edit menu, the ability to add custom links (like OSM Smart Menu)
 // @changelog       Changelog archive: https://github.com/deevroman/better-osm-org/blob/master/misc/CHANGELOG.md
 // @changelog       Changelog with illustrations: https://c.osm.org/t/121670/268
 // @changelog       OSM Wiki: https://osm.wiki/Better-osm-org
