@@ -336,6 +336,16 @@ function renderPhotosPreview(withPhotos) {
                     placeholder.setAttribute("data-osm-path", "/" + photoObj.type + "/" + photoObj.id)
                     photosPreviewGallery.append(placeholder)
                 })
+            } else if (k === "image:fotoshi") {
+                v.split(";")
+                    .map(id => id.trim())
+                    .filter(id => /^[a-zA-Z0-9_-]+$/.test(id))
+                    .forEach(id => {
+                        const placeholder = makePlaceholder()
+                        placeholder.setAttribute("data-fotoshi-id", id)
+                        placeholder.setAttribute("data-osm-path", "/" + photoObj.type + "/" + photoObj.id)
+                        photosPreviewGallery.append(placeholder)
+                    })
             }
         })
     })
@@ -455,6 +465,23 @@ function renderPhotosPreview(withPhotos) {
             addImg(thumbSrc, previewEl)
             attachInaturalistHoverCaptureHandler(previewEl, observation)
         })
+    })
+
+    document.querySelectorAll("#photos-preview-gallery .photo-preview[data-fotoshi-id]").forEach(previewEl => {
+        addClick(previewEl)
+        const id = previewEl.getAttribute("data-fotoshi-id")
+        void downloadFotoshiPhoto(id)
+            .then(photo => {
+                const thumbSrc = photo?.assets?.thumbnail?.href
+                const zoomSrc = photo?.assets?.["image-1280"]?.href ?? thumbSrc
+                if (!thumbSrc || !zoomSrc) return
+                previewEl.setAttribute("data-photo-thumb-src", thumbSrc)
+                previewEl.setAttribute("data-photo-zoom-src", zoomSrc)
+                attachPhotosCarouselHoverZoom(previewEl)
+                addImg(thumbSrc, previewEl)
+                attachFotoshiHoverCaptureHandler(previewEl, photo)
+            })
+            .catch(error => console.error("Failed to load Fotoshi photo", id, error))
     })
 }
 

@@ -96,6 +96,10 @@
       "description": "to display photos in the tag values field"
     },
     {
+      "key": "image:fotoshi",
+      "description": "to display photos in the tag values field"
+    },
+    {
       "key": "restriction",
       "value": "no_left_turn",
       "description": "displaying traffic restriction signs on the map",

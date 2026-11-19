@@ -523,6 +523,87 @@ function makeRefBelpostValue(elem) {
     }
 }
 
+const fotoshiPhotoCache = new Map()
+
+function downloadFotoshiPhoto(id) {
+    if (!fotoshiPhotoCache.has(id)) {
+        const params = new URLSearchParams({ ids: id, collections: "fotoshi-photos", limit: "1" })
+        const request = externalFetch({ url: `https://api.fotoshi.com/v1/stac/search?${params}`, responseType: "json" }).then(res => {
+            if (res.status !== 200 || !Array.isArray(res.response?.features)) {
+                throw new Error(`Fotoshi STAC request failed: HTTP ${res.status}`)
+            }
+            return res.response.features.find(photo => photo.id === id) ?? null
+        })
+        fotoshiPhotoCache.set(id, request)
+        request.catch(() => fotoshiPhotoCache.delete(id))
+    }
+    return fotoshiPhotoCache.get(id)
+}
+
+function getFotoshiAttribution(photo) {
+    const properties = photo?.properties ?? {}
+    const author = properties.creator_name || properties.username
+    const license = properties.image_license ?? photo?.assets?.thumbnail?.license
+    const licenseUrl = photo?.links?.find(link => link.rel === "license")?.href
+    return ["Fotoshi", author, properties.source_organization, license, licenseUrl].filter(Boolean).join(" · ")
+}
+
+function attachFotoshiHoverCaptureHandler(elem, photo) {
+    const coordinates = photo?.geometry?.type === "Point" ? photo.geometry.coordinates : null
+    if (Number.isFinite(coordinates?.[0]) && Number.isFinite(coordinates?.[1])) {
+        elem.addEventListener("mouseenter", () => showActiveNodeMarker(coordinates[1], coordinates[0], "#0022ff", true))
+    }
+    appendTitleLine(elem, getFotoshiAttribution(photo))
+    appendTitleLine(elem, photo?.properties?.capture_date)
+}
+
+function makeFotoshiValue(elem) {
+    if (!GM_config.get("ImagesAndLinksInTags") || elem.classList.contains("fotoshied")) return
+    const ids = elem.textContent.split(";").map(id => id.trim())
+    if (ids.length === 0 || !ids.every(id => /^[a-zA-Z0-9_-]+$/.test(id))) return
+    elem.classList.add("fotoshied")
+    elem.replaceChildren()
+    ids.forEach((id, index) => {
+        if (index) elem.append("; ")
+        const wrapper = document.createElement("span")
+        const link = document.createElement("a")
+        link.textContent = id
+        link.target = "_blank"
+        link.rel = "noreferrer"
+        link.classList.add("preview-img-link")
+        wrapper.append(link)
+        elem.append(wrapper)
+        void downloadFotoshiPhoto(id)
+            .then(async photo => {
+                if (!photo) {
+                    link.classList.add("warn-tag")
+                    return
+                }
+                const imgSrc = photo.assets?.["image-1280"]?.href ?? photo.assets?.thumbnail?.href
+                if (!imgSrc) return
+                const coords = photo.geometry?.type === "Point" ? photo.geometry.coordinates : null
+                const params = new URLSearchParams({ photo: id, panel: "gallery", view: "photos", drawer: "open" })
+                if (Number.isFinite(coords?.[0]) && Number.isFinite(coords?.[1])) {
+                    params.set("lng", coords[0])
+                    params.set("lat", coords[1])
+                    params.set("z", "18")
+                }
+                link.href = `https://fotoshi.com/explore?${params}`
+                const img = isSafari
+                    ? document.createElement("img")
+                    : GM_addElement("img", { src: imgSrc, alt: "Image from Fotoshi", width: "100%" })
+                img.alt = "Image from Fotoshi"
+                img.style.width = "100%"
+                img.onerror = () => (img.style.display = "none")
+                if (isSafari) img.src = await fetchImageWithCache(imgSrc)
+                link.append(img)
+                attachFotoshiHoverCaptureHandler(link, photo)
+            })
+            .catch(error => console.error("Failed to load Fotoshi photo", id, error))
+    })
+    elem.onclick = e => e.stopImmediatePropagation()
+}
+
 async function downloadInaturalistInfo(id) {
     const ids = (Array.isArray(id) ? id : `${id}`.split(";")).map(i => i.trim()).filter(Boolean)
     if (ids.length === 0) {
@@ -1215,6 +1296,8 @@ function makeLinksInVersionTagClickable(row, objType) {
         }
     } else if (key === "ref:inaturalist.org") {
         makeRefInaturalistValue(valueCell)
+    } else if (key === "image:fotoshi") {
+        makeFotoshiValue(valueCell)
     } else if (key.startsWith("was:") || key.startsWith("disused:") || key.startsWith("old_")) {
         if (GM_config.get("ReorderOldTags") && !location.pathname.endsWith("/history")) {
             keyCell.classList.add("old-tags-key")
