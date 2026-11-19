@@ -113,6 +113,8 @@
 // @connect      en.wikipedia.org
 // @connect      commons.wikimedia.org
 // @connect      graph.mapillary.com
+// @connect      api.fotoshi.com
+// @connect      cdn.fotoshi.com
 // @connect      fbcdn.net
 // @connect      api.panoramax.xyz
 // @connect      panoramax.openstreetmap.fr
