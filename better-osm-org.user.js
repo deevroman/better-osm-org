@@ -35146,7 +35146,7 @@ function actionOpenNoteAuthorNotesInNewTab() {
 
 function actionCreateNote() {
     if (location.pathname.includes("/node") || location.pathname.includes("/way") || location.pathname.includes("/relation")) {
-        newNotePlaceholder = "\n \n" + location.href
+        newNotePlaceholder = "\n \n" + location.origin + location.pathname
     }
     document.querySelector(".control-note .control-button").click()
 }
