@@ -224,18 +224,18 @@ function getDropdownStyleText() {
         display: none;
     }
       
-    .add-link-btn {
+    .add-link-btn:not(.fuck-css) {
         margin-right: 8px !important;
         border-right: solid gray 1px !important;
         padding-right: 8px !important;
         cursor: pointer;
     }
     
-    .add-link-btn:hover {
+    .add-link-btn:not(.fuck-css):hover {
         color: var(--bs-body-color) !important;
     }
     
-    .create-link-btn:hover {
+    .create-link-btn:not(.fuck-css):hover {
         color: var(--bs-body-color) !important;
     }
     
