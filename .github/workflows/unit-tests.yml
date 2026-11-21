@@ -22,7 +22,7 @@ jobs:
           node-version: 24
 
       - name: Run arraysDiff test
-        run: node --test src/tests/42-diff-algorithm.test.js
+        run: node --test src/tests/420-diff-algorithm.test.js
 
       - name: Check userscript metadata version
         shell: bash
@@ -34,10 +34,10 @@ jobs:
             <(grep -E "$version_pattern" better-osm-org.user.js)
 
       - name: Validate translations
-        run: node --test src/tests/02-i18n.test.js
+        run: node --test src/tests/020-i18n.test.js
 
 #      - name: Run way geometry validator test
-#        run: node --test src/tests/11-geometry-validator.test.js
+#        run: node --test src/tests/110-geometry-validator.test.js
 
       - name: Ensure localhost @match is absent
         run: |

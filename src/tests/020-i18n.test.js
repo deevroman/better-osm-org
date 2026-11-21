@@ -5,7 +5,7 @@ import test from "node:test"
 import { fileURLToPath } from "node:url"
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const i18nDirPath = path.resolve(__dirname, "../0-common/02-i18n")
+const i18nDirPath = path.resolve(__dirname, "../0-common/020-i18n")
 const i18nSource = fs
     .readdirSync(i18nDirPath)
     .filter(fileName => fileName.endsWith(".js"))

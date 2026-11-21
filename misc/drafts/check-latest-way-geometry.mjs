@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url"
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const projectRoot = path.resolve(__dirname, "../..")
-const validatorPath = path.resolve(projectRoot, "src/0-common/11-geometry-validator.js")
+const validatorPath = path.resolve(projectRoot, "src/0-common/110-geometry-validator.js")
 const validatorSource = fs.readFileSync(validatorPath, "utf8")
 const { validateWayGeometry } = new Function(
     "Math",
