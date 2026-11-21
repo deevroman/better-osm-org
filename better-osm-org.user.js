@@ -32565,7 +32565,7 @@ out geom;
         }
 
         const data_age = new Date(xml.querySelector("meta").getAttribute("osm_base"))
-        console.log(data_age)
+        console.log("osm_base from Overpass response", data_age)
 
         getMap()?.invalidateSize()
         const bbox = (searchResultBBOX = combineBBOXes(
