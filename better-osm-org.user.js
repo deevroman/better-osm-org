@@ -36605,7 +36605,7 @@ function setupBetterTagsPaste() {
 }
 //</editor-fold>
 
-//<editor-fold desc="id-editor" defaultstate="collapsed">
+//<editor-fold desc="id-imagery-offsets" defaultstate="collapsed">
 
 function addImageryOffsetsDB() {
     console.log("addImageryOffsetsDB")
@@ -36669,6 +36669,10 @@ function addImageryOffsetsDB() {
 function setupImageryOffsetsDB() {
     tryApplyModule(addImageryOffsetsDB, 2000, 10000)
 }
+
+//</editor-fold>
+
+//<editor-fold desc="id-notes" defaultstate="collapsed">
 
 let idSidebarObserver = null
 
@@ -36772,6 +36776,10 @@ function addResolveNotesButtonInId() {
 function setupResolveNotesButtonInId() {
     tryApplyModule(addResolveNotesButtonInId, 1000, 10000)
 }
+
+//</editor-fold>
+
+//<editor-fold desc="id-editor-setup" defaultstate="collapsed">
 
 /*
 let _iD_Context = null
