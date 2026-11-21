@@ -760,7 +760,7 @@ function addButtonIntoRightButtonsList(linksMenuClickHandler) {
 
 function setupNavigationViaHotkeys() {
     if ("/id" === location.pathname || document.querySelector("#id-embed")) return
-    updateCurrentObjectMetadata()
+    void updateCurrentObjectMetadata()
     if (hotkeysConfigured) return
     hotkeysConfigured = true
 

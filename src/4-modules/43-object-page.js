@@ -740,6 +740,18 @@ function makeOpeningHoursValue(valueCell, key, isVersionPage) {
         if (isVersionPage) {
             valueCell.title = t("objectPage.noErrorsOpeningHours")
         }
+        if (isObjectPage()) {
+            valueCell.querySelectorAll('a[href^="https://openingh.openstreetmap.de/evaluation_tool/"]:not(.with-lat-lon)').forEach(a => {
+                a.classList.add("with-lat-lon")
+                updateCurrentObjectMetadata().then(r => {
+                    const href = a.getAttribute("href")
+                    const node = r.elements.find(i => i.lat !== undefined)
+                    if (node) {
+                        a.setAttribute("href", href + `&lat=${node.lat}&lon=${node.lon}`)
+                    }
+                })
+            })
+        }
     } catch (e) {
         valueCell.title = e
         valueCell.classList.add("fixme-tag")
