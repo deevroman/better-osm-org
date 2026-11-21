@@ -535,25 +535,6 @@ async function betterUserStat() {
         }
     }
 
-    // Keep discussions warm for the tooltips, but only once the user starts using the
-    // filters: preloading them when the profile opens fires a request per commented
-    // changeset at once, which limiter rules treat as crawling.
-    let discussionsPreloaded = false
-    function preloadDiscussions() {
-        if (discussionsPreloaded) {
-            return
-        }
-        discussionsPreloaded = true
-        changesets
-            .filter(i => i.comments_count)
-            .slice(0, 7)
-            .forEach((i, index) => {
-                void sleep(300 * (index + 1)).then(() => void getChangesetComments(i.id))
-            })
-    }
-    filterInputByEditor.addEventListener("mousedown", preloadDiscussions)
-    searchByComment.addEventListener("mousedown", preloadDiscussions)
-
     filterInputByEditor.oninput = inputHandler
     searchByComment.oninput = inputHandler
     document.addEventListener("keydown", e => {
@@ -569,6 +550,19 @@ async function betterUserStat() {
         }
     })
 
+    function preloadDiscussions() {
+        if (isOHMServer() || isOGFServer()) {
+            changesets
+                .filter(i => i.comments_count)
+                .slice(0, 7)
+                .forEach((i, index) => {
+                    void sleep(300 * index).then(() => void getChangesetComments(i.id))
+                })
+        } else {
+            changesets.filter(i => i.comments_count).forEach(i => void getChangesetComments(i.id))
+        }
+    }
+
     filterInputByEditor.id = "editors"
     filterInputByEditor.addEventListener(
         "mousedown",
@@ -577,6 +571,7 @@ async function betterUserStat() {
             e.target.focus()
             filterInputByEditor.setAttribute("size", 7)
             filterInputByEditor.setAttribute("multiple", true)
+            preloadDiscussions()
             inputHandler()
         },
         { once: true },
@@ -584,6 +579,7 @@ async function betterUserStat() {
     searchByComment.addEventListener(
         "mousedown",
         function () {
+            preloadDiscussions()
             inputHandler()
         },
         { once: true },
