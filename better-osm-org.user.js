@@ -16529,6 +16529,18 @@ function makeOpeningHoursValue(valueCell, key, isVersionPage) {
         if (isVersionPage) {
             valueCell.title = t("objectPage.noErrorsOpeningHours")
         }
+        if (isObjectPage()) {
+            valueCell.querySelectorAll('a[href^="https://openingh.openstreetmap.de/evaluation_tool/"]:not(.with-lat-lon)').forEach(a => {
+                a.classList.add("with-lat-lon")
+                updateCurrentObjectMetadata().then(r => {
+                    const href = a.getAttribute("href")
+                    const node = r.elements.find(i => i.lat !== undefined)
+                    if (node) {
+                        a.setAttribute("href", href + `&lat=${node.lat}&lon=${node.lon}`)
+                    }
+                })
+            })
+        }
     } catch (e) {
         valueCell.title = e
         valueCell.classList.add("fixme-tag")
@@ -33064,12 +33076,19 @@ async function setupDragAndDropViewers() {
 
 //<editor-fold desc="actions">
 
-function updateCurrentObjectMetadata() {
-    setTimeout(loadChangesetMetadata, 0)
-    setTimeout(loadNoteMetadata, 0)
-    setTimeout(loadNodeMetadata, 0)
-    setTimeout(loadWayMetadata, 0)
-    setTimeout(loadRelationMetadata, 0)
+/**
+ * @return {Promise<*|null>}
+ */
+async function updateCurrentObjectMetadata() {
+    const results = await Promise.all([
+        loadChangesetMetadata(),
+        loadNoteMetadata(),
+        loadNodeMetadata(),
+        loadWayMetadata(),
+        loadRelationMetadata(),
+    ])
+
+    return results.find(result => result != null)
 }
 
 const mapPositionsHistory = []
@@ -36361,7 +36380,7 @@ function addButtonIntoRightButtonsList(linksMenuClickHandler) {
 
 function setupNavigationViaHotkeys() {
     if ("/id" === location.pathname || document.querySelector("#id-embed")) return
-    updateCurrentObjectMetadata()
+    void updateCurrentObjectMetadata()
     if (hotkeysConfigured) return
     hotkeysConfigured = true
 

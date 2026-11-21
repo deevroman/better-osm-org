@@ -1,11 +1,18 @@
 //<editor-fold desc="actions">
 
-function updateCurrentObjectMetadata() {
-    setTimeout(loadChangesetMetadata, 0)
-    setTimeout(loadNoteMetadata, 0)
-    setTimeout(loadNodeMetadata, 0)
-    setTimeout(loadWayMetadata, 0)
-    setTimeout(loadRelationMetadata, 0)
+/**
+ * @return {Promise<*|null>}
+ */
+async function updateCurrentObjectMetadata() {
+    const results = await Promise.all([
+        loadChangesetMetadata(),
+        loadNoteMetadata(),
+        loadNodeMetadata(),
+        loadWayMetadata(),
+        loadRelationMetadata(),
+    ])
+
+    return results.find(result => result != null)
 }
 
 const mapPositionsHistory = []
