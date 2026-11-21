@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url"
 import { isDeepStrictEqual } from "node:util"
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const diffAlgorithmPath = path.resolve(__dirname, "../4-modules/42-diff-algorithm.js")
+const diffAlgorithmPath = path.resolve(__dirname, "../4-modules/420-diff-algorithm.js")
 const diffSource = fs.readFileSync(diffAlgorithmPath, "utf8")
 
 function toBlocks(pairs) {

@@ -9,7 +9,7 @@ on:
       - master
       - dev
     paths:
-      - "src/4-modules/43-object-page.js"
+      - "src/4-modules/430-object-page.js"
       - "misc/check-allowed-relation-types.mjs"
       - ".github/workflows/check-allowed-relation-types.yml"
 

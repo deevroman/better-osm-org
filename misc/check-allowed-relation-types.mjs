@@ -9,7 +9,7 @@ const MIN_COUNT = 42
 const SKIPPED_PREFIXES = ["was:", "disused:", "abandoned:"];
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const projectRoot = path.resolve(__dirname, "..")
-const targetFilePath = path.resolve(projectRoot, "src/4-modules/43-object-page.js")
+const targetFilePath = path.resolve(projectRoot, "src/4-modules/430-object-page.js")
 
 main().catch(error => {
     console.error(error?.stack ?? error)
@@ -87,7 +87,7 @@ function extractAllowedRelationTypes(sourceCode) {
             '\nreturn typeof allowedRelationTypes !== "undefined" ? allowedRelationTypes : undefined;',
     )()
     if (!(extracted instanceof Set)) {
-        throw new Error("Could not read allowedRelationTypes as a Set from src/4-modules/43-object-page.js")
+        throw new Error("Could not read allowedRelationTypes as a Set from src/4-modules/430-object-page.js")
     }
     for (const value of extracted) {
         if (typeof value !== "string") {
