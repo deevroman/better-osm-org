@@ -15789,6 +15789,20 @@ function stringsDiff(a, b, one_replace_cost = 2) {
 
 //<editor-fold desc="photo-tags" defaultstate="collapsed">
 
+function appendTitleLine(elem, text) {
+    if (!text) {
+        return
+    }
+    if (elem.title && elem.title.length !== 0) {
+        elem.title += "\n"
+    }
+    elem.title += text
+}
+
+//</editor-fold>
+
+//<editor-fold desc="panoramax" defaultstate="collapsed">
+
 function drawPanoramaxCapturePlace(feature) {
     const lat = feature.geometry?.coordinates?.[1]
     const lon = feature.geometry?.coordinates?.[0]
@@ -15807,16 +15821,6 @@ function drawPanoramaxCapturePlace(feature) {
         drawRay(lat, lon, angle - 30, "#0022ff")
         drawRay(lat, lon, angle + 30, "#0022ff")
     }
-}
-
-function appendTitleLine(elem, text) {
-    if (!text) {
-        return
-    }
-    if (elem.title && elem.title.length !== 0) {
-        elem.title += "\n"
-    }
-    elem.title += text
 }
 
 async function attachPanoramaxHoverCaptureHandler(a, uuid, panoramaxServer) {
@@ -15840,79 +15844,6 @@ async function attachPanoramaxHoverCaptureHandler(a, uuid, panoramaxServer) {
     if (date) {
         appendTitleLine(a, date)
     }
-}
-
-function attachMapillaryHoverCaptureHandler(a, res) {
-    a.onmouseenter = () => mapillaryMouseEnter(res)
-    const author = res["creator"]["username"]
-    if (author) {
-        appendTitleLine(a, t("objectPage.photoBy", { author }))
-    }
-    const date = res["captured_at"]
-    if (date) {
-        const d = new Date()
-        d.setTime(date)
-        appendTitleLine(a, d.toISOString())
-    }
-}
-
-function attachWikimediaHoverCaptureHandler(a, res) {
-    a.onmouseenter = () => wikimediaMouseEnter(res)
-    try {
-        const author = res["query"]["pages"]["-1"]["imageinfo"][0]["extmetadata"]["Artist"]["value"]
-        if (author) {
-            // отдавать HTML придумал гений, блять
-            const fixedAuthor = author.endsWith("</a>") ? (author.match(/">(.*)<\/a>$/)[1] ?? author) : author
-            appendTitleLine(a, t("objectPage.photoBy", { author: fixedAuthor }))
-        }
-    } catch (err) {
-        console.error(err)
-    }
-    try {
-        const date = res["query"]["pages"]["-1"]["imageinfo"][0]["extmetadata"]["DateTimeOriginal"]["value"]
-        if (date) {
-            appendTitleLine(a, date)
-        }
-    } catch (err) {
-        console.error(err)
-    }
-    const license = res["query"]["pages"]["-1"]["imageinfo"][0]["extmetadata"]["LicenseShortName"]["value"]
-    if (license) {
-        appendTitleLine(a, license)
-    }
-}
-
-function getInaturalistPhotoUrls(observation) {
-    const photo = observation?.observation_photos?.[0]?.photo ?? observation?.photos?.[0]
-    return {
-        photo,
-        thumbSrc: photo?.url,
-        zoomSrc: photo?.url?.replace("/square.", "/medium."),
-    }
-}
-
-function attachInaturalistHoverCaptureHandler(a, observation) {
-    a.onmouseenter = () => inaturalistMouseEnter(observation)
-    const titleLines = []
-    const { photo } = getInaturalistPhotoUrls(observation)
-    const commonName = observation?.taxon?.preferred_common_name
-    const scientificName = observation?.taxon?.name
-    const speciesGuess = observation?.species_guess
-    if (commonName && scientificName) {
-        titleLines.push(`${commonName} (${scientificName})`)
-    } else if (commonName || scientificName || speciesGuess) {
-        titleLines.push(commonName ?? scientificName ?? speciesGuess)
-    }
-    if (observation?.user?.login) {
-        titleLines.push(t("objectPage.observedBy", { user: observation.user.login }))
-    }
-    if (observation?.observed_on) {
-        titleLines.push(observation.observed_on)
-    }
-    if (photo?.attribution) {
-        titleLines.push(photo.attribution)
-    }
-    a.title += titleLines.join("\n")
 }
 
 function addPanoramaxPicIntoA(uuid, a, panoramaxServer) {
@@ -15985,6 +15916,24 @@ function makePanoramaxValue(elem) {
     }
 }
 
+//</editor-fold>
+
+//<editor-fold desc="mapillary" defaultstate="collapsed">
+
+function attachMapillaryHoverCaptureHandler(a, res) {
+    a.onmouseenter = () => mapillaryMouseEnter(res)
+    const author = res["creator"]["username"]
+    if (author) {
+        appendTitleLine(a, t("objectPage.photoBy", { author }))
+    }
+    const date = res["captured_at"]
+    if (date) {
+        const d = new Date()
+        d.setTime(date)
+        appendTitleLine(a, d.toISOString())
+    }
+}
+
 // https://www.mapillary.com/dashboard/developers
 const MAPILLARY_CLIENT_KEY = "MLY|23980706878196295|56711819158553348b8159429530d931"
 const MAPILLARY_URL_PARAMS = new URLSearchParams({
@@ -16018,17 +15967,6 @@ function mapillaryMouseEnter(info) {
 
     drawRay(lat, lon, angle + 30, "#0022ff")
     drawRay(computed_lat, computed_lon, computed_angle + 25, "#ee9209")
-}
-
-function wikimediaMouseEnter(info) {
-    try {
-        const lat = info["query"]["pages"]["-1"]["imageinfo"][0]["extmetadata"]["GPSLatitude"]["value"]
-        const lon = info["query"]["pages"]["-1"]["imageinfo"][0]["extmetadata"]["GPSLongitude"]["value"]
-
-        showActiveNodeMarker(lat, lon, "#0022ff", true)
-    } catch (err) {
-        console.log(err)
-    }
 }
 
 // https://osm.org/node/7417065297
@@ -16097,6 +16035,47 @@ function makeMapillaryValue(elem) {
     })
     elem.onclick = e => {
         e.stopImmediatePropagation()
+    }
+}
+
+//</editor-fold>
+
+//<editor-fold desc="wikimedia-commons" defaultstate="collapsed">
+
+function attachWikimediaHoverCaptureHandler(a, res) {
+    a.onmouseenter = () => wikimediaMouseEnter(res)
+    try {
+        const author = res["query"]["pages"]["-1"]["imageinfo"][0]["extmetadata"]["Artist"]["value"]
+        if (author) {
+            // отдавать HTML придумал гений, блять
+            const fixedAuthor = author.endsWith("</a>") ? (author.match(/">(.*)<\/a>$/)[1] ?? author) : author
+            appendTitleLine(a, t("objectPage.photoBy", { author: fixedAuthor }))
+        }
+    } catch (err) {
+        console.error(err)
+    }
+    try {
+        const date = res["query"]["pages"]["-1"]["imageinfo"][0]["extmetadata"]["DateTimeOriginal"]["value"]
+        if (date) {
+            appendTitleLine(a, date)
+        }
+    } catch (err) {
+        console.error(err)
+    }
+    const license = res["query"]["pages"]["-1"]["imageinfo"][0]["extmetadata"]["LicenseShortName"]["value"]
+    if (license) {
+        appendTitleLine(a, license)
+    }
+}
+
+function wikimediaMouseEnter(info) {
+    try {
+        const lat = info["query"]["pages"]["-1"]["imageinfo"][0]["extmetadata"]["GPSLatitude"]["value"]
+        const lon = info["query"]["pages"]["-1"]["imageinfo"][0]["extmetadata"]["GPSLongitude"]["value"]
+
+        showActiveNodeMarker(lat, lon, "#0022ff", true)
+    } catch (err) {
+        console.log(err)
     }
 }
 
@@ -16204,6 +16183,151 @@ function makeWikimediaCommonsValue(elem, isVersionPage) {
     })
 }
 
+//</editor-fold>
+
+//<editor-fold desc="inaturalist" defaultstate="collapsed">
+
+function getInaturalistPhotoUrls(observation) {
+    const photo = observation?.observation_photos?.[0]?.photo ?? observation?.photos?.[0]
+    return {
+        photo,
+        thumbSrc: photo?.url,
+        zoomSrc: photo?.url?.replace("/square.", "/medium."),
+    }
+}
+
+function attachInaturalistHoverCaptureHandler(a, observation) {
+    a.onmouseenter = () => inaturalistMouseEnter(observation)
+    const titleLines = []
+    const { photo } = getInaturalistPhotoUrls(observation)
+    const commonName = observation?.taxon?.preferred_common_name
+    const scientificName = observation?.taxon?.name
+    const speciesGuess = observation?.species_guess
+    if (commonName && scientificName) {
+        titleLines.push(`${commonName} (${scientificName})`)
+    } else if (commonName || scientificName || speciesGuess) {
+        titleLines.push(commonName ?? scientificName ?? speciesGuess)
+    }
+    if (observation?.user?.login) {
+        titleLines.push(t("objectPage.observedBy", { user: observation.user.login }))
+    }
+    if (observation?.observed_on) {
+        titleLines.push(observation.observed_on)
+    }
+    if (photo?.attribution) {
+        titleLines.push(photo.attribution)
+    }
+    a.title += titleLines.join("\n")
+}
+
+async function downloadInaturalistInfo(id) {
+    const ids = (Array.isArray(id) ? id : `${id}`.split(";")).map(i => i.trim()).filter(Boolean)
+    if (ids.length === 0) {
+        return { results: [] }
+    }
+    return (
+        await externalFetchRetry({
+            url:
+                `https://api.inaturalist.org/v1/observations?` +
+                new URLSearchParams({
+                    id: ids.join(","),
+                    per_page: ids.length,
+                    verifiable: "any",
+                }).toString(),
+            responseType: "json",
+        })
+    ).response
+}
+
+function inaturalistMouseEnter(info) {
+    const lat = parseFloat(info?.geojson?.coordinates?.[1] ?? info?.latitude ?? info?.location?.split(",")?.[0])
+    const lon = parseFloat(info?.geojson?.coordinates?.[0] ?? info?.longitude ?? info?.location?.split(",")?.[1])
+    if (Number.isNaN(lat) || Number.isNaN(lon)) {
+        return
+    }
+    showActiveNodeMarker(lat, lon, "#0022ff", true)
+}
+
+function makeRefInaturalistValue(elem) {
+    if (!GM_config.get("ImagesAndLinksInTags")) return
+    if (elem.classList.contains("inaturalisted")) {
+        return
+    }
+    elem.classList.add("inaturalisted")
+    if (!elem.querySelector("a") && elem.textContent.trim().match(/^[0-9;\s]+$/)) {
+        const ids = elem.textContent.split(";")
+        if (ids.length !== 0 && ids.every(i => i.match(/^[0-9]+$/))) {
+            elem.replaceChildren()
+            ids.forEach((id, index) => {
+                if (index !== 0) {
+                    elem.append(";")
+                }
+                const a = document.createElement("a")
+                a.href = `https://www.inaturalist.org/observations/${id}`
+                a.target = "_blank"
+                a.rel = "noreferrer"
+                a.textContent = id
+                elem.appendChild(a)
+            })
+        }
+    }
+    setTimeout(async () => {
+        const anchors = Array.from(elem.querySelectorAll('a[href^="https://www.inaturalist.org/observations/"]:not(.preview-img-link)'))
+        if (anchors.length === 0) {
+            return
+        }
+        anchors.forEach(a => a.classList.add("preview-img-link"))
+        const response = await downloadInaturalistInfo(anchors.map(a => a.textContent))
+        if (response["error"]) {
+            console.error(response)
+            return
+        }
+        const observationsById = new Map(response?.results?.map(observation => [`${observation.id}`, observation]) ?? [])
+        for (const a of anchors) {
+            const observation = observationsById.get(a.textContent)
+            if (!observation) {
+                a.classList.add("warn-tag")
+                a.title = t("objectPage.observationNotFound")
+                continue
+            }
+            const { zoomSrc: imgSrc } = getInaturalistPhotoUrls(observation)
+            if (imgSrc) {
+                if (isSafari) {
+                    fetchImageWithCache(imgSrc).then(async imgData => {
+                        const img = document.createElement("img")
+                        img.src = imgData
+                        img.alt = "image from iNaturalist"
+                        img.style.width = "100%"
+                        a.appendChild(img)
+                    })
+                } else {
+                    const img = GM_addElement("img", {
+                        src: imgSrc,
+                        alt: "image from iNaturalist",
+                        width: "100%",
+                        // crossorigin: "anonymous"
+                    })
+                    img.onerror = () => {
+                        img.style.display = "none"
+                    }
+                    img.onload = () => {
+                        img.style.width = "100%"
+                    }
+                    a.appendChild(img)
+                }
+            }
+            attachInaturalistHoverCaptureHandler(a, observation)
+        }
+    })
+    elem.onclick = e => {
+        e.stopImmediatePropagation()
+    }
+}
+
+//</editor-fold>
+
+//<editor-fold desc="fotoshi" defaultstate="collapsed">
+
 const fotoshiPhotoCache = new Map()
 const pendingFotoshiPhotos = new Map()
 let fotoshiBatchScheduled = false
@@ -16309,110 +16433,6 @@ function makeFotoshiValue(elem) {
             .catch(error => console.error("Failed to load Fotoshi photo", id, error))
     })
     elem.onclick = e => e.stopImmediatePropagation()
-}
-
-async function downloadInaturalistInfo(id) {
-    const ids = (Array.isArray(id) ? id : `${id}`.split(";")).map(i => i.trim()).filter(Boolean)
-    if (ids.length === 0) {
-        return { results: [] }
-    }
-    return (
-        await externalFetchRetry({
-            url:
-                `https://api.inaturalist.org/v1/observations?` +
-                new URLSearchParams({
-                    id: ids.join(","),
-                    per_page: ids.length,
-                    verifiable: "any",
-                }).toString(),
-            responseType: "json",
-        })
-    ).response
-}
-
-function inaturalistMouseEnter(info) {
-    const lat = parseFloat(info?.geojson?.coordinates?.[1] ?? info?.latitude ?? info?.location?.split(",")?.[0])
-    const lon = parseFloat(info?.geojson?.coordinates?.[0] ?? info?.longitude ?? info?.location?.split(",")?.[1])
-    if (Number.isNaN(lat) || Number.isNaN(lon)) {
-        return
-    }
-    showActiveNodeMarker(lat, lon, "#0022ff", true)
-}
-
-function makeRefInaturalistValue(elem) {
-    if (!GM_config.get("ImagesAndLinksInTags")) return
-    if (elem.classList.contains("inaturalisted")) {
-        return
-    }
-    elem.classList.add("inaturalisted")
-    if (!elem.querySelector("a") && elem.textContent.trim().match(/^[0-9;\s]+$/)) {
-        const ids = elem.textContent.split(";")
-        if (ids.length !== 0 && ids.every(i => i.match(/^[0-9]+$/))) {
-            elem.replaceChildren()
-            ids.forEach((id, index) => {
-                if (index !== 0) {
-                    elem.append(";")
-                }
-                const a = document.createElement("a")
-                a.href = `https://www.inaturalist.org/observations/${id}`
-                a.target = "_blank"
-                a.rel = "noreferrer"
-                a.textContent = id
-                elem.appendChild(a)
-            })
-        }
-    }
-    setTimeout(async () => {
-        const anchors = Array.from(elem.querySelectorAll('a[href^="https://www.inaturalist.org/observations/"]:not(.preview-img-link)'))
-        if (anchors.length === 0) {
-            return
-        }
-        anchors.forEach(a => a.classList.add("preview-img-link"))
-        const response = await downloadInaturalistInfo(anchors.map(a => a.textContent))
-        if (response["error"]) {
-            console.error(response)
-            return
-        }
-        const observationsById = new Map(response?.results?.map(observation => [`${observation.id}`, observation]) ?? [])
-        for (const a of anchors) {
-            const observation = observationsById.get(a.textContent)
-            if (!observation) {
-                a.classList.add("warn-tag")
-                a.title = t("objectPage.observationNotFound")
-                continue
-            }
-            const { zoomSrc: imgSrc } = getInaturalistPhotoUrls(observation)
-            if (imgSrc) {
-                if (isSafari) {
-                    fetchImageWithCache(imgSrc).then(async imgData => {
-                        const img = document.createElement("img")
-                        img.src = imgData
-                        img.alt = "image from iNaturalist"
-                        img.style.width = "100%"
-                        a.appendChild(img)
-                    })
-                } else {
-                    const img = GM_addElement("img", {
-                        src: imgSrc,
-                        alt: "image from iNaturalist",
-                        width: "100%",
-                        // crossorigin: "anonymous"
-                    })
-                    img.onerror = () => {
-                        img.style.display = "none"
-                    }
-                    img.onload = () => {
-                        img.style.width = "100%"
-                    }
-                    a.appendChild(img)
-                }
-            }
-            attachInaturalistHoverCaptureHandler(a, observation)
-        }
-    })
-    elem.onclick = e => {
-        e.stopImmediatePropagation()
-    }
 }
 
 //</editor-fold>
