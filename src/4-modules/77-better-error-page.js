@@ -2,7 +2,9 @@
 
 function setupPrometheusLink() {
     if (document.querySelector("h2")?.textContent !== "This website is under heavy load (queue full)") {
-        return
+        if (document.querySelector("h1")?.textContent !== "Error 503 No healthy backends") {
+            return
+        }
     }
     const hint = document.createElement("div")
     hint.textContent = ""
