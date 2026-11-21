@@ -16356,6 +16356,10 @@ const fotoshiPhotoCache = new Map()
 const pendingFotoshiPhotos = new Map()
 let fotoshiBatchScheduled = false
 
+function getFotoshiPreviewUrl(id) {
+    return `https://cdn.fotoshi.com/images/${id}-1280.jpeg`
+}
+
 function downloadFotoshiPhoto(id) {
     if (!fotoshiPhotoCache.has(id)) {
         const request = new Promise((resolve, reject) => {
@@ -16426,32 +16430,34 @@ function makeFotoshiValue(elem) {
         link.target = "_blank"
         link.rel = "noreferrer"
         link.classList.add("preview-img-link")
+        const params = new URLSearchParams({ photo: id, panel: "gallery", view: "photos", drawer: "open" })
+        link.href = `https://fotoshi.com/explore?${params}`
+        const imgSrc = getFotoshiPreviewUrl(id)
+        const img = isSafari ? document.createElement("img") : GM_addElement("img", { src: imgSrc, alt: "Image from Fotoshi", width: "100%" })
+        img.alt = "Image from Fotoshi"
+        img.style.width = "100%"
+        img.onerror = () => (img.style.display = "none")
+        if (isSafari) {
+            void fetchImageWithCache(imgSrc)
+                .then(src => (img.src = src))
+                .catch(error => console.error("Failed to load Fotoshi image", id, error))
+        }
+        link.append(img)
         wrapper.append(link)
         elem.append(wrapper)
         void downloadFotoshiPhoto(id)
-            .then(async photo => {
+            .then(photo => {
                 if (!photo) {
                     link.classList.add("warn-tag")
                     return
                 }
-                const imgSrc = photo.assets?.["image-1280"]?.href ?? photo.assets?.thumbnail?.href
-                if (!imgSrc) return
                 const coords = photo.geometry?.type === "Point" ? photo.geometry.coordinates : null
-                const params = new URLSearchParams({ photo: id, panel: "gallery", view: "photos", drawer: "open" })
                 if (Number.isFinite(coords?.[0]) && Number.isFinite(coords?.[1])) {
                     params.set("lng", coords[0])
                     params.set("lat", coords[1])
                     params.set("z", "18")
                 }
                 link.href = `https://fotoshi.com/explore?${params}`
-                const img = isSafari
-                    ? document.createElement("img")
-                    : GM_addElement("img", { src: imgSrc, alt: "Image from Fotoshi", width: "100%" })
-                img.alt = "Image from Fotoshi"
-                img.style.width = "100%"
-                img.onerror = () => (img.style.display = "none")
-                if (isSafari) img.src = await fetchImageWithCache(imgSrc)
-                link.append(img)
                 attachFotoshiHoverCaptureHandler(link, photo)
             })
             .catch(error => console.error("Failed to load Fotoshi photo", id, error))
@@ -25380,16 +25386,14 @@ function renderPhotosPreview(withPhotos) {
     document.querySelectorAll("#photos-preview-gallery .photo-preview[data-fotoshi-id]").forEach(previewEl => {
         addClick(previewEl)
         const id = previewEl.getAttribute("data-fotoshi-id")
+        const imgSrc = getFotoshiPreviewUrl(id)
+        previewEl.setAttribute("data-photo-thumb-src", imgSrc)
+        previewEl.setAttribute("data-photo-zoom-src", imgSrc)
+        attachPhotosCarouselHoverZoom(previewEl)
+        addImg(imgSrc, previewEl)
         void downloadFotoshiPhoto(id)
             .then(photo => {
-                const thumbSrc = photo?.assets?.thumbnail?.href
-                const zoomSrc = photo?.assets?.["image-1280"]?.href ?? thumbSrc
-                if (!thumbSrc || !zoomSrc) return
-                previewEl.setAttribute("data-photo-thumb-src", thumbSrc)
-                previewEl.setAttribute("data-photo-zoom-src", zoomSrc)
-                attachPhotosCarouselHoverZoom(previewEl)
-                addImg(thumbSrc, previewEl)
-                attachFotoshiHoverCaptureHandler(previewEl, photo)
+                if (photo) attachFotoshiHoverCaptureHandler(previewEl, photo)
             })
             .catch(error => console.error("Failed to load Fotoshi photo", id, error))
     })
