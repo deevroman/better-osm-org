@@ -375,7 +375,7 @@ async function downloadWikimediaCategoryInfo(categoryName, limit = 8) {
 
 function makeWikimediaCommonsValue(elem, isVersionPage) {
     if (!GM_config.get("ImagesAndLinksInTags")) return
-    const items = isVersionPage ? elem.querySelectorAll('a[href^="//commons.wikimedia.org/wiki/"]:not(.preview-img-link)') : [elem]
+    const items = isVersionPage ? elem.querySelectorAll('a[href^="https://commons.wikimedia.org/wiki/"]:not(.preview-img-link)') : [elem]
     items.forEach(a => {
         if (a.classList.contains("preview-img-link")) {
             return
