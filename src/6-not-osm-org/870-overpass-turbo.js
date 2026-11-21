@@ -28,7 +28,7 @@ function addLevel0Reborn() {
     l0reborn.id = "export-editors-level0-reborn"
     l0reborn.textContent += "Reborn β"
     l0reborn.setAttribute("href", "")
-    l0reborn.onclick = function () {
+    l0reborn.onclick = async function (event) {
         let query = JSON.parse(localStorage.getItem("overpass-ide_code"))["overpass"]
 
         if (query.includes("{{bbox}}")) {
@@ -38,6 +38,38 @@ function addLevel0Reborn() {
         }
 
         Array.from(document.querySelectorAll(".modal.is-active .modal-card-head .delete")).at(-1).click()
+
+        const areas = [...query.matchAll(/\{\{geocodeArea:([^}]+)}}/g)]
+        if (areas.length) {
+            event.preventDefault()
+            const target = window.open("about:blank", "_blank")
+            if (!target) return
+
+            try {
+                const resolvedAreas = new Map()
+                for (const [, name] of areas) {
+                    if (resolvedAreas.has(name)) continue
+                    const url = new URL("https://nominatim.openstreetmap.org/search")
+                    url.searchParams.set("format", "json")
+                    url.searchParams.set("q", name)
+                    const response = await fetch(url)
+                    if (!response.ok) throw new Error(`Nominatim: ${response.status}`)
+                    const results = await response.json()
+                    const result = results.find(item => item.osm_id && (item.osm_type === "way" || item.osm_type === "relation"))
+                    if (!result) throw new Error(`Area not found: ${name}`)
+                    const id = Number(result.osm_id)
+                    const areaId = result.osm_type === "way" ? `${id + 2400000000},${id}` : id + 3600000000
+                    resolvedAreas.set(name, `area(id:${areaId})`)
+                }
+                query = query.replace(/\{\{geocodeArea:([^}]+)}}/g, (_, name) => resolvedAreas.get(name))
+                target.location.href = makeLevel0Url(query)
+            } catch (error) {
+                target.close()
+                alert(error.message)
+            }
+            return
+        }
+
         l0reborn.setAttribute("href", makeLevel0Url(query))
     }
 
