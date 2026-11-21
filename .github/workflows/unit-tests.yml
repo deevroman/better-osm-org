@@ -22,7 +22,7 @@ jobs:
           node-version: 24
 
       - name: Run arraysDiff test
-        run: node --test src/tests/420-diff-algorithm.test.js
+        run: node --test src/tests/410-diff-algorithm.test.js
 
       - name: Check userscript metadata version
         shell: bash
