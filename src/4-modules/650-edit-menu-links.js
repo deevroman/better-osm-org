@@ -266,7 +266,7 @@ function getDropdownStyleText() {
     }
     
     .add-item-a {
-        display: flex;
+        display: flex !important;
         alignItems: center;
         gap: 5px;
     }
@@ -640,6 +640,7 @@ function makeExternalLinkEditable(targetLi, editorsListUl, nameValue = "", templ
     const createLikBtn = document.createElement("button")
     createLikBtn.classList.add("create-link-btn", "bi", nameValue === "" ? "bi-plus-lg" : "bi-floppy")
     createLikBtn.style.all = "unset"
+    createLikBtn.style.cursor = "pointer"
     createLikBtn.title = t("editMenuLinks.saveLink")
 
     const template = document.createElement("input")
