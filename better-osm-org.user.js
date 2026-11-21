@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.8.0
+// @version         1.8.1
 // @changelog       v1.8.0: use red color for Overpass search results, fix sidebar jumps
 // @changelog       v1.7.7: indoor viewers link for object with indoor=*, shop=mall, comment button in Edit Tags
 // @changelog       v1.7.3: Notes resolve buttons in iD, Open in Vespucci action, Drag&Drop for JSON array and .osc β
@@ -18,15 +18,6 @@
 // @changelog       v1.6.3: Validate phone=*, email=*, short keys and keys with the first capital letter
 // @changelog       v1.6.0: OpenGeoFiction support under debug flag in settings, add OSM2World 3D viewer, type=* validator
 // @changelog       v1.6.0: Note marker in Overpass Turbo, more stable Overpass search
-// @changelog       v1.5.9: memorizing the last satellite layer, simple vector style editor
-// @changelog       v1.5.7: filter notes by creation date, Panoramax uploader (you need to enable it in the settings)
-// @changelog       v1.5.5: render child relations on relation page by hover
-// @changelog       v1.5.0: Shift + S: custom map layers, Shift + V: custom vector map styles, date for ESRI layer
-// @changelog       v1.5.0: KeyV: switch between raster and vector styles, render light:direction=* and direction=12-34
-// @changelog       v1.5.0: Initial OpenHistoricalMap support: changeset viewer
-// @changelog       v1.4.8: Highlight changesets with review_requested=yes
-// @changelog       v1.4.6: Copy coordinates button in map context menu, copy coordinates button for relations
-// @changelog       v1.4.0: More links in Edit menu, the ability to add custom links (like OSM Smart Menu)
 // @changelog       Changelog archive: https://github.com/deevroman/better-osm-org/blob/master/misc/CHANGELOG.md
 // @changelog       Changelog with illustrations: https://c.osm.org/t/121670/268
 // @changelog       OSM Wiki: https://osm.wiki/Better-osm-org
@@ -76,8 +67,8 @@
 // @match        https://github.com/deevroman/better-osm-org/issues/new*
 // @license      WTFPL
 // @namespace    https://github.com/deevroman/better-osm-org
-// @updateURL    https://github.com/deevroman/better-osm-org/raw/master/better-osm-org.user.js
-// @downloadURL  https://github.com/deevroman/better-osm-org/raw/master/better-osm-org.user.js
+// @updateURL    https://raw.githubusercontent.com/deevroman/better-osm-org/master/misc/better-osm-org.meta.js
+// @downloadURL  https://raw.githubusercontent.com/deevroman/better-osm-org/master/better-osm-org.user.js
 // @supportURL   https://github.com/deevroman/better-osm-org/issues
 // @icon         https://www.openstreetmap.org/favicon.ico
 // @require      https://raw.githubusercontent.com/deevroman/GM_config/fixed-for-chromium/gm_config.js#sha256=ea04cb4254619543f8bca102756beee3e45e861077a75a5e74d72a5c131c580b
@@ -121,6 +112,8 @@
 // @connect      en.wikipedia.org
 // @connect      commons.wikimedia.org
 // @connect      graph.mapillary.com
+// @connect      api.fotoshi.com
+// @connect      cdn.fotoshi.com
 // @connect      fbcdn.net
 // @connect      api.panoramax.xyz
 // @connect      panoramax.openstreetmap.fr
@@ -6131,7 +6124,9 @@ const colorsPalette = {
     "rgba(238, 51, 9, 0.6).nodes-changed-row": "rgba(238, 51, 9, 0.6)",
 
     "rgba(4, 123, 0, 0.6).history-diff-new-tag" : "rgba(4, 123, 0, 0.6)",
-    "rgba(238, 51, 9, 0.4).history-diff-deleted-tag": "rgba(238, 51, 9, 0.4)"
+    "rgba(238, 51, 9, 0.4).history-diff-deleted-tag": "rgba(238, 51, 9, 0.4)",
+
+    "#ff0000.overpass-search": "#ff0000",
 }
 
 const defaultColorsPalette = { ...colorsPalette }
@@ -6179,7 +6174,9 @@ const colorblindFriendlyPalette = {
     "rgba(238, 51, 9, 0.6).nodes-changed-row": "rgb(242, 0, 0)",
 
     "rgba(4, 123, 0, 0.6).history-diff-new-tag" : "#1A385C",
-    "rgba(238, 51, 9, 0.4).history-diff-deleted-tag": "#732a1d"
+    "rgba(238, 51, 9, 0.4).history-diff-deleted-tag": "#732a1d",
+
+    "#ff0000.overpass-search": "#f34c4c",
 }
 
 function setColorblindFriendlyPalette() {
@@ -10243,7 +10240,7 @@ function addRevertButton() {
         betterChangesetCommentForm(textarea)
     }
     const tagsHeader = document.querySelector("#sidebar_content h4")
-    if (tagsHeader) {
+    if (tagsHeader && !tagsHeader.parentElement.classList.contains("col")) {
         tagsHeader.remove()
     }
     const primaryButtons = document.querySelector("[name=subscribe], [name=unsubscribe]")
@@ -16167,7 +16164,7 @@ async function downloadWikimediaCategoryInfo(categoryName, limit = 8) {
 
 function makeWikimediaCommonsValue(elem, isVersionPage) {
     if (!GM_config.get("ImagesAndLinksInTags")) return
-    const items = isVersionPage ? elem.querySelectorAll('a[href^="//commons.wikimedia.org/wiki/"]:not(.preview-img-link)') : [elem]
+    const items = isVersionPage ? elem.querySelectorAll('a[href^="https://commons.wikimedia.org/wiki/"]:not(.preview-img-link)') : [elem]
     items.forEach(a => {
         if (a.classList.contains("preview-img-link")) {
             return
@@ -16313,6 +16310,113 @@ function makeRefBelpostValue(elem) {
         a.textContent = elem.textContent
         elem.setHTML(a.outerHTML)
     }
+}
+
+const fotoshiPhotoCache = new Map()
+const pendingFotoshiPhotos = new Map()
+let fotoshiBatchScheduled = false
+
+function downloadFotoshiPhoto(id) {
+    if (!fotoshiPhotoCache.has(id)) {
+        const request = new Promise((resolve, reject) => {
+            pendingFotoshiPhotos.set(id, { resolve, reject })
+        })
+        fotoshiPhotoCache.set(id, request)
+        request.catch(() => fotoshiPhotoCache.delete(id))
+        if (!fotoshiBatchScheduled) {
+            fotoshiBatchScheduled = true
+            queueMicrotask(flushFotoshiPhotoRequests)
+        }
+    }
+    return fotoshiPhotoCache.get(id)
+}
+
+function flushFotoshiPhotoRequests() {
+    fotoshiBatchScheduled = false
+    const pending = [...pendingFotoshiPhotos.entries()]
+    pendingFotoshiPhotos.clear()
+
+    for (let i = 0; i < pending.length; i += 20) {
+        const batch = pending.slice(i, i + 20)
+        const params = new URLSearchParams({
+            ids: batch.map(([id]) => id).join(","),
+            collections: "fotoshi-photos",
+            limit: `${batch.length}`,
+        })
+        void externalFetch({ url: `https://api.fotoshi.com/v1/stac/search?${params}`, responseType: "json" })
+            .then(res => {
+                if (res.status !== 200 || !Array.isArray(res.response?.features)) {
+                    throw new Error(`Fotoshi STAC request failed: HTTP ${res.status}`)
+                }
+                const photos = new Map(res.response.features.map(photo => [photo.id, photo]))
+                batch.forEach(([id, { resolve }]) => resolve(photos.get(id) ?? null))
+            })
+            .catch(error => batch.forEach(([, { reject }]) => reject(error)))
+    }
+}
+
+function getFotoshiAttribution(photo) {
+    const properties = photo?.properties ?? {}
+    const author = properties.creator_name || properties.username
+    const license = properties.image_license ?? photo?.assets?.thumbnail?.license
+    const licenseUrl = photo?.links?.find(link => link.rel === "license")?.href
+    return ["Fotoshi", author, properties.source_organization, license, licenseUrl].filter(Boolean).join(" · ")
+}
+
+function attachFotoshiHoverCaptureHandler(elem, photo) {
+    const coordinates = photo?.geometry?.type === "Point" ? photo.geometry.coordinates : null
+    if (Number.isFinite(coordinates?.[0]) && Number.isFinite(coordinates?.[1])) {
+        elem.addEventListener("mouseenter", () => showActiveNodeMarker(coordinates[1], coordinates[0], "#0022ff", true))
+    }
+    appendTitleLine(elem, getFotoshiAttribution(photo))
+    appendTitleLine(elem, photo?.properties?.capture_date)
+}
+
+function makeFotoshiValue(elem) {
+    if (!GM_config.get("ImagesAndLinksInTags") || elem.classList.contains("fotoshied")) return
+    const ids = elem.textContent.split(";").map(id => id.trim())
+    if (ids.length === 0 || !ids.every(id => /^[a-zA-Z0-9_-]+$/.test(id))) return
+    elem.classList.add("fotoshied")
+    elem.replaceChildren()
+    ids.forEach((id, index) => {
+        if (index) elem.append("; ")
+        const wrapper = document.createElement("span")
+        const link = document.createElement("a")
+        link.textContent = id
+        link.target = "_blank"
+        link.rel = "noreferrer"
+        link.classList.add("preview-img-link")
+        wrapper.append(link)
+        elem.append(wrapper)
+        void downloadFotoshiPhoto(id)
+            .then(async photo => {
+                if (!photo) {
+                    link.classList.add("warn-tag")
+                    return
+                }
+                const imgSrc = photo.assets?.["image-1280"]?.href ?? photo.assets?.thumbnail?.href
+                if (!imgSrc) return
+                const coords = photo.geometry?.type === "Point" ? photo.geometry.coordinates : null
+                const params = new URLSearchParams({ photo: id, panel: "gallery", view: "photos", drawer: "open" })
+                if (Number.isFinite(coords?.[0]) && Number.isFinite(coords?.[1])) {
+                    params.set("lng", coords[0])
+                    params.set("lat", coords[1])
+                    params.set("z", "18")
+                }
+                link.href = `https://fotoshi.com/explore?${params}`
+                const img = isSafari
+                    ? document.createElement("img")
+                    : GM_addElement("img", { src: imgSrc, alt: "Image from Fotoshi", width: "100%" })
+                img.alt = "Image from Fotoshi"
+                img.style.width = "100%"
+                img.onerror = () => (img.style.display = "none")
+                if (isSafari) img.src = await fetchImageWithCache(imgSrc)
+                link.append(img)
+                attachFotoshiHoverCaptureHandler(link, photo)
+            })
+            .catch(error => console.error("Failed to load Fotoshi photo", id, error))
+    })
+    elem.onclick = e => e.stopImmediatePropagation()
 }
 
 async function downloadInaturalistInfo(id) {
@@ -16561,7 +16665,7 @@ const allowedRelationTypes = new Set([
     "super-relation", "carriageway", "restriction:on_red", "area", "relation", "gallery", "through_route", "right_of_way",
     "linestring", "unposted_route", "water", "operator", "land_area", "navigation", "golf_course", "traffic_signals_group",
     "proposed", "segmented_tag", "road", "man_made", "transit", "construction", "access", "guidepost_destination", "fixme",
-    "label", "defaults", "lanelet", "traffic separation scheme", "station", "kit", "golf", "sport",
+    "label", "defaults", "lanelet", "traffic separation scheme", "station", "kit", "golf", "sport", "controlled_parking_zone"
 ])
 
 function makeTypeValue(elem, objType) {
@@ -17007,6 +17111,8 @@ function makeLinksInVersionTagClickable(row, objType) {
         }
     } else if (key === "ref:inaturalist.org") {
         makeRefInaturalistValue(valueCell)
+    } else if (key === "image:fotoshi") {
+        makeFotoshiValue(valueCell)
     } else if (key.startsWith("was:") || key.startsWith("disused:") || key.startsWith("old_")) {
         if (GM_config.get("ReorderOldTags") && !location.pathname.endsWith("/history")) {
             keyCell.classList.add("old-tags-key")
@@ -21367,6 +21473,8 @@ function makeLinksInChangesetObjectRowClickable(row, objType) {
             makeWikimediaCommonsValue(valueCell, false)
         } else if (key.startsWith("ref:inaturalist.org")) {
             makeRefInaturalistValue(valueCell)
+        } else if (key === "image:fotoshi") {
+            makeFotoshiValue(valueCell)
         } else if (needValidateOpeningHoursKey(key)) {
             makeOpeningHoursValue(valueCell, key, false)
         } else if (key === "roof:direction") {
@@ -25078,6 +25186,16 @@ function renderPhotosPreview(withPhotos) {
                     placeholder.setAttribute("data-osm-path", "/" + photoObj.type + "/" + photoObj.id)
                     photosPreviewGallery.append(placeholder)
                 })
+            } else if (k === "image:fotoshi") {
+                v.split(";")
+                    .map(id => id.trim())
+                    .filter(id => /^[a-zA-Z0-9_-]+$/.test(id))
+                    .forEach(id => {
+                        const placeholder = makePlaceholder()
+                        placeholder.setAttribute("data-fotoshi-id", id)
+                        placeholder.setAttribute("data-osm-path", "/" + photoObj.type + "/" + photoObj.id)
+                        photosPreviewGallery.append(placeholder)
+                    })
             }
         })
     })
@@ -25197,6 +25315,23 @@ function renderPhotosPreview(withPhotos) {
             addImg(thumbSrc, previewEl)
             attachInaturalistHoverCaptureHandler(previewEl, observation)
         })
+    })
+
+    document.querySelectorAll("#photos-preview-gallery .photo-preview[data-fotoshi-id]").forEach(previewEl => {
+        addClick(previewEl)
+        const id = previewEl.getAttribute("data-fotoshi-id")
+        void downloadFotoshiPhoto(id)
+            .then(photo => {
+                const thumbSrc = photo?.assets?.thumbnail?.href
+                const zoomSrc = photo?.assets?.["image-1280"]?.href ?? thumbSrc
+                if (!thumbSrc || !zoomSrc) return
+                previewEl.setAttribute("data-photo-thumb-src", thumbSrc)
+                previewEl.setAttribute("data-photo-zoom-src", zoomSrc)
+                attachPhotosCarouselHoverZoom(previewEl)
+                addImg(thumbSrc, previewEl)
+                attachFotoshiHoverCaptureHandler(previewEl, photo)
+            })
+            .catch(error => console.error("Failed to load Fotoshi photo", id, error))
     })
 }
 
@@ -28450,16 +28585,6 @@ async function loadChangesetsBetween(user, fromTime, toTime) {
         curTime = new Date(res.changesets[res.changesets.length - 1].created_at)
     }
     console.log(`${changesets.length} changesets from ${fromTime} to ${toTime} fetched`)
-    changesets
-        .filter(i => i.comments_count)
-        .forEach((i, index) => {
-            if (isOHMServer() || isOGFServer()) {
-                return
-            }
-            if (index < 7) {
-                void sleep(300).then(() => void getChangesetComments(i.id))
-            }
-        })
     return changesets
 }
 
@@ -28845,44 +28970,98 @@ async function betterUserStat() {
                 } else {
                     colorDiff.style.opacity = `${Math.sqrt(newData[0] / maxPerDay)}`
                 }
-                let tooltipText = getTooltipSummary(new Date(day.getAttribute("data-date")), newData[0])
+                const summaryText = getTooltipSummary(new Date(day.getAttribute("data-date")), newData[0])
+                /** @type {{line: string, changesetID: number|null}[]} */
+                const changesetLines = []
                 if (newData[0]) {
-                    tooltipText += "\n"
                     for (let changeset of newData[2]) {
-                        let changesetComment = ""
                         if (changeset.comments_count) {
                             colorDiff.style.opacity = `${Math.min(0.7, Math.max(0.35, Math.sqrt(newData[0] / maxPerDay)))}`
                             colorDiff.style.background = "red"
-                            changesetComment = "💬 " + changeset.comment
-                            ;(await getChangesetComments(changeset.id)).forEach(mapperCommentText => {
-                                changesetComment +=
-                                    "\n - " +
+                            changesetLines.push({ line: "💬 " + changeset.comment, changesetID: changeset.id })
+                        } else {
+                            changesetLines.push({ line: "• " + changeset.comment, changesetID: null })
+                        }
+                    }
+                }
+                /**
+                 * @param {Map<number, Object[]>} commentsByChangesetID
+                 * @return {string}
+                 */
+                const renderTooltipText = commentsByChangesetID => {
+                    let text = summaryText
+                    if (changesetLines.length) {
+                        text += "\n"
+                        for (const { line, changesetID } of changesetLines) {
+                            text += line + "\n"
+                            for (const mapperCommentText of commentsByChangesetID.get(changesetID) ?? []) {
+                                text +=
+                                    " - " +
                                     mapperCommentText["user"] +
                                     ": " +
                                     shortOsmOrgLinksInText(mapperCommentText["text"])?.slice(0, 500)
                                 if (mapperCommentText["text"].length > 500) {
-                                    changesetComment += "..."
+                                    text += "..."
                                 }
-                            })
-                        } else {
-                            changesetComment = "• " + changeset.comment
+                                text += "\n"
+                            }
                         }
-                        tooltipText += changesetComment + "\n"
                     }
+                    if (banInfo) {
+                        text += "\n⛔" + banInfo.text
+                    }
+                    return text
                 }
-                if (banInfo) {
-                    tooltipText += "\n⛔" + banInfo.text
-                }
+                const changesetsWithComments = changesetLines.flatMap(i => (i.changesetID === null ? [] : [i.changesetID]))
+                const collapsedTooltipText = renderTooltipText(new Map())
                 day.appendChild(colorDiff)
-                getWindow()
-                    .$(day)
-                    .tooltip(
-                        intoPage({
-                            title: tooltipText,
-                            customClass: "wide",
-                            delay: { show: 0, hide: 0 },
-                        }),
-                    )
+                if (changesetsWithComments.length) {
+                    // Load discussions only when the tooltip is opened. One request per
+                    // commented changeset, fired while the calendar renders, is enough to
+                    // trip a limiter that counts distinct non-static URLs (e.g. the
+                    // crowdsecurity/http-crawl-non_statics scenario in CrowdSec).
+                    let loadedTooltipText = null
+                    let loading = false
+                    day.addEventListener("mouseenter", async () => {
+                        if (loading || loadedTooltipText !== null) {
+                            return
+                        }
+                        loading = true
+                        try {
+                            const commentsByChangesetID = new Map()
+                            for (const changesetID of changesetsWithComments) {
+                                commentsByChangesetID.set(changesetID, await getChangesetComments(changesetID))
+                            }
+                            loadedTooltipText = renderTooltipText(commentsByChangesetID)
+                            const describedBy = day.getAttribute("aria-describedby")
+                            const tooltipInner = describedBy && document.getElementById(describedBy)?.querySelector(".tooltip-inner")
+                            if (tooltipInner) {
+                                tooltipInner.textContent = loadedTooltipText
+                            }
+                        } finally {
+                            loading = false
+                        }
+                    })
+                    getWindow()
+                        .$(day)
+                        .tooltip(
+                            intoPageWithFun({
+                                title: () => loadedTooltipText ?? collapsedTooltipText,
+                                customClass: "wide",
+                                delay: { show: 0, hide: 0 },
+                            }),
+                        )
+                } else {
+                    getWindow()
+                        .$(day)
+                        .tooltip(
+                            intoPage({
+                                title: collapsedTooltipText,
+                                customClass: "wide",
+                                delay: { show: 0, hide: 0 },
+                            }),
+                        )
+                }
             } else {
                 day.removeAttribute("data-count")
                 day.setAttribute("href", "")
@@ -28925,6 +29104,19 @@ async function betterUserStat() {
         }
     })
 
+    function preloadDiscussions() {
+        if (isOHMServer() || isOGFServer()) {
+            changesets
+                .filter(i => i.comments_count)
+                .slice(0, 7)
+                .forEach((i, index) => {
+                    void sleep(300 * index).then(() => void getChangesetComments(i.id))
+                })
+        } else {
+            changesets.filter(i => i.comments_count).forEach(i => void getChangesetComments(i.id))
+        }
+    }
+
     filterInputByEditor.id = "editors"
     filterInputByEditor.addEventListener(
         "mousedown",
@@ -28933,6 +29125,7 @@ async function betterUserStat() {
             e.target.focus()
             filterInputByEditor.setAttribute("size", 7)
             filterInputByEditor.setAttribute("multiple", true)
+            preloadDiscussions()
             inputHandler()
         },
         { once: true },
@@ -28940,6 +29133,7 @@ async function betterUserStat() {
     searchByComment.addEventListener(
         "mousedown",
         function () {
+            preloadDiscussions()
             inputHandler()
         },
         { once: true },
@@ -30362,18 +30556,18 @@ function getDropdownStyleText() {
         display: none;
     }
       
-    .add-link-btn {
+    .add-link-btn:not(.fuck-css) {
         margin-right: 8px !important;
         border-right: solid gray 1px !important;
         padding-right: 8px !important;
         cursor: pointer;
     }
     
-    .add-link-btn:hover {
+    .add-link-btn:not(.fuck-css):hover {
         color: var(--bs-body-color) !important;
     }
     
-    .create-link-btn:hover {
+    .create-link-btn:not(.fuck-css):hover {
         color: var(--bs-body-color) !important;
     }
     
@@ -32305,7 +32499,9 @@ async function renderPanoramaxPhotoPointOnVectorMap(withPhotos) {
 function startPhotosRender(xml) {
     setTimeout(async () => {
         const withPhotos = Array.from(
-            xml.querySelectorAll(':has(>:is([k^=panoramax],[k^=mapillary],[k^=wikimedia_commons],[k^="ref:inaturalist.org"]))'),
+            xml.querySelectorAll(
+                ':has(>:is([k^=panoramax],[k^=mapillary],[k^=wikimedia_commons],[k^="ref:inaturalist.org"],[k="image:fotoshi"]))',
+            ),
         ).map(i => {
             const res = {
                 id: parseInt(i.getAttribute("id")),
@@ -32409,7 +32605,7 @@ out geom;
         jsonLayer?.remove()
         jsonLayer = renderOSMGeoJSON(xml, {
             style: {
-                color: "red",
+                color: c("#ff0000", ".overpass-search"),
             },
         })
         // TODO
@@ -34972,7 +35168,7 @@ function actionOpenNoteAuthorNotesInNewTab() {
 
 function actionCreateNote() {
     if (location.pathname.includes("/node") || location.pathname.includes("/way") || location.pathname.includes("/relation")) {
-        newNotePlaceholder = "\n \n" + location.href
+        newNotePlaceholder = "\n \n" + location.origin + location.pathname
     }
     document.querySelector(".control-note .control-button").click()
 }
@@ -36191,7 +36387,9 @@ function setupOverzoomForDataLayer() {
 
 function setupPrometheusLink() {
     if (document.querySelector("h2")?.textContent !== "This website is under heavy load (queue full)") {
-        return
+        if (document.querySelector("h1")?.textContent !== "Error 503 No healthy backends") {
+            return
+        }
     }
     const hint = document.createElement("div")
     hint.textContent = ""
@@ -36204,6 +36402,7 @@ function setupPrometheusLink() {
 <br>
 <a href="https://github.com/openstreetmap/operations/issues?q=sort%3Aupdated-desc+is%3Aissue+is%3Aopen">OpenStreetMap operations issues</a>
 `)
+    hint.querySelectorAll("a").forEach(a => a.setAttribute("target", "_blank"))
     document.body.appendChild(hint)
     setTimeout(() => {
         const iframe = GM_addElement("iframe", {
@@ -37089,8 +37288,8 @@ function setupWiki() {
     let invalidVotes = 0
     for (const ul of document.querySelectorAll(".mw-heading:has(:is(h1,h2)#Voting) ~ ul")) {
         for (const li of ul.querySelectorAll('li:has([typeof="mw:File"])')) {
-            const anchors = Array.from(li.querySelectorAll(":scope > a"))
-            const who = (anchors.at(-2) ?? anchors.at(-1)).textContent
+            const anchors = Array.from(li.querySelectorAll(':scope > a[href*="User:"]'))
+            const who = anchors[0].textContent
             if (li.querySelectorAll(supportSymbolQuery).length === 1) {
                 hasDupeVotes |= !addToList(supportList, who, "support")
             } else if (li.querySelectorAll(opposeSymbolQuery).length === 1) {

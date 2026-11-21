@@ -1,6 +1,11 @@
 # Changelog archive
 
 [Changelog with illustrations on OSM Community Forum](https://c.osm.org/t/better-osm-org-a-script-that-adds-useful-little-things-to-osm-org/121670)
+- v1.8.0: use red color for Overpass search results, fix sidebar jumps
+- v1.7.7: indoor viewers link for object with indoor=*, shop=mall, comment button in Edit Tags
+- v1.7.3: Notes resolve buttons in iD, Open in Vespucci action, Drag&Drop for JSON array and .osc β
+- v1.7.2: Direct messages templates, retries for osm-revert, ctrl + S to save active object
+- v1.7.2: Validate building:min_level, highlight suspect words in source=*, and imagery_used=
 - v1.7.0: Calculating the area for multipolygons and boundaries, customizable overpass api server
 - v1.6.9: Tags editor, ctrl + S to save Overpass results, suggest Osmcha tags after dislike
 - v1.6.6: Under experimental flag: clickable POIs, full history for relations, level0 reborn links

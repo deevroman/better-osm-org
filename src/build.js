@@ -5,6 +5,7 @@ import vm from "vm"
 import { execSync } from "child_process"
 
 const outPath = path.resolve("../better-osm-org.user.js")
+const metaPath = path.resolve("../misc/better-osm-org.meta.js")
 const args = new Set(process.argv.slice(2))
 let lastSkippedWriteReason = ""
 const localMatchLine = "// @match        http://localhost:3000/*"
@@ -87,7 +88,23 @@ function buildOnce() {
 
     const oldFile = fs.existsSync(outPath) ? fs.readFileSync(outPath, "utf8") : ""
     const newFile = stripLocalhostMatch(sources.join("\n"))
-    if (oldFile !== newFile) {
+    const metadata = newFile.match(/^\/\/ ==UserScript==[\s\S]*?^\/\/ ==\/UserScript==/m)?.[0]
+    if (!metadata) {
+        throw new Error("Userscript metadata block not found")
+    }
+    const metaFields = new Set(["name", "namespace", "version", "updateURL", "downloadURL"])
+    const metaLines = metadata.split("\n").filter(line => {
+        const field = line.match(/^\/\/\s+@(\S+)/)?.[1]
+        return !field || metaFields.has(field)
+    })
+    for (const field of metaFields) {
+        if (!metaLines.some(line => line.match(/^\/\/\s+@(\S+)/)?.[1] === field)) {
+            throw new Error(`Userscript metadata is missing @${field}`)
+        }
+    }
+    const newMetaFile = metaLines.join("\n") + "\n"
+    const oldMetaFile = fs.existsSync(metaPath) ? fs.readFileSync(metaPath, "utf8") : ""
+    if (oldFile !== newFile || oldMetaFile !== newMetaFile) {
         try {
             new vm.Script(newFile, { filename: outPath })
         } catch (error) {
@@ -105,7 +122,8 @@ function buildOnce() {
         }
 
         lastSkippedWriteReason = ""
-        fs.writeFileSync(outPath, newFile)
+        if (oldFile !== newFile) fs.writeFileSync(outPath, newFile)
+        if (oldMetaFile !== newMetaFile) fs.writeFileSync(metaPath, newMetaFile)
         console.log(new Date())
     }
 }

@@ -2,7 +2,9 @@
 
 function setupPrometheusLink() {
     if (document.querySelector("h2")?.textContent !== "This website is under heavy load (queue full)") {
-        return
+        if (document.querySelector("h1")?.textContent !== "Error 503 No healthy backends") {
+            return
+        }
     }
     const hint = document.createElement("div")
     hint.textContent = ""
@@ -15,6 +17,7 @@ function setupPrometheusLink() {
 <br>
 <a href="https://github.com/openstreetmap/operations/issues?q=sort%3Aupdated-desc+is%3Aissue+is%3Aopen">OpenStreetMap operations issues</a>
 `)
+    hint.querySelectorAll("a").forEach(a => a.setAttribute("target", "_blank"))
     document.body.appendChild(hint)
     setTimeout(() => {
         const iframe = GM_addElement("iframe", {

@@ -144,7 +144,9 @@ async function renderPanoramaxPhotoPointOnVectorMap(withPhotos) {
 function startPhotosRender(xml) {
     setTimeout(async () => {
         const withPhotos = Array.from(
-            xml.querySelectorAll(':has(>:is([k^=panoramax],[k^=mapillary],[k^=wikimedia_commons],[k^="ref:inaturalist.org"]))'),
+            xml.querySelectorAll(
+                ':has(>:is([k^=panoramax],[k^=mapillary],[k^=wikimedia_commons],[k^="ref:inaturalist.org"],[k="image:fotoshi"]))',
+            ),
         ).map(i => {
             const res = {
                 id: parseInt(i.getAttribute("id")),
@@ -248,7 +250,7 @@ out geom;
         jsonLayer?.remove()
         jsonLayer = renderOSMGeoJSON(xml, {
             style: {
-                color: "red",
+                color: c("#ff0000", ".overpass-search"),
             },
         })
         // TODO

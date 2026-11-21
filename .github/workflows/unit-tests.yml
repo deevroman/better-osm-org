@@ -24,6 +24,15 @@ jobs:
       - name: Run arraysDiff test
         run: node --test src/tests/42-diff-algorithm.test.js
 
+      - name: Check userscript metadata version
+        shell: bash
+        run: |
+          version_pattern='^//[[:space:]]*@version[[:space:]]+[^[:space:]]+[[:space:]]*$'
+          test "$(grep -cE "$version_pattern" misc/better-osm-org.meta.js)" -eq 1
+          diff -u \
+            <(grep -E "$version_pattern" misc/better-osm-org.meta.js) \
+            <(grep -E "$version_pattern" better-osm-org.user.js)
+
       - name: Validate translations
         run: node --test src/tests/02-i18n.test.js
 
