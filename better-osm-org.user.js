@@ -16313,20 +16313,46 @@ function makeRefBelpostValue(elem) {
 }
 
 const fotoshiPhotoCache = new Map()
+const pendingFotoshiPhotos = new Map()
+let fotoshiBatchScheduled = false
 
 function downloadFotoshiPhoto(id) {
     if (!fotoshiPhotoCache.has(id)) {
-        const params = new URLSearchParams({ ids: id, collections: "fotoshi-photos", limit: "1" })
-        const request = externalFetch({ url: `https://api.fotoshi.com/v1/stac/search?${params}`, responseType: "json" }).then(res => {
-            if (res.status !== 200 || !Array.isArray(res.response?.features)) {
-                throw new Error(`Fotoshi STAC request failed: HTTP ${res.status}`)
-            }
-            return res.response.features.find(photo => photo.id === id) ?? null
+        const request = new Promise((resolve, reject) => {
+            pendingFotoshiPhotos.set(id, { resolve, reject })
         })
         fotoshiPhotoCache.set(id, request)
         request.catch(() => fotoshiPhotoCache.delete(id))
+        if (!fotoshiBatchScheduled) {
+            fotoshiBatchScheduled = true
+            queueMicrotask(flushFotoshiPhotoRequests)
+        }
     }
     return fotoshiPhotoCache.get(id)
+}
+
+function flushFotoshiPhotoRequests() {
+    fotoshiBatchScheduled = false
+    const pending = [...pendingFotoshiPhotos.entries()]
+    pendingFotoshiPhotos.clear()
+
+    for (let i = 0; i < pending.length; i += 20) {
+        const batch = pending.slice(i, i + 20)
+        const params = new URLSearchParams({
+            ids: batch.map(([id]) => id).join(","),
+            collections: "fotoshi-photos",
+            limit: `${batch.length}`,
+        })
+        void externalFetch({ url: `https://api.fotoshi.com/v1/stac/search?${params}`, responseType: "json" })
+            .then(res => {
+                if (res.status !== 200 || !Array.isArray(res.response?.features)) {
+                    throw new Error(`Fotoshi STAC request failed: HTTP ${res.status}`)
+                }
+                const photos = new Map(res.response.features.map(photo => [photo.id, photo]))
+                batch.forEach(([id, { resolve }]) => resolve(photos.get(id) ?? null))
+            })
+            .catch(error => batch.forEach(([, { reject }]) => reject(error)))
+    }
 }
 
 function getFotoshiAttribution(photo) {
