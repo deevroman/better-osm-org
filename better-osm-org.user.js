@@ -15787,28 +15787,7 @@ function stringsDiff(a, b, one_replace_cost = 2) {
 
 //</editor-fold>
 
-//<editor-fold desc="" defaultstate="collapsed">
-function makeElementHistoryCompact(forceState = null) {
-    const shouldBeCompact = forceState !== null ? forceState : document.querySelector(".compact-toggle-btn").getAttribute("value") === "><"
-    const forToggle = Array.from(document.querySelectorAll("table.browse-tag-list"))
-    // workaround for https://github.com/deevroman/better-osm-org/pull/273#issuecomment-2830047660
-    forToggle.slice(0, 8).forEach(el => {
-        el.classList.toggle("hide-non-modified-tags", shouldBeCompact)
-    })
-    setTimeout(() => {
-        forToggle.slice(8).forEach(el => {
-            el.classList.toggle("hide-non-modified-tags", shouldBeCompact)
-        })
-    })
-    document.querySelectorAll(".empty-version").forEach(el => {
-        el.classList.toggle("d-none", shouldBeCompact)
-    })
-    document.querySelectorAll(".preview-img-link img").forEach(i => {
-        i.classList.toggle("d-none", shouldBeCompact)
-    })
-    document.querySelector(".compact-toggle-btn").setAttribute("value", shouldBeCompact ? "<>" : "><")
-    insertSvg(document.querySelector(".compact-toggle-btn"), shouldBeCompact ? "expandMode" : "compactMode")
-}
+//<editor-fold desc="photo-tags" defaultstate="collapsed">
 
 function drawPanoramaxCapturePlace(feature) {
     const lat = feature.geometry?.coordinates?.[1]
@@ -16225,93 +16204,6 @@ function makeWikimediaCommonsValue(elem, isVersionPage) {
     })
 }
 
-function makeRoofOrientationValue(elem) {
-    if (elem.textContent !== "across" && elem.textContent !== "along") {
-        elem.classList.add("fixme-tag")
-        elem.title = t("objectPage.roofOrientationAcrossAlong")
-    }
-}
-
-function makeContactValue(elem, key) {
-    try {
-        if (!elem.textContent.includes(".")) {
-            return
-        }
-        const urlParams = new URL(elem.textContent).searchParams
-        const warns = []
-        ;[
-            "cm_mmc",
-            "cmpid",
-            "fbclid",
-            "gad_source",
-            "gclid",
-            "gclsrc",
-            "igsh",
-            "igshid",
-            "mc_id",
-            "mibextid",
-            "si",
-            "srsltid",
-            "utm_campaign",
-            "utm_content",
-            "utm_medium",
-            "utm_source",
-            "utm_term",
-            "yclid",
-            "ysclid",
-        ].forEach(param => {
-            if (urlParams.has(param)) {
-                warns.push(param)
-            }
-        })
-        if (warns.length > 0) {
-            elem.classList.add("warn-tag")
-            elem.querySelectorAll("a").forEach(a => a.classList.add("warn-tag"))
-            elem.title = warns.map(param => t("objectPage.trackingParamInUrl", { param })).join("\n")
-        }
-    } catch (e) {
-        // todo report about invalid URL
-        console.error(e)
-    }
-    if (key === "website" || key === "contact:website") {
-        if (!elem.textContent.startsWith("https://") && !elem.textContent.startsWith("http://")) {
-            elem.classList.add("warn-tag")
-            elem.querySelectorAll("a").forEach(a => a.classList.add("warn-tag"))
-            elem.title = t("objectPage.urlShouldStartWithHttp")
-        }
-    }
-}
-
-function makeConditionalValue(elem) {
-    if (!elem.textContent.includes("@")) {
-        elem.classList.add("fixme-tag")
-        elem.title = t("objectPage.conditionalMustContainAt")
-    }
-    if (elem.textContent.match(/@\s*$/)) {
-        elem.classList.add("fixme-tag")
-        elem.title = t("objectPage.emptyPartAfterAt")
-    }
-    if (elem.textContent.match(/^\s*@/)) {
-        elem.classList.add("fixme-tag")
-        elem.title = t("objectPage.emptyPartBeforeAt")
-    }
-    if (elem.textContent.match(/@\s*@/)) {
-        elem.classList.add("fixme-tag")
-        elem.title = t("objectPage.emptyPartBetweenAt")
-    }
-}
-
-function makeRefBelpostValue(elem) {
-    if (!GM_config.get("ImagesAndLinksInTags")) return
-    if (elem.innerHTML.match(/^[0-9]+$/)) {
-        const a = document.createElement("a")
-        a.href = "https://belpost.by/Pochtovyyeyashchiki/" + elem.textContent
-        a.rel = "noreferrer"
-        a.textContent = elem.textContent
-        elem.setHTML(a.outerHTML)
-    }
-}
-
 const fotoshiPhotoCache = new Map()
 const pendingFotoshiPhotos = new Map()
 let fotoshiBatchScheduled = false
@@ -16520,6 +16412,118 @@ function makeRefInaturalistValue(elem) {
     })
     elem.onclick = e => {
         e.stopImmediatePropagation()
+    }
+}
+
+//</editor-fold>
+
+//<editor-fold desc="" defaultstate="collapsed">
+function makeElementHistoryCompact(forceState = null) {
+    const shouldBeCompact = forceState !== null ? forceState : document.querySelector(".compact-toggle-btn").getAttribute("value") === "><"
+    const forToggle = Array.from(document.querySelectorAll("table.browse-tag-list"))
+    // workaround for https://github.com/deevroman/better-osm-org/pull/273#issuecomment-2830047660
+    forToggle.slice(0, 8).forEach(el => {
+        el.classList.toggle("hide-non-modified-tags", shouldBeCompact)
+    })
+    setTimeout(() => {
+        forToggle.slice(8).forEach(el => {
+            el.classList.toggle("hide-non-modified-tags", shouldBeCompact)
+        })
+    })
+    document.querySelectorAll(".empty-version").forEach(el => {
+        el.classList.toggle("d-none", shouldBeCompact)
+    })
+    document.querySelectorAll(".preview-img-link img").forEach(i => {
+        i.classList.toggle("d-none", shouldBeCompact)
+    })
+    document.querySelector(".compact-toggle-btn").setAttribute("value", shouldBeCompact ? "<>" : "><")
+    insertSvg(document.querySelector(".compact-toggle-btn"), shouldBeCompact ? "expandMode" : "compactMode")
+}
+
+function makeRoofOrientationValue(elem) {
+    if (elem.textContent !== "across" && elem.textContent !== "along") {
+        elem.classList.add("fixme-tag")
+        elem.title = t("objectPage.roofOrientationAcrossAlong")
+    }
+}
+
+function makeContactValue(elem, key) {
+    try {
+        if (!elem.textContent.includes(".")) {
+            return
+        }
+        const urlParams = new URL(elem.textContent).searchParams
+        const warns = []
+        ;[
+            "cm_mmc",
+            "cmpid",
+            "fbclid",
+            "gad_source",
+            "gclid",
+            "gclsrc",
+            "igsh",
+            "igshid",
+            "mc_id",
+            "mibextid",
+            "si",
+            "srsltid",
+            "utm_campaign",
+            "utm_content",
+            "utm_medium",
+            "utm_source",
+            "utm_term",
+            "yclid",
+            "ysclid",
+        ].forEach(param => {
+            if (urlParams.has(param)) {
+                warns.push(param)
+            }
+        })
+        if (warns.length > 0) {
+            elem.classList.add("warn-tag")
+            elem.querySelectorAll("a").forEach(a => a.classList.add("warn-tag"))
+            elem.title = warns.map(param => t("objectPage.trackingParamInUrl", { param })).join("\n")
+        }
+    } catch (e) {
+        // todo report about invalid URL
+        console.error(e)
+    }
+    if (key === "website" || key === "contact:website") {
+        if (!elem.textContent.startsWith("https://") && !elem.textContent.startsWith("http://")) {
+            elem.classList.add("warn-tag")
+            elem.querySelectorAll("a").forEach(a => a.classList.add("warn-tag"))
+            elem.title = t("objectPage.urlShouldStartWithHttp")
+        }
+    }
+}
+
+function makeConditionalValue(elem) {
+    if (!elem.textContent.includes("@")) {
+        elem.classList.add("fixme-tag")
+        elem.title = t("objectPage.conditionalMustContainAt")
+    }
+    if (elem.textContent.match(/@\s*$/)) {
+        elem.classList.add("fixme-tag")
+        elem.title = t("objectPage.emptyPartAfterAt")
+    }
+    if (elem.textContent.match(/^\s*@/)) {
+        elem.classList.add("fixme-tag")
+        elem.title = t("objectPage.emptyPartBeforeAt")
+    }
+    if (elem.textContent.match(/@\s*@/)) {
+        elem.classList.add("fixme-tag")
+        elem.title = t("objectPage.emptyPartBetweenAt")
+    }
+}
+
+function makeRefBelpostValue(elem) {
+    if (!GM_config.get("ImagesAndLinksInTags")) return
+    if (elem.innerHTML.match(/^[0-9]+$/)) {
+        const a = document.createElement("a")
+        a.href = "https://belpost.by/Pochtovyyeyashchiki/" + elem.textContent
+        a.rel = "noreferrer"
+        a.textContent = elem.textContent
+        elem.setHTML(a.outerHTML)
     }
 }
 
