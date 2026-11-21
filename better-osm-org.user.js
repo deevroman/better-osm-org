@@ -32696,6 +32696,337 @@ out geom;
 
 //</editor-fold>
 
+//<editor-fold desc="drag-and-drop" defaultstate="collapsed">
+
+function handleDroppedFiles(files) {
+    const mapWidth = getComputedStyle(document.querySelector("#map")).width
+    const mapHeight = getComputedStyle(document.querySelector("#map")).height
+    insertOverlaysStyles()
+
+    files.forEach(async file => {
+        if (file.type.startsWith("image/jpeg") || file.name.endsWith(".jpg") || file.name.endsWith(".jpeg")) {
+            await displayDroppedJpeg(file)
+        } else if (
+            file.type === "application/json" ||
+            file.type === "application/geo+json" ||
+            file.name.endsWith(".geojson") ||
+            file.name.endsWith(".json")
+        ) {
+            await displayDroppedJson(file)
+        } else if (file.type === "application/gpx+xml" || file.name.endsWith(".gpx")) {
+            await displayDroppedGpx(file)
+        } else if (file.type === "application/vnd.openstreetmap.data+xml" || file.name.endsWith(".osm")) {
+            await displayDroppedOsm(file)
+        } else if (file.type === "application/vnd.google-earth.kml+xml" || file.name.endsWith(".kml")) {
+            await displayDroppedKml(file)
+        } else if (file.type === "application/vnd.google-earth.kmz+xml" || file.name.endsWith(".kmz")) {
+            await displayDroppedKmz(file)
+        } else if (file.type === "text/csv" || file.name.endsWith(".csv")) {
+            displayCsv(await file.text())
+        } else if (file.name.endsWith(".osc") && isDebug()) {
+            await displayDroppedOsc(file)
+        } else {
+            console.log(file.type)
+        }
+    })
+}
+
+async function setupDragAndDropViewers() {
+    document.querySelector("#map")?.addEventListener("drop", e => {
+        if (location.pathname.includes("/directions") || location.pathname.includes("/note/new")) {
+            return
+        }
+        e.preventDefault()
+        e.stopPropagation()
+        e.stopImmediatePropagation()
+
+        e.target.style.cursor = "progress"
+        try {
+            handleDroppedFiles([...e.dataTransfer.items].filter(i => i.kind === "file").map(i => i.getAsFile()))
+            stopClick = true
+        } finally {
+            e.target.style.cursor = "grab"
+        }
+    })
+    document.querySelector("#map")?.addEventListener("dragover", e => {
+        if (!location.pathname.includes("/directions") && !location.pathname.includes("/note/new")) {
+            e.preventDefault()
+        }
+    })
+
+    if (location.pathname.includes("/traces")) {
+        addGpxTrackDisplayLinks()
+    } else if (location.search.includes("&display-gpx=")) {
+        await displayGpxTrackFromUrl()
+    }
+
+    // todo refactor
+    const createNoteButton = document.querySelector(".control-note.leaflet-control a")
+    if (createNoteButton && !createNoteButton.getAttribute("data-bs-original-title").includes(" (shift + N)")) {
+        createNoteButton.setAttribute("data-bs-original-title", createNoteButton.getAttribute("data-bs-original-title") + " (shift + N)")
+    }
+}
+
+//</editor-fold>
+
+//<editor-fold desc="drop-csv" defaultstate="collapsed">
+
+function displayCsv(text) {
+    const [header, ...lines] = text.split("\n")
+    console.log("lines count", lines.length)
+    if (lines.length > 20000) {
+        alert(t("dragAndDrop.tooManyCsvLines"))
+    }
+    let sep = header.includes(";") ? ";" : ","
+    const columns = header
+        .trim()
+        .split(sep)
+        .map(i => i.replace(/^"/g, "").replace(/"$/, ""))
+    let latColumIndex = -1
+    let lonColumIndex = -1
+    columns.forEach((col, i) => {
+        if (col.match(/(lat|широта)/i)) {
+            latColumIndex = i
+        } else if (col.match(/(lon|долгота)/i)) {
+            lonColumIndex = i
+        }
+    })
+    if (latColumIndex === -1 || lonColumIndex === -1) {
+        throw "Can't find lat/lon columns in CSV file"
+    }
+
+    /** @type {import("geojson").GeoJSON} */
+    const geojson = {
+        type: "FeatureCollection",
+        features: [],
+    }
+    console.time("csv filtering")
+    const prevTitle = document.title
+    const newTitle = "◴" + prevTitle
+    document.title = newTitle
+
+    try {
+        const bounds = getMap().getBounds()
+        for (const line of lines) {
+            const values = line
+                .trim()
+                .split(sep)
+                .map(i => {
+                    if (i[0] === '"') {
+                        if (i.at(-1) === '"') {
+                            return i.slice(1, -1)
+                        }
+                        return i.slice(1)
+                    }
+                    if (i.at(-1) === '"') {
+                        return i.slice(0, -1)
+                    }
+                    return i
+                })
+
+            const lat = parseFloat(values[latColumIndex])
+            const lon = parseFloat(values[lonColumIndex])
+            if (isNaN(lat) || isNaN(lon)) {
+                console.warn("Invalid lat/lon in CSV file:", values)
+                continue
+            }
+            if (lines.length > 20000 && !bounds.contains(getWindow().L.latLng(lat, lon))) {
+                continue
+            }
+            geojson.features.push({
+                type: "Feature",
+                geometry: {
+                    type: "Point",
+                    coordinates: [lon, lat],
+                },
+                properties: Object.fromEntries(columns.map((col, i) => [col, values[i]])),
+            })
+        }
+        console.timeEnd("csv filtering")
+        renderGeoJSONwrapper(geojson)
+    } finally {
+        if (document.title === newTitle) {
+            document.title = prevTitle
+        }
+    }
+}
+
+//</editor-fold>
+
+//<editor-fold desc="drop-json" defaultstate="collapsed">
+
+async function displayDroppedJson(file) {
+    const geojson = JSON.parse(await file.text())
+    if (Array.isArray(geojson)) {
+        displayJsonArray(geojson)
+    } else {
+        renderGeoJSONwrapper(geojson)
+    }
+}
+
+function displayJsonArray(json) {
+    /** @type {import("geojson").GeoJSON} */
+    const geojson = {
+        type: "FeatureCollection",
+        features: [],
+    }
+    for (const i of json) {
+        /** @type {import("geojson").Feature} */
+        const feature = {
+            type: "Feature",
+            geometry: {
+                type: "Point",
+                coordinates: [null, null],
+            },
+            properties: {},
+        }
+        for (let [k, v] of Object.entries(i)) {
+            if (k === "lon" || k === "longitude") {
+                feature.geometry.coordinates[0] = v
+            } else if (k === "lat" || k === "latitude") {
+                feature.geometry.coordinates[1] = v
+            }
+            feature.properties[k] = v
+        }
+        geojson.features.push(feature)
+    }
+    debugger
+    renderGeoJSONwrapper(geojson)
+}
+
+//</editor-fold>
+
+//<editor-fold desc="drop-jpeg" defaultstate="collapsed">
+
+let imagesLayerBbox = null
+
+async function displayDroppedJpeg(file) {
+    const metadata = EXIF.readFromBinaryFile(await file.arrayBuffer())
+    console.log(metadata)
+    console.log(metadata.GPSLatitude, metadata.GPSLongitude)
+    let lat = parseFloat(metadata.GPSLatitude[0]) + parseFloat(metadata.GPSLatitude[1]) / 60 + parseFloat(metadata.GPSLatitude[2]) / 3600
+    let lon = parseFloat(metadata.GPSLongitude[0]) + parseFloat(metadata.GPSLongitude[1]) / 60 + parseFloat(metadata.GPSLongitude[2]) / 3600
+
+    if (metadata.GPSLatitudeRef === "S") {
+        lat = parseFloat(lat) * -1
+    }
+
+    if (metadata.GPSLongitudeRef === "W") {
+        lon = parseFloat(lon) * -1
+    }
+
+    imagesLayerBbox = combineBBOXes([
+        imagesLayerBbox,
+        {
+            min_lat: lat,
+            min_lon: lon,
+            max_lat: lat,
+            max_lon: lon,
+        },
+    ])
+
+    const marker = getWindow().L.circleMarker(
+        getWindow().L.latLng(lat, lon),
+        // intoPage({
+        //     maxWidth: mapWidth,
+        //     maxHeight: mapHeight,
+        //     className: "map-img-preview-popup",
+        // }),
+    )
+    const img = document.createElement("img")
+    img.classList.add("geotagged-img")
+    img.setAttribute("width", "100%")
+    const fr = new FileReader()
+    fr.onload = function () {
+        img.src = fr.result
+        marker.bindPopup(img.outerHTML)
+    }
+    fr.readAsDataURL(file)
+    marker.addTo(getMap())
+}
+
+//</editor-fold>
+
+//<editor-fold desc="drop-osm" defaultstate="collapsed">
+
+async function displayDroppedOsm(file) {
+    const doc = new DOMParser().parseFromString(await file.text(), "application/xml")
+    void loadBannedVersions()
+    jsonLayer = renderOSMGeoJSON(doc, true)
+}
+
+async function displayDroppedOsc(file) {
+    const doc = new DOMParser().parseFromString(await file.text(), "application/xml")
+    displayOsc(doc)
+}
+
+//</editor-fold>
+
+//<editor-fold desc="drop-kml" defaultstate="collapsed">
+
+async function displayDroppedKml(file) {
+    displayKMLTrack(await file.text())
+}
+
+async function displayDroppedKmz(file) {
+    const { entries } = await unzipit.unzip(await file.arrayBuffer())
+    displayKMLTrack(
+        await Object.entries(entries)
+            .find(i => i[0].endsWith(".kml"))[1]
+            .text(),
+    )
+}
+
+//</editor-fold>
+
+//<editor-fold desc="drop-gpx" defaultstate="collapsed">
+
+async function displayDroppedGpx(file) {
+    displayGPXTrack(await file.text())
+}
+
+function addGpxTrackDisplayLinks() {
+    document.querySelectorAll('a[href*="edit?gpx="]').forEach(i => {
+        const trackID = i.getAttribute("href").match(/edit\?gpx=(\d+)/)[1]
+        const editLink = i.parentElement.parentElement.querySelector('a:not([href*="display-gpx"])')
+        const url = new URL(editLink.href)
+        url.search += "&display-gpx=" + trackID
+        editLink.href = url.toString()
+    })
+}
+
+async function displayGpxTrackFromUrl() {
+    const trackID = location.search.match(/&display-gpx=(\d+)/)[1]
+    const res = await externalFetchRetry({
+        url: `${osm_server.url}/traces/${trackID}/data`,
+        responseType: "blob",
+    })
+    const contentType = res.response.type
+    if (contentType === "application/gpx+xml") {
+        displayGPXTrack(await res.response.text())
+    } else if (contentType === "application/gzip") {
+        displayGPXTrack(await (await decompressBlob(res.response)).text())
+    } else if (contentType === "application/x-bzip2") {
+        // fuck Tampermonkey, structuredClone for TM
+        displayGPXTrack(
+            new DOMParser().parseFromString(
+                new TextDecoder().decode(bz2.decompress(structuredClone(await res.response.bytes()))),
+                "application/xml",
+            ),
+        )
+    } else {
+        throw `Unknown track #${trackID} format: ` + contentType
+    }
+    if (trackMetadata) {
+        fitBounds([
+            [trackMetadata.min_lat, trackMetadata.min_lon],
+            [trackMetadata.max_lat, trackMetadata.max_lon],
+        ])
+    }
+}
+
+//</editor-fold>
+
 //<editor-fold desc="osc-viewer" defaultstate="collapsed">
 
 function makeChangesetSidebar(changesetID, stat) {
@@ -32845,279 +33176,6 @@ async function displayOsc(xml) {
         }
     }
     await processQuickLookForCombinedChangesets(changesets[0], changesets)
-}
-
-//</editor-fold>
-
-//<editor-fold desc="drag-and-drop" defaultstate="collapsed">
-
-function displayCsv(text) {
-    const [header, ...lines] = text.split("\n")
-    console.log("lines count", lines.length)
-    if (lines.length > 20000) {
-        alert(t("dragAndDrop.tooManyCsvLines"))
-    }
-    let sep = header.includes(";") ? ";" : ","
-    const columns = header
-        .trim()
-        .split(sep)
-        .map(i => i.replace(/^"/g, "").replace(/"$/, ""))
-    let latColumIndex = -1
-    let lonColumIndex = -1
-    columns.forEach((col, i) => {
-        if (col.match(/(lat|широта)/i)) {
-            latColumIndex = i
-        } else if (col.match(/(lon|долгота)/i)) {
-            lonColumIndex = i
-        }
-    })
-    if (latColumIndex === -1 || lonColumIndex === -1) {
-        throw "Can't find lat/lon columns in CSV file"
-    }
-
-    /** @type {import("geojson").GeoJSON} */
-    const geojson = {
-        type: "FeatureCollection",
-        features: [],
-    }
-    console.time("csv filtering")
-    const prevTitle = document.title
-    const newTitle = "◴" + prevTitle
-    document.title = newTitle
-
-    try {
-        const bounds = getMap().getBounds()
-        for (const line of lines) {
-            const values = line
-                .trim()
-                .split(sep)
-                .map(i => {
-                    if (i[0] === '"') {
-                        if (i.at(-1) === '"') {
-                            return i.slice(1, -1)
-                        }
-                        return i.slice(1)
-                    }
-                    if (i.at(-1) === '"') {
-                        return i.slice(0, -1)
-                    }
-                    return i
-                })
-
-            const lat = parseFloat(values[latColumIndex])
-            const lon = parseFloat(values[lonColumIndex])
-            if (isNaN(lat) || isNaN(lon)) {
-                console.warn("Invalid lat/lon in CSV file:", values)
-                continue
-            }
-            if (lines.length > 20000 && !bounds.contains(getWindow().L.latLng(lat, lon))) {
-                continue
-            }
-            geojson.features.push({
-                type: "Feature",
-                geometry: {
-                    type: "Point",
-                    coordinates: [lon, lat],
-                },
-                properties: Object.fromEntries(columns.map((col, i) => [col, values[i]])),
-            })
-        }
-        console.timeEnd("csv filtering")
-        renderGeoJSONwrapper(geojson)
-    } finally {
-        if (document.title === newTitle) {
-            document.title = prevTitle
-        }
-    }
-}
-
-function displayJsonArray(json) {
-    /** @type {import("geojson").GeoJSON} */
-    const geojson = {
-        type: "FeatureCollection",
-        features: [],
-    }
-    for (const i of json) {
-        /** @type {import("geojson").Feature} */
-        const feature = {
-            type: "Feature",
-            geometry: {
-                type: "Point",
-                coordinates: [null, null],
-            },
-            properties: {},
-        }
-        for (let [k, v] of Object.entries(i)) {
-            if (k === "lon" || k === "longitude") {
-                feature.geometry.coordinates[0] = v
-            } else if (k === "lat" || k === "latitude") {
-                feature.geometry.coordinates[1] = v
-            }
-            feature.properties[k] = v
-        }
-        geojson.features.push(feature)
-    }
-    debugger
-    renderGeoJSONwrapper(geojson)
-}
-
-let imagesLayerBbox = null
-
-function handleDroppedFiles(files) {
-    const mapWidth = getComputedStyle(document.querySelector("#map")).width
-    const mapHeight = getComputedStyle(document.querySelector("#map")).height
-    insertOverlaysStyles()
-
-    files.forEach(async file => {
-        if (file.type.startsWith("image/jpeg") || file.name.endsWith(".jpg") || file.name.endsWith(".jpeg")) {
-            const metadata = EXIF.readFromBinaryFile(await file.arrayBuffer())
-            console.log(metadata)
-            console.log(metadata.GPSLatitude, metadata.GPSLongitude)
-            let lat =
-                parseFloat(metadata.GPSLatitude[0]) + parseFloat(metadata.GPSLatitude[1]) / 60 + parseFloat(metadata.GPSLatitude[2]) / 3600
-            let lon =
-                parseFloat(metadata.GPSLongitude[0]) + parseFloat(metadata.GPSLongitude[1]) / 60 + parseFloat(metadata.GPSLongitude[2]) / 3600
-
-            if (metadata.GPSLatitudeRef === "S") {
-                lat = parseFloat(lat) * -1
-            }
-
-            if (metadata.GPSLongitudeRef === "W") {
-                lon = parseFloat(lon) * -1
-            }
-
-            imagesLayerBbox = combineBBOXes([
-                imagesLayerBbox,
-                {
-                    min_lat: lat,
-                    min_lon: lon,
-                    max_lat: lat,
-                    max_lon: lon,
-                },
-            ])
-
-            const marker = getWindow().L.circleMarker(
-                getWindow().L.latLng(lat, lon),
-                // intoPage({
-                //     maxWidth: mapWidth,
-                //     maxHeight: mapHeight,
-                //     className: "map-img-preview-popup",
-                // }),
-            )
-            const img = document.createElement("img")
-            img.classList.add("geotagged-img")
-            img.setAttribute("width", "100%")
-            const fr = new FileReader()
-            fr.onload = function () {
-                img.src = fr.result
-                marker.bindPopup(img.outerHTML)
-            }
-            fr.readAsDataURL(file)
-            marker.addTo(getMap())
-        } else if (
-            file.type === "application/json" ||
-            file.type === "application/geo+json" ||
-            file.name.endsWith(".geojson") ||
-            file.name.endsWith(".json")
-        ) {
-            const geojson = JSON.parse(await file.text())
-            if (Array.isArray(geojson)) {
-                displayJsonArray(geojson)
-            } else {
-                renderGeoJSONwrapper(geojson)
-            }
-        } else if (file.type === "application/gpx+xml" || file.name.endsWith(".gpx")) {
-            displayGPXTrack(await file.text())
-        } else if (file.type === "application/vnd.openstreetmap.data+xml" || file.name.endsWith(".osm")) {
-            const doc = new DOMParser().parseFromString(await file.text(), "application/xml")
-            void loadBannedVersions()
-            jsonLayer = renderOSMGeoJSON(doc, true)
-        } else if (file.type === "application/vnd.google-earth.kml+xml" || file.name.endsWith(".kml")) {
-            displayKMLTrack(await file.text())
-        } else if (file.type === "application/vnd.google-earth.kmz+xml" || file.name.endsWith(".kmz")) {
-            const { entries } = await unzipit.unzip(await file.arrayBuffer())
-            displayKMLTrack(
-                await Object.entries(entries)
-                    .find(i => i[0].endsWith(".kml"))[1]
-                    .text(),
-            )
-        } else if (file.type === "text/csv" || file.name.endsWith(".csv")) {
-            displayCsv(await file.text())
-        } else if (file.name.endsWith(".osc") && isDebug()) {
-            const doc = new DOMParser().parseFromString(await file.text(), "application/xml")
-            displayOsc(doc)
-        } else {
-            console.log(file.type)
-        }
-    })
-}
-
-async function setupDragAndDropViewers() {
-    document.querySelector("#map")?.addEventListener("drop", e => {
-        if (location.pathname.includes("/directions") || location.pathname.includes("/note/new")) {
-            return
-        }
-        e.preventDefault()
-        e.stopPropagation()
-        e.stopImmediatePropagation()
-
-        e.target.style.cursor = "progress"
-        try {
-            handleDroppedFiles([...e.dataTransfer.items].filter(i => i.kind === "file").map(i => i.getAsFile()))
-            stopClick = true
-        } finally {
-            e.target.style.cursor = "grab"
-        }
-    })
-    document.querySelector("#map")?.addEventListener("dragover", e => {
-        if (!location.pathname.includes("/directions") && !location.pathname.includes("/note/new")) {
-            e.preventDefault()
-        }
-    })
-
-    if (location.pathname.includes("/traces")) {
-        document.querySelectorAll('a[href*="edit?gpx="]').forEach(i => {
-            const trackID = i.getAttribute("href").match(/edit\?gpx=(\d+)/)[1]
-            const editLink = i.parentElement.parentElement.querySelector('a:not([href*="display-gpx"])')
-            const url = new URL(editLink.href)
-            url.search += "&display-gpx=" + trackID
-            editLink.href = url.toString()
-        })
-    } else if (location.search.includes("&display-gpx=")) {
-        const trackID = location.search.match(/&display-gpx=(\d+)/)[1]
-        const res = await externalFetchRetry({
-            url: `${osm_server.url}/traces/${trackID}/data`,
-            responseType: "blob",
-        })
-        const contentType = res.response.type
-        if (contentType === "application/gpx+xml") {
-            displayGPXTrack(await res.response.text())
-        } else if (contentType === "application/gzip") {
-            displayGPXTrack(await (await decompressBlob(res.response)).text())
-        } else if (contentType === "application/x-bzip2") {
-            // fuck Tampermonkey, structuredClone for TM
-            displayGPXTrack(
-                new DOMParser().parseFromString(
-                    new TextDecoder().decode(bz2.decompress(structuredClone(await res.response.bytes()))),
-                    "application/xml",
-                ),
-            )
-        } else {
-            throw `Unknown track #${trackID} format: ` + contentType
-        }
-        if (trackMetadata) {
-            fitBounds([
-                [trackMetadata.min_lat, trackMetadata.min_lon],
-                [trackMetadata.max_lat, trackMetadata.max_lon],
-            ])
-        }
-    }
-
-    // todo refactor
-    const createNoteButton = document.querySelector(".control-note.leaflet-control a")
-    if (createNoteButton && !createNoteButton.getAttribute("data-bs-original-title").includes(" (shift + N)")) {
-        createNoteButton.setAttribute("data-bs-original-title", createNoteButton.getAttribute("data-bs-original-title") + " (shift + N)")
-    }
 }
 
 //</editor-fold>
