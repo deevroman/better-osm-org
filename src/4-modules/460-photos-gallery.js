@@ -470,16 +470,14 @@ function renderPhotosPreview(withPhotos) {
     document.querySelectorAll("#photos-preview-gallery .photo-preview[data-fotoshi-id]").forEach(previewEl => {
         addClick(previewEl)
         const id = previewEl.getAttribute("data-fotoshi-id")
+        const imgSrc = getFotoshiPreviewUrl(id)
+        previewEl.setAttribute("data-photo-thumb-src", imgSrc)
+        previewEl.setAttribute("data-photo-zoom-src", imgSrc)
+        attachPhotosCarouselHoverZoom(previewEl)
+        addImg(imgSrc, previewEl)
         void downloadFotoshiPhoto(id)
             .then(photo => {
-                const thumbSrc = photo?.assets?.thumbnail?.href
-                const zoomSrc = photo?.assets?.["image-1280"]?.href ?? thumbSrc
-                if (!thumbSrc || !zoomSrc) return
-                previewEl.setAttribute("data-photo-thumb-src", thumbSrc)
-                previewEl.setAttribute("data-photo-zoom-src", zoomSrc)
-                attachPhotosCarouselHoverZoom(previewEl)
-                addImg(thumbSrc, previewEl)
-                attachFotoshiHoverCaptureHandler(previewEl, photo)
+                if (photo) attachFotoshiHoverCaptureHandler(previewEl, photo)
             })
             .catch(error => console.error("Failed to load Fotoshi photo", id, error))
     })
