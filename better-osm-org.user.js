@@ -11445,7 +11445,7 @@ async function setupClickableMap() {
 
 //</editor-fold>
 
-//<editor-fold desc="notes" defaultstate="collapsed">
+//<editor-fold desc="notes-create-poi" defaultstate="collapsed">
 
 function makeTextareaFromTagsTable(table) {
     const textarea = document.createElement("textarea")
@@ -11542,6 +11542,10 @@ function addCreateNewPOIButton() {
         window.location = osm_server.url + "/changeset/" + changesetId
     }
 }
+
+//</editor-fold>
+
+//<editor-fold desc="notes-download-kml" defaultstate="collapsed">
 
 const kmlXmlNamespace = "http://www.opengis.net/kml/2.2"
 const streetCompletePhotoUrlRegex = /^(https:\/\/streetcomplete\.app\/|https:\/\/westnordost\.de\/).+\.jpg$/
@@ -11690,6 +11694,10 @@ function downloadVisibleNotesAsKml() {
         .replace(/\.\d{3}Z$/, "Z")
     downloadTextFile(`osm-notes-${filenameDate}.kml`, makeNotesKml(notes), "application/vnd.google-earth.kml+xml;charset=utf-8")
 }
+
+//</editor-fold>
+
+//<editor-fold desc="notes-autocomplete" defaultstate="collapsed">
 
 const noteHashtags = [
     "#added",
@@ -11856,6 +11864,10 @@ function addAutoCompleteOnIdEditor() {
         console.error(e)
     }
 }
+
+//</editor-fold>
+
+//<editor-fold desc="note-details" defaultstate="collapsed">
 
 function tryReloadSidebar() {
     try {
@@ -12028,6 +12040,10 @@ function addRelatedChangesetsSearch() {
     lastCommentTime.after(findChangesetsBtn)
 }
 
+//</editor-fold>
+
+//<editor-fold desc="notes-resolve" defaultstate="collapsed">
+
 function insertNoteResolveButtons() {
     /** @type {string} */
     const resolveButtonsText = GM_config.get("ResolveNotesButton")
@@ -12156,6 +12172,10 @@ function setupResolveNotesButton() {
     if (!location.pathname.startsWith("/note")) return
     tryApplyModule(addResolveNotesButton, 100, 3000)
 }
+
+//</editor-fold>
+
+//<editor-fold desc="notes-filters" defaultstate="collapsed">
 
 let updateNotesLayer = null
 
@@ -12524,6 +12544,10 @@ function setupNotesFiltersButtons() {
         tryApplyModule(addNotesFiltersButtons, 200, 5000)
     }
 }
+
+//</editor-fold>
+
+//<editor-fold desc="note-hide-highlight" defaultstate="collapsed">
 
 let mapDataSwitcherUnderSupervision = false
 
