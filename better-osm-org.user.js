@@ -22630,6 +22630,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
         i.parentElement.parentElement.onmouseover = mouseoverHandler
         if ((prevVersion.tags && Object.keys(prevVersion.tags).length) || (targetVersion.tags && Object.keys(targetVersion.tags).length)) {
             // todo temp hack for potential speed up // fixme remove comment
+            // debugger // todo
             objectsInComments.nodes
                 .filter(i => i.href.includes(`node/${objID}`))
                 .forEach(link => {
@@ -23216,17 +23217,17 @@ async function processObjectsInteractions(objType, uniqTypes, changesetID) {
         // todo can be optimized
         nodes: Array.from(
             document.querySelectorAll(
-                `#element_versions_list > div > div:has([name=subscribe],[name=unsubscribe]) ~ article div a[href*="node/"]`,
+                `#sidebar_content_frame > div > div:has([name=subscribe],[name=unsubscribe]) ~ article div a[href*="node/"]`,
             ),
         ),
         ways: Array.from(
             document.querySelectorAll(
-                `#element_versions_list > div > div:has([name=subscribe],[name=unsubscribe]) ~ article div a[href*="way/"]`,
+                `#sidebar_content_frame > div > div:has([name=subscribe],[name=unsubscribe]) ~ article div a[href*="way/"]`,
             ),
         ),
         relations: Array.from(
             document.querySelectorAll(
-                `#element_versions_list > div > div:has([name=subscribe],[name=unsubscribe]) ~ article div a[href*="relation/"]`,
+                `#sidebar_content_frame > div > div:has([name=subscribe],[name=unsubscribe]) ~ article div a[href*="relation/"]`,
             ),
         ),
     }
