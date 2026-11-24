@@ -207,7 +207,7 @@ _translations["ru"] = {
     overpassSearch: {
         title: "Поиск Overpass",
         examples: "Примеры селекторов:",
-        selector: "Условие поиска",
+        selector: "Селектор",
         help: "Добавьте ! в конце для поиска по всему миру.",
         hideObjectsHelp: "Нажмите Alt, чтобы скрыть объекты с карты.",
         snapshotDate: "Дата снимка",
