@@ -75,7 +75,7 @@ async function showOverpassSearchDialog() {
     const examples = document.createElement("div")
     examples.className = "overpass-examples"
     const currentUser = getCurrentUser()
-    const exampleQueries = ["key", "panoramax|mapillary|wikimedia_commons", "key=value", "key~val,i", "~key1|key2"]
+    const exampleQueries = ["panoramax|mapillary|wikimedia_commons", "key", "key=value", "key~val,i", "~key1|key2"]
     if (currentUser) {
         exampleQueries.push(currentUser.match(/^[a-zA-Z0-9_]+$/) ? `node(user:${currentUser})` : `node(user:"${currentUser}")`)
     }
