@@ -428,7 +428,6 @@ _translations["en"] = {
         snapshotDate: "Snapshot date",
         preview: "Query to be sent",
         editQuery: "Edit full query",
-        editingQuery: "Editing the full query. Clear the field or choose an example to return to selector mode.",
         cancel: "Cancel",
         search: "Search",
         httpError: "Error. HTTP Code: {status}",
@@ -1379,7 +1378,6 @@ _translations["ru"] = {
         snapshotDate: "Дата снимка",
         preview: "Запрос, который будет отправлен",
         editQuery: "Редактировать полный запрос",
-        editingQuery: "Редактируется полный запрос. Очистите поле или выберите пример, чтобы вернуться к селектору.",
         cancel: "Отмена",
         search: "Найти",
         httpError: "Ошибка. HTTP код: {status}",
@@ -33357,12 +33355,8 @@ async function showOverpassSearchDialog() {
     })
     previewContainer.append(preview, editQuery)
     previewLabel.append(previewCaption, previewContainer)
-    const editingQueryHelp = document.createElement("p")
-    editingQueryHelp.className = "overpass-help"
-    editingQueryHelp.textContent = t("overpassSearch.editingQuery")
     function updatePreview() {
         date.disabled = rawQuery
-        editingQueryHelp.hidden = !rawQuery
         preview.textContent = buildOverpassSearchQuery(input.value, getMap().getBounds(), date.value, rawQuery)
     }
     function resizeInput() {
@@ -33390,7 +33384,7 @@ async function showOverpassSearchDialog() {
     submit.type = "submit"
     submit.className = "btn btn-primary"
     submit.textContent = t("overpassSearch.search")
-    form.append(heading, examples, inputLabel, help, editingQueryHelp, previewLabel, submit, hideObjectsHelp)
+    form.append(heading, examples, inputLabel, help, previewLabel, submit, hideObjectsHelp)
     dialog.append(form)
     dialog.addEventListener("keydown", event => {
         event.stopPropagation()

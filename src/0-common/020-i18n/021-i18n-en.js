@@ -205,7 +205,6 @@ _translations["en"] = {
         snapshotDate: "Snapshot date",
         preview: "Query to be sent",
         editQuery: "Edit full query",
-        editingQuery: "Editing the full query. Clear the field or choose an example to return to selector mode.",
         cancel: "Cancel",
         search: "Search",
         httpError: "Error. HTTP Code: {status}",

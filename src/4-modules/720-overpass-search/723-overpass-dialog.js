@@ -143,12 +143,8 @@ async function showOverpassSearchDialog() {
     })
     previewContainer.append(preview, editQuery)
     previewLabel.append(previewCaption, previewContainer)
-    const editingQueryHelp = document.createElement("p")
-    editingQueryHelp.className = "overpass-help"
-    editingQueryHelp.textContent = t("overpassSearch.editingQuery")
     function updatePreview() {
         date.disabled = rawQuery
-        editingQueryHelp.hidden = !rawQuery
         preview.textContent = buildOverpassSearchQuery(input.value, getMap().getBounds(), date.value, rawQuery)
     }
     function resizeInput() {
@@ -176,7 +172,7 @@ async function showOverpassSearchDialog() {
     submit.type = "submit"
     submit.className = "btn btn-primary"
     submit.textContent = t("overpassSearch.search")
-    form.append(heading, examples, inputLabel, help, editingQueryHelp, previewLabel, submit, hideObjectsHelp)
+    form.append(heading, examples, inputLabel, help, previewLabel, submit, hideObjectsHelp)
     dialog.append(form)
     dialog.addEventListener("keydown", event => {
         event.stopPropagation()
