@@ -1240,33 +1240,9 @@ function actionOpenOverpassSearch() {
             getMap().getBounds()
         } catch (e) {
             alert("Try to reload tab")
+            return
         }
-        let message = `Type overpass selector. Examples:
-\tkey
-\tpanoramax|mapillary|wikimedia_commons|...
-
-\tkey=value
-\tkey~val,i
-\t~key1|key2|...
-
-`
-        const currentUser = getCurrentUser()
-        if (currentUser) {
-            message += currentUser.match(/^[a-zA-Z0-9_]+$/) ? `\n\tnode(user:${currentUser})` : `\n\tnode(user:"${currentUser}")`
-        }
-        message += `
-\tway[footway=crossing](if: length() > 150)
-
-End with ! for global search
-
-Objects can be hidden from map by pressing Alt key.
-
-⚠this is a simple prototype of search`
-        const query = prompt(message, await GM.getValue("lastOverpassQuery", ""))
-        if (query) {
-            insertOverlaysStyles()
-            await processOverpassQuery(query)
-        }
+        await showOverpassSearchDialog()
     }, 0)
 }
 
