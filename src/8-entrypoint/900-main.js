@@ -66,6 +66,7 @@ function main() {
         registerCopyCoordinatesStyles()
         registerContextMenuStyles()
         registerHotkeyCommandsPopupStyles()
+        registerOverpassSearchStyles()
         registerQuickLookStyles()
         registerNotesFiltersStyles()
         if (isDebug()) {

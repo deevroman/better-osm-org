@@ -420,6 +420,17 @@ _translations["en"] = {
         conflict: "Conflict",
     },
     overpassSearch: {
+        title: "Overpass search",
+        examples: "Examples of selectors:",
+        selector: "Selector",
+        help: "End with ! to search worldwide.",
+        hideObjectsHelp: "Press Alt to hide objects from the map.",
+        snapshotDate: "Snapshot date",
+        preview: "Query to be sent",
+        editQuery: "Edit full query",
+        editingQuery: "Editing the full query. Clear the field or choose an example to return to selector mode.",
+        cancel: "Cancel",
+        search: "Search",
         httpError: "Error. HTTP Code: {status}",
         httpErrorWithQuery: "Error. HTTP Code: {status}\nSubmitted request:\n\n{query}",
         invalidQuery: "invalid query",
@@ -1360,6 +1371,17 @@ _translations["ru"] = {
         conflict: "Конфликт",
     },
     overpassSearch: {
+        title: "Поиск Overpass",
+        examples: "Примеры селекторов:",
+        selector: "Условие поиска",
+        help: "Добавьте ! в конце для поиска по всему миру.",
+        hideObjectsHelp: "Нажмите Alt, чтобы скрыть объекты с карты.",
+        snapshotDate: "Дата снимка",
+        preview: "Запрос, который будет отправлен",
+        editQuery: "Редактировать полный запрос",
+        editingQuery: "Редактируется полный запрос. Очистите поле или выберите пример, чтобы вернуться к селектору.",
+        cancel: "Отмена",
+        search: "Найти",
         httpError: "Ошибка. HTTP код: {status}",
         httpErrorWithQuery: "Ошибка. HTTP код: {status}\nОтправленный запрос:\n\n{query}",
         invalidQuery: "неверный запрос",
@@ -32903,10 +32925,10 @@ async function displayOsc(xml) {
 
 //</editor-fold>
 
-//<editor-fold desc="overpass search" defaultstate="collapsed">
-
 function yetAnotherWizard(s) {
     // const [k, v] = s.split("=")
+    if (!s) return 'nwr[""];'
+    if (s === "*") return "nwr;"
     if (s[0] === "~" && !s.slice(1).includes("~")) {
         if (!s.includes('"') && s.includes("|")) {
             return `nwr[~"${s.slice(1)}"~".*"];`
@@ -32944,7 +32966,26 @@ function yetAnotherWizard(s) {
     }
 }
 
-let searchResultBBOX = null
+function buildOverpassSearchQuery(query, bound, date = "", raw = false) {
+    query = query.trim()
+    if (raw) return query
+    const bboxString = [
+        bound.getSouthWest().wrap().lat,
+        bound.getSouthWest().wrap().lng,
+        bound.getNorthEast().wrap().lat,
+        bound.getNorthEast().wrap().lng,
+    ].map(coordinate => coordinate.toFixed(7))
+    const bboxExpr = query.endsWith("!") ? "" : "[bbox:" + bboxString + "]"
+    if (query.endsWith("!")) query = query.slice(0, -1)
+    query = query.replace("{{bbox}}", bboxString.join(","))
+    const dateExpr = date ? `[date:"${date}T00:00:00Z"]` : ""
+    return `${dateExpr}[out:xml][maxsize:64Mi]${bboxExpr};
+${yetAnotherWizard(query)}
+//(._;>;);
+out geom;
+`
+}
+
 const panoramaxVectorMapSourceId = "panoramax-photos-source"
 const panoramaxVectorMapLayerId = "panoramax-photos-layer"
 let panoramaxVectorMapImageIds = []
@@ -33069,32 +33110,19 @@ function startPhotosRender(xml) {
     })
 }
 
-async function processOverpassQuery(query) {
+let searchResultBBOX = null
+
+async function processOverpassQuery(query, date = "", raw = false) {
     if (!query.length) return
     query = query.trim()
     await GM.setValue("lastOverpassQuery", query)
-    const bound = getMap().getBounds()
-    const bboxString = [
-        bound.getSouthWest().wrap().lat,
-        bound.getSouthWest().wrap().lng,
-        bound.getNorthEast().wrap().lat,
-        bound.getNorthEast().wrap().lng,
-    ]
-    const bboxExpr = query[query.length - 1] !== "!" ? "[bbox:" + bboxString + "]" : ""
-    if (query[query.length - 1] === "!") {
-        query = query.slice(0, -1)
-    }
-    query = query.replace("{{bbox}}", bboxString.join(","))
+    await GM.setValue("lastOverpassQueryIsRaw", raw)
+    const overpassQuery = buildOverpassSearchQuery(query, getMap().getBounds(), date, raw)
     const prevTitle = document.title
     const newTitle = "◴" + prevTitle
     document.title = newTitle
 
     try {
-        const overpassQuery = `[out:xml][maxsize:64Mi]${bboxExpr};
-${yetAnotherWizard(query)}
-//(._;>;);
-out geom;
-`
         const res = await overpassRequest(overpassQuery, "xml", false)
         const xml = new DOMParser().parseFromString(res.response, "text/xml")
         if (res.status !== 200) {
@@ -33184,7 +33212,213 @@ out geom;
     }
 }
 
-//</editor-fold>
+function registerOverpassSearchStyles() {
+    registerOSMStyle(
+        "overpass-search-dialog",
+        () => `
+        #better-osm-overpass-search {
+            position: fixed;
+            z-index: 9999;
+            top: 5vh;
+            left: 0;
+            right: 0;
+            margin: 0 auto;
+            box-sizing: border-box;
+            width: min(800px, calc(100% - 24px));
+            max-height: 90vh;
+            overflow: auto;
+            padding: 8px 20px 20px;
+            border: 1px solid var(--bs-border-color, #ccc);
+            border-radius: 8px;
+            background: var(--bs-body-bg, white);
+            color: var(--bs-body-color, black);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, .25);
+        }
+        #better-osm-overpass-search form { display: grid; gap: 12px; }
+        #better-osm-overpass-search p { margin: 0; }
+        #better-osm-overpass-search .overpass-help { color: var(--bs-secondary-color, #6c757d); }
+        #better-osm-overpass-search .overpass-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+        #better-osm-overpass-search .overpass-close { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; padding: 0; font-size: 1.5rem; line-height: 1; }
+        #better-osm-overpass-search .overpass-examples { display: flex; flex-wrap: wrap; gap: 6px; }
+        #better-osm-overpass-search .overpass-example { font-family: monospace; }
+        #better-osm-overpass-search .overpass-field { display: grid; gap: 4px; }
+        #better-osm-overpass-search .overpass-date { width: auto; max-width: 100%; }
+        #better-osm-overpass-search textarea { box-sizing: border-box; max-height: 40vh; resize: vertical; font-family: monospace; }
+        #better-osm-overpass-search .overpass-preview { position: relative; min-width: 0; }
+        #better-osm-overpass-search .overpass-edit-query { position: absolute; top: 4px; right: 4px; padding: 4px; line-height: 1; }
+        #better-osm-overpass-search .overpass-edit-query svg { width: 18px; height: 18px; }
+        #better-osm-overpass-search pre {
+            margin: 0;
+            padding: 8px 36px 8px 8px;
+            max-height: 180px;
+            overflow: auto;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+            background: var(--bs-tertiary-bg, #f3f3f3);
+            color: inherit;
+            border-radius: 4px;
+        }
+    `,
+    )
+}
+
+async function showOverpassSearchDialog() {
+    if (document.querySelector("#better-osm-overpass-search")) return
+    const previousFocus = document.activeElement
+    const lastQuery = await GM.getValue("lastOverpassQuery", "")
+    let rawQuery = await GM.getValue("lastOverpassQueryIsRaw", false)
+    if (document.querySelector("#better-osm-overpass-search")) return
+
+    const dialog = document.createElement("dialog")
+    dialog.id = "better-osm-overpass-search"
+    dialog.setAttribute("aria-label", t("overpassSearch.title"))
+    const form = document.createElement("form")
+
+    const heading = document.createElement("div")
+    heading.className = "overpass-heading"
+    const examplesLabel = document.createElement("p")
+    examplesLabel.textContent = t("overpassSearch.examples")
+    const cancel = document.createElement("button")
+    cancel.type = "button"
+    cancel.className = "btn overpass-close"
+    cancel.setAttribute("aria-label", t("overpassSearch.cancel"))
+    cancel.title = t("overpassSearch.cancel")
+    cancel.textContent = "×"
+    cancel.addEventListener("click", () => dialog.close())
+    heading.append(examplesLabel, cancel)
+    const examples = document.createElement("div")
+    examples.className = "overpass-examples"
+    const currentUser = getCurrentUser()
+    const exampleQueries = ["key", "panoramax|mapillary|wikimedia_commons", "key=value", "key~val,i", "~key1|key2"]
+    if (currentUser) {
+        exampleQueries.push(currentUser.match(/^[a-zA-Z0-9_]+$/) ? `node(user:${currentUser})` : `node(user:"${currentUser}")`)
+    }
+    exampleQueries.push("way[footway=crossing](if: length() > 150)")
+
+    const inputLabel = document.createElement("label")
+    inputLabel.className = "overpass-field"
+    const inputCaption = document.createElement("span")
+    inputCaption.textContent = t("overpassSearch.selector")
+    const input = document.createElement("textarea")
+    input.rows = 1
+    input.required = true
+    input.value = lastQuery
+    inputLabel.append(inputCaption, input)
+    for (const example of exampleQueries) {
+        const button = document.createElement("button")
+        button.type = "button"
+        button.className = "btn btn-sm btn-outline-secondary overpass-example"
+        button.textContent = example
+        button.addEventListener("click", () => {
+            rawQuery = false
+            input.value = example
+            resizeInput()
+            updatePreview()
+            input.focus()
+        })
+        examples.append(button)
+    }
+
+    const help = document.createElement("p")
+    help.className = "overpass-help"
+    help.textContent = t("overpassSearch.help")
+    const hideObjectsHelp = document.createElement("p")
+    hideObjectsHelp.className = "overpass-help"
+    hideObjectsHelp.textContent = t("overpassSearch.hideObjectsHelp")
+    const date = document.createElement("input")
+    date.type = "date"
+    date.className = "overpass-date"
+    date.setAttribute("aria-label", t("overpassSearch.snapshotDate"))
+    date.title = t("overpassSearch.snapshotDate")
+    examples.append(date)
+
+    const previewLabel = document.createElement("div")
+    previewLabel.className = "overpass-field"
+    const previewCaption = document.createElement("span")
+    previewCaption.textContent = t("overpassSearch.preview")
+    const previewContainer = document.createElement("div")
+    previewContainer.className = "overpass-preview"
+    const preview = document.createElement("pre")
+    const editQuery = document.createElement("button")
+    editQuery.type = "button"
+    editQuery.className = "btn overpass-edit-query"
+    editQuery.title = t("overpassSearch.editQuery")
+    editQuery.setAttribute("aria-label", t("overpassSearch.editQuery"))
+    insertSvg(editQuery, "pencilLink")
+    editQuery.addEventListener("click", () => {
+        input.value = preview.textContent.replace(/\n$/, "")
+        rawQuery = true
+        resizeInput()
+        updatePreview()
+        input.focus()
+        const secondLineEnd = input.value.indexOf("\n", input.value.indexOf("\n") + 1)
+        const cursorPosition = secondLineEnd === -1 ? input.value.length : secondLineEnd
+        input.setSelectionRange(cursorPosition, cursorPosition)
+    })
+    previewContainer.append(preview, editQuery)
+    previewLabel.append(previewCaption, previewContainer)
+    const editingQueryHelp = document.createElement("p")
+    editingQueryHelp.className = "overpass-help"
+    editingQueryHelp.textContent = t("overpassSearch.editingQuery")
+    function updatePreview() {
+        date.disabled = rawQuery
+        editingQueryHelp.hidden = !rawQuery
+        preview.textContent = buildOverpassSearchQuery(input.value, getMap().getBounds(), date.value, rawQuery)
+    }
+    function resizeInput() {
+        input.style.height = "auto"
+        input.style.height = `${input.scrollHeight + input.offsetHeight - input.clientHeight}px`
+    }
+    input.addEventListener("input", () => {
+        if (!input.value.trim()) rawQuery = false
+        resizeInput()
+        updatePreview()
+    })
+    input.addEventListener("keydown", event => {
+        if (event.key === "Enter" && !event.shiftKey && !event.isComposing) {
+            event.preventDefault()
+            form.requestSubmit()
+        }
+    })
+    date.addEventListener("input", updatePreview)
+    date.addEventListener("change", updatePreview)
+    const map = getMap()
+    const updatePreviewOnMove = intoPageWithFun(updatePreview)
+    map.on("move", updatePreviewOnMove)
+
+    const submit = document.createElement("button")
+    submit.type = "submit"
+    submit.className = "btn btn-primary"
+    submit.textContent = t("overpassSearch.search")
+    form.append(heading, examples, inputLabel, help, editingQueryHelp, previewLabel, submit, hideObjectsHelp)
+    dialog.append(form)
+    dialog.addEventListener("keydown", event => {
+        event.stopPropagation()
+        if (event.key === "Escape") {
+            event.preventDefault()
+            dialog.close()
+        }
+    })
+    dialog.addEventListener("close", () => {
+        map.off("move", updatePreviewOnMove)
+        dialog.remove()
+        previousFocus?.focus?.()
+    })
+    form.addEventListener("submit", event => {
+        event.preventDefault()
+        const query = input.value.trim()
+        if (!query) return
+        const snapshotDate = date.value
+        dialog.close()
+        insertOverlaysStyles()
+        void processOverpassQuery(query, snapshotDate, rawQuery)
+    })
+    document.body.append(dialog)
+    updatePreview()
+    dialog.show()
+    resizeInput()
+    input.focus()
+}
 
 //<editor-fold desc="actions">
 
@@ -34428,33 +34662,9 @@ function actionOpenOverpassSearch() {
             getMap().getBounds()
         } catch (e) {
             alert("Try to reload tab")
+            return
         }
-        let message = `Type overpass selector. Examples:
-\tkey
-\tpanoramax|mapillary|wikimedia_commons|...
-
-\tkey=value
-\tkey~val,i
-\t~key1|key2|...
-
-`
-        const currentUser = getCurrentUser()
-        if (currentUser) {
-            message += currentUser.match(/^[a-zA-Z0-9_]+$/) ? `\n\tnode(user:${currentUser})` : `\n\tnode(user:"${currentUser}")`
-        }
-        message += `
-\tway[footway=crossing](if: length() > 150)
-
-End with ! for global search
-
-Objects can be hidden from map by pressing Alt key.
-
-⚠this is a simple prototype of search`
-        const query = prompt(message, await GM.getValue("lastOverpassQuery", ""))
-        if (query) {
-            insertOverlaysStyles()
-            await processOverpassQuery(query)
-        }
+        await showOverpassSearchDialog()
     }, 0)
 }
 
@@ -37855,6 +38065,7 @@ function main() {
         registerCopyCoordinatesStyles()
         registerContextMenuStyles()
         registerHotkeyCommandsPopupStyles()
+        registerOverpassSearchStyles()
         registerQuickLookStyles()
         registerNotesFiltersStyles()
         if (isDebug()) {
