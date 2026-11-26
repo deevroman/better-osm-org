@@ -25,7 +25,7 @@ function setupWiki() {
     for (const ul of document.querySelectorAll(".mw-heading:has(:is(h1,h2)#Voting) ~ ul")) {
         for (const li of ul.querySelectorAll('li:has([typeof="mw:File"])')) {
             const anchors = Array.from(li.querySelectorAll(":scope > a"))
-            const who = (anchors.at(-2) ?? anchors.at(-1)).textContent
+            const who = (anchors.at(-3) ?? anchors.at(-2)).textContent
             if (li.querySelectorAll(supportSymbolQuery).length === 1) {
                 hasDupeVotes |= !addToList(supportList, who, "support")
             } else if (li.querySelectorAll(opposeSymbolQuery).length === 1) {
