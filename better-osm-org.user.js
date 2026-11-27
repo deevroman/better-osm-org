@@ -20908,8 +20908,8 @@ function transformDiffWithColors() {
                     const ver = oldToNewHtmlVersions[verInd]
                     const olderVersion = oldToNewHtmlVersions[verInd - 1]
                     const nextVersion = oldToNewHtmlVersions[verInd + 1]
+                    const curChildNodes = Array.from(ver.querySelectorAll("details ul.list-unstyled li"), el => el.textContent)
                     if (olderVersion && !olderVersion.querySelector("turbo-frame:has(.spinner-border)")) {
-                        const curChildNodes = Array.from(ver.querySelectorAll("details ul.list-unstyled li")).map(el => el.textContent)
                         const oldChildMembers = Array.from(olderVersion.querySelectorAll("details ul.list-unstyled li")).map(
                             el => el.textContent,
                         )
@@ -20926,7 +20926,6 @@ function transformDiffWithColors() {
                     }
                     if (nextVersion && !nextVersion.querySelector("turbo-frame:has(.spinner-border)")) {
                         const nextChildMembers = Array.from(nextVersion.querySelectorAll("details ul.list-unstyled li"), el => el.textContent)
-                        const curChildNodes = Array.from(ver.querySelectorAll("details ul.list-unstyled li"), el => el.textContent)
 
                         if (
                             nextChildMembers.length !== curChildNodes.length ||
