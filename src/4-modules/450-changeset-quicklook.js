@@ -458,7 +458,7 @@ function makeLinksInChangesetObjectRowClickable(row, objType) {
             makeWikimediaCommonsValue(valueCell, false)
         } else if (key.startsWith("ref:inaturalist.org")) {
             makeRefInaturalistValue(valueCell)
-        } else if (key === "image:fotoshi") {
+        } else if (key === "image:fotoshi" || key === "fotoshi") {
             makeFotoshiValue(valueCell)
         } else if (needValidateOpeningHoursKey(key)) {
             makeOpeningHoursValue(valueCell, key, false)

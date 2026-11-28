@@ -336,7 +336,7 @@ function renderPhotosPreview(withPhotos) {
                     placeholder.setAttribute("data-osm-path", "/" + photoObj.type + "/" + photoObj.id)
                     photosPreviewGallery.append(placeholder)
                 })
-            } else if (k === "image:fotoshi") {
+            } else if (k === "image:fotoshi" || k === "fotoshi") {
                 v.split(";")
                     .map(id => id.trim())
                     .filter(id => /^[a-zA-Z0-9_-]+$/.test(id))
