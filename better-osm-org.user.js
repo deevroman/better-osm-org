@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.8.2
-// @changelog       v1.8.2: support image:fotoshi, add lat/lon into opening_hours link,
+// @version         1.8.3
+// @changelog       v1.8.3: support fotoshi=* tags, add lat/lon into opening_hours link,
 // @changelog       v1.8.0: use red color for Overpass search results, fix sidebar jumps
 // @changelog       v1.7.7: indoor viewers link for object with indoor=*, shop=mall, comment button in Edit Tags
 // @changelog       v1.7.3: Notes resolve buttons in iD, Open in Vespucci action, Drag&Drop for JSON array and .osc β
@@ -17198,7 +17198,7 @@ function makeLinksInVersionTagClickable(row, objType) {
         }
     } else if (key === "ref:inaturalist.org") {
         makeRefInaturalistValue(valueCell)
-    } else if (key === "image:fotoshi") {
+    } else if (key === "image:fotoshi" || key === "fotoshi") {
         makeFotoshiValue(valueCell)
     } else if (key.startsWith("was:") || key.startsWith("disused:") || key.startsWith("old_")) {
         if (GM_config.get("ReorderOldTags") && !location.pathname.endsWith("/history")) {
@@ -21559,7 +21559,7 @@ function makeLinksInChangesetObjectRowClickable(row, objType) {
             makeWikimediaCommonsValue(valueCell, false)
         } else if (key.startsWith("ref:inaturalist.org")) {
             makeRefInaturalistValue(valueCell)
-        } else if (key === "image:fotoshi") {
+        } else if (key === "image:fotoshi" || key === "fotoshi") {
             makeFotoshiValue(valueCell)
         } else if (needValidateOpeningHoursKey(key)) {
             makeOpeningHoursValue(valueCell, key, false)
@@ -25273,7 +25273,7 @@ function renderPhotosPreview(withPhotos) {
                     placeholder.setAttribute("data-osm-path", "/" + photoObj.type + "/" + photoObj.id)
                     photosPreviewGallery.append(placeholder)
                 })
-            } else if (k === "image:fotoshi") {
+            } else if (k === "image:fotoshi" || k === "fotoshi") {
                 v.split(";")
                     .map(id => id.trim())
                     .filter(id => /^[a-zA-Z0-9_-]+$/.test(id))
@@ -33089,7 +33089,7 @@ function startPhotosRender(xml) {
     setTimeout(async () => {
         const withPhotos = Array.from(
             xml.querySelectorAll(
-                ':has(>:is([k^=panoramax],[k^=mapillary],[k^=wikimedia_commons],[k^="ref:inaturalist.org"],[k="image:fotoshi"]))',
+                ':has(>:is([k^=panoramax],[k^=mapillary],[k^=wikimedia_commons],[k^="ref:inaturalist.org"],[k="image:fotoshi"],[k="fotoshi"]))',
             ),
         ).map(i => {
             const res = {

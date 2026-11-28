@@ -708,7 +708,7 @@ function makeLinksInVersionTagClickable(row, objType) {
         }
     } else if (key === "ref:inaturalist.org") {
         makeRefInaturalistValue(valueCell)
-    } else if (key === "image:fotoshi") {
+    } else if (key === "image:fotoshi" || key === "fotoshi") {
         makeFotoshiValue(valueCell)
     } else if (key.startsWith("was:") || key.startsWith("disused:") || key.startsWith("old_")) {
         if (GM_config.get("ReorderOldTags") && !location.pathname.endsWith("/history")) {
